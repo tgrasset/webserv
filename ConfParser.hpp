@@ -16,15 +16,19 @@ class ConfParser {
 
         ConfParser &operator=(ConfParser const &rhs);
 
-        std::string getPath() const;
-        std::vector<Server> getServers() const;
+        std::string                 getPath() const;
+        std::vector<Server>         getServers() const;
+        std::vector<std::string>    getServerConf() const;
+        int                         getServerNb() const;
 
-        void    parse();
-        std::string extractContent(std::string const &path);
-        void    cleanComments(std::string &content) const;
-        void    splitServerBlocks(std::string &content);
-        size_t  getBlockStart(size_t blockStart, std::string &content) const;
-        size_t  getBlockEnd(size_t blockStart, std::string &content) const;
+        void                        parse();
+        std::string                 extractContent(std::string const &path);
+        void                        cleanComments(std::string &content) const;
+        void                        splitServerBlocks(std::string &content);
+        size_t                      getBlockStart(size_t blockStart, std::string &content) const;
+        size_t                      getBlockEnd(size_t blockStart, std::string &content) const;
+        void                        configurateServer(Server &server, std::string &config) const;
+        void                        checkServerConfig(Server &server) const;
 
         class ConfParserException : public std::exception {
             public :
