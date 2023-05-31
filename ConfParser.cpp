@@ -221,7 +221,7 @@ void    ConfParser::configurateServer(Server &server, std::string &config) const
             for (; i < size && params[i] != "}"; i++)
                 content.push_back(params[i]);
             if (i == size)
-                throw ConfParserException("Missing '}' symbol at the end of location block");
+                throw ConfParserException("Missing '}' symbol at the end of 'location' block");
             server.setLocations(path, content);
             inLocations = true;
         }
@@ -235,12 +235,31 @@ void    ConfParser::configurateServer(Server &server, std::string &config) const
     }
 }
 
+bool    ConfParser::checkFile(std::string const &index, std::string const &root) const {
+
+    struct stat test;
+
+	if (stat(index.c_str(), &test) == 0 && test.st_mode & S_IFREG && access(index.c_str(), R_OK) == 0)
+        return (true);
+    std::string full = root + index;
+    if (stat(full.c_str(), &test) == 0 && test.st_mode & S_IFREG && access(full.c_str(), R_OK) == 0)
+        return (true);
+    return (false);
+}
+
 void    ConfParser::checkServerConfig(Server &server) const {
 
     if (server.getRoot() == "")
         server.setRoot("/;");
     if (server.getHost() == 0)
         server.setHost("localhost;");
+    if (server.getIndex() == "")
+        server.setIndex("index.html;");
+    if (server.getPort() == 0)
+        throw ConfParserException("Missing port, please add 'listen' directive");
+    if (checkFile(server.getIndex(), server.getRoot()) == false)
+        throw ConfParserException("The index specified doesn't exist or couldn't be read");
+    //ajouter les locations et les error pages
 }
 
 void    ConfParser::parse() {
@@ -254,7 +273,7 @@ void    ConfParser::parse() {
     {
         Server newServer;
         configurateServer(newServer, _serverConf[i]);
-        checkServerConfig(newServer);  //verifier le contenu de l'instance et si il manque qqch ajouter du default
+        checkServerConfig(newServer);
         _servers.push_back(newServer);
     }
     //verifier si 2 serveurs ont pas meme port ET meme host ET meme server_name

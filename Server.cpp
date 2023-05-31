@@ -140,9 +140,11 @@ void	Server::setIndex(std::string index) {
 
 void	Server::setErrorPages(std::vector<std::string> errorPages) {
 	(void)errorPages;
+	//a implementer
 }
 
 void	Server::setLocations(std::string path, std::vector<std::string> content) {
 	(void)content;
 	(void)path;
+	//a implementer
 }

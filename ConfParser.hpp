@@ -29,6 +29,7 @@ class ConfParser {
         size_t                      getBlockEnd(size_t blockStart, std::string &content) const;
         void                        configurateServer(Server &server, std::string &config) const;
         void                        checkServerConfig(Server &server) const;
+        bool                        checkFile(std::string const &index, std::string const &root) const;
 
         class ConfParserException : public std::exception {
             public :
