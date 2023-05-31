@@ -51,9 +51,9 @@ std::string ConfParser::extractContent(std::string const &path) {
     std::ifstream fileStream;
 
     if (ret < 0 || !S_ISREG(buf.st_mode))
-        throw ConfParserException("Invalid path");
+        throw ConfParserException("Invalid path to configuration file");
     if (access(path.c_str(), R_OK) != 0)
-        throw ConfParserException("No reading rights on specified file");
+        throw ConfParserException("No reading rights on configuration file");
     fileStream.open(path.c_str());
     if (fileStream.is_open() == false)
         throw ConfParserException("Configuration file could not be opened");
@@ -258,7 +258,7 @@ void    ConfParser::checkServerConfig(Server &server) const {
     if (server.getPort() == 0)
         throw ConfParserException("Missing port, please add 'listen' directive");
     if (checkFile(server.getIndex(), server.getRoot()) == false)
-        throw ConfParserException("The index specified doesn't exist or couldn't be read");
+        throw ConfParserException("Index doesn't exist or couldn't be read");
     //ajouter les locations et les error pages
 }
 
