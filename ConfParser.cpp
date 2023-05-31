@@ -60,6 +60,7 @@ std::string ConfParser::extractContent(std::string const &path) {
 
     std::stringstream result;
     result << fileStream.rdbuf();
+    fileStream.close();
     return (result.str());
 }
 
@@ -134,7 +135,7 @@ void    ConfParser::splitServerBlocks(std::string &content) {
             for (i = blockStart; content[i] != '\0'; i++)
             {
                 if (std::isspace(content[i]) == 0)      //en cas de whitespaces en fin de fichier
-                    throw ConfParserException("Something seems wrong with server scope");
+                    throw ConfParserException("Something seems wrong with curved brackets scopes");
             }
             break ;
         }
@@ -236,7 +237,10 @@ void    ConfParser::configurateServer(Server &server, std::string &config) const
 
 void    ConfParser::checkServerConfig(Server &server) const {
 
-    (void)server;
+    if (server.getRoot() == "")
+        server.setRoot("/;");
+    if (server.getHost() == 0)
+        server.setHost("localhost;");
 }
 
 void    ConfParser::parse() {
@@ -250,7 +254,7 @@ void    ConfParser::parse() {
     {
         Server newServer;
         configurateServer(newServer, _serverConf[i]);
-        checkServerConfig(newServer);  //a definir, verifier le contenu et si il manque qqch ajouter du default
+        checkServerConfig(newServer);  //verifier le contenu de l'instance et si il manque qqch ajouter du default
         _servers.push_back(newServer);
     }
     //verifier si 2 serveurs ont pas meme port ET meme host ET meme server_name

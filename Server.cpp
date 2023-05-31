@@ -8,7 +8,6 @@ Server::Server(void) {
 	_root = "";
 	_client_max_body_size = 0;
 	_index = "";
-	_listen = 0;
 }
 
 Server::Server(Server const &src) {
@@ -29,7 +28,6 @@ Server &Server::operator=(Server const &rhs) {
 	_root = rhs.getRoot();
 	_client_max_body_size = rhs.getClientMaxBodySize();
 	_index = rhs.getIndex();
-	_listen = rhs.getListen();
     return (*this);
 }
 
@@ -73,49 +71,78 @@ std::map<int, std::string>	Server::getErrorPages(void) const {
 // 	return (_locations);
 // }
 
-struct sockaddr_in	Server::getAddress(void) const {
-
-	return (_address);
+void	Server::setPort(std::string port) {
+	
+	if (isValidConfValue(port) == false)
+		throw ServerException("';' symbol needed after 'listen' line");
+	int n = stringToInt(port);
+	if (n < 1 || n > 65535)
+		throw ServerException("Invalid port value in 'listen' line");
+	_port = n;
 }
 
-int	Server::getListen(void) const {
-
-	return (_listen);
+void	Server::setHost(std::string host) {
+	
+	if (isValidConfValue(host) == false)
+		throw ServerException("';' symbol needed after 'host' line");
+	if (host == "localhost")
+		host = "127.0.0.1";
+	struct sockaddr_in test;
+	if (inet_pton(AF_INET, host.c_str(), &test.sin_addr) == 0)
+		throw ServerException("IPv4 address format could not be recognised in 'host' line");
+	_host = inet_addr(host.c_str());
+	
 }
 
-void	Server::setPort(std::string &port) {
-	(void)port;
+void 	Server::setServerName(std::string name) {
+
+	if (isValidConfValue(name) == true)
+		_server_name = name;
+	else
+		throw ServerException("';' symbol needed after 'server_name' line");
 }
 
-void	Server::setHost(std::string &host) {
-	(void)host;
+void	Server::setRoot(std::string root) {
+	if (isValidConfValue(root) == false)
+		throw ServerException("';' symbol needed after 'root' line");
+	struct stat test;
+	if (stat(root.c_str(), &test) == 0 && test.st_mode & S_IFDIR)
+	{
+		_root = root;
+		return ;
+	}
+	char buffer[1024];
+	getcwd(buffer, 1024);
+	std::string root2 = buffer + root;
+	if (stat(root2.c_str(), &test) == 0 && test.st_mode & S_IFDIR)
+		_root = root2;
+	else
+		throw ServerException("Invalid root path");
 }
 
-void 	Server::setServerName(std::string &name) {
-	(void)name;
+void	Server::setClientMaxBodySize(std::string clientMaxBodySize) {
+	
+	if (isValidConfValue(clientMaxBodySize) == false)
+		throw ServerException("';' symbol needed after 'client_max_body_size' line");
+	int n = stringToInt(clientMaxBodySize);
+	if (n < 1)
+		throw ServerException("Invalid value in 'client_max_body_size' line");
+	_client_max_body_size = n;
 }
 
-void	Server::setRoot(std::string &root) {
-	(void)root;
+void	Server::setIndex(std::string index) {
+	
+	if (isValidConfValue(index) == true)
+		_index = index;
+	else
+		throw ServerException("';' symbol needed after 'index' line");
 }
 
-void	Server::setClientMaxBodySize(std::string &clientMaxBodySize) {
-	(void)clientMaxBodySize;
-}
-
-void	Server::setIndex(std::string &index) {
-	(void)index;
-}
-
-void	Server::setErrorPages(std::vector<std::string> &errorPages) {
+void	Server::setErrorPages(std::vector<std::string> errorPages) {
 	(void)errorPages;
 }
 
-void	Server::setLocations(std::string &path, std::vector<std::string> &content) {
+void	Server::setLocations(std::string path, std::vector<std::string> content) {
 	(void)content;
 	(void)path;
-}
-
-void	Server::setAddress(std::string &address) {
-	(void)address;
 }

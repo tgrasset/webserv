@@ -16,3 +16,26 @@ std::vector<std::string>    cpp_split(std::string str, char const *charset) {
 	}
 	return (res);
 }
+
+int	stringToInt(std::string str) {
+
+	if (str.length() > 10)
+		return (-42);
+	for (int i = 0; str[i] != '\0'; i++)
+	{
+		if (std::isdigit(str[i] == 0))
+			return (-42);
+	}
+	std::stringstream stream(str);
+	int n;
+	stream >> n;
+	return (n);
+}
+
+bool	isValidConfValue(std::string &str) {
+
+	if (str.rfind(';') != str.length() - 1)
+		return (false);
+	str.erase(str.length() - 1);
+	return (true);
+}

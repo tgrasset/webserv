@@ -25,18 +25,29 @@ class Server {
 		std::string					getIndex(void) const;
 		std::map<int, std::string>	getErrorPages(void) const;
 		std::vector<Location>		getLocations(void) const;
-		struct sockaddr_in			getAddress(void) const;
-		int							getListen(void) const;
 
-		void						setPort(std::string &port);
-		void						setHost(std::string &host);
-		void 						setServerName(std::string &name);
-		void						setRoot(std::string &root);
-		void						setClientMaxBodySize(std::string &clientMaxBodySize);
-		void						setIndex(std::string &index);
-		void						setErrorPages(std::vector<std::string> &errorPages);
-		void						setLocations(std::string &path, std::vector<std::string> &content);
-		void						setAddress(std::string &address);
+		void						setPort(std::string port);
+		void						setHost(std::string host);
+		void 						setServerName(std::string name);
+		void						setRoot(std::string root);
+		void						setClientMaxBodySize(std::string clientMaxBodySize);
+		void						setIndex(std::string index);
+		void						setErrorPages(std::vector<std::string> errorPages);
+		void						setLocations(std::string path, std::vector<std::string> content);
+
+		class ServerException : public std::exception {
+            public :
+                ServerException(std::string errMessage) throw() {
+					_errMessage = "Server Error: " + errMessage;
+				}
+				virtual const char* what() const throw() {
+					return (_errMessage.c_str());
+				}
+				~ServerException() throw() {}
+            
+            private:
+                std::string _errMessage;
+        };
 		
     private:
 
@@ -44,12 +55,10 @@ class Server {
 		in_addr_t						_host;
 		std::string						_server_name;
 		std::string						_root;
-		unsigned long					_client_max_body_size;
+		unsigned int					_client_max_body_size;
 		std::string						_index;
 		std::map<int, std::string>      _error_pages;
 		// std::vector<Location> 			_locations;
-        struct sockaddr_in 				_address;
-        int     						_listen;
 };
 
 #endif
