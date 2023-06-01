@@ -29,6 +29,9 @@ Server &Server::operator=(Server const &rhs) {
 	_root = rhs.getRoot();
 	_client_max_body_size = rhs.getClientMaxBodySize();
 	_index = rhs.getIndex();
+	_error_pages = rhs.getErrorPages();
+	// _locations = rhs.getLocations();
+	_listenSocket = rhs.getListenSocket();
     return (*this);
 }
 
@@ -71,6 +74,11 @@ std::map<int, std::string>	Server::getErrorPages(void) const {
 
 // 	return (_locations);
 // }
+
+int	Server::getListenSocket(void) const {
+
+	return (_listenSocket);
+}
 
 void	Server::setPort(std::string port) {
 	
@@ -147,6 +155,8 @@ void	Server::setErrorPages(std::vector<std::string> errorPages) {
 	size_t j;
 	int code;
 	std::string path;
+	std::map<int, std::string>::iterator it;
+
 	if (size % 2 != 0)
 		throw ServerException("Listing after 'error_page' directive must follow pattern : <error_number> <file_path>");
 	for (size_t i = 0 ; i < size ; i++)
@@ -170,7 +180,11 @@ void	Server::setErrorPages(std::vector<std::string> errorPages) {
 			}
 			if (checkFile(path, _root) == false)
 				throw ServerException("Invalid error file path : " + path);
-			// a finir
+			it = _error_pages.find(code);
+			if (it == _error_pages.end())
+				_error_pages.insert(std::make_pair(code, path));
+			else
+				_error_pages[code] = path;
 		}
 	}
 }

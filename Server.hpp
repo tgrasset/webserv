@@ -25,6 +25,7 @@ class Server {
 		std::string					getIndex(void) const;
 		std::map<int, std::string>	getErrorPages(void) const;
 		std::vector<Location>		getLocations(void) const;
+		int							getListenSocket(void) const;
 
 		void						setPort(std::string port);
 		void						setHost(std::string host);

@@ -247,22 +247,31 @@ void    ConfParser::checkServerConfig(Server &server) const {
         throw ConfParserException("Missing port, please add 'listen' directive");
     if (checkFile(server.getIndex(), server.getRoot()) == false)
         throw ConfParserException("Index doesn't exist or couldn't be read");
-    //ajouter les locations et les error pages
+    //ajouter les locations
 }
 
 void    ConfParser::parse() {
 
     std::string content = extractContent(_path);
+    int i, j;
+
     if (content.empty() == true)
         throw ConfParserException("Configuration file is empty");
     cleanComments(content);
     splitServerBlocks(content);
-    for (int i = 0; i < _serverNb; i++)
+    for (i = 0; i < _serverNb; i++)
     {
         Server newServer;
         configurateServer(newServer, _serverConf[i]);
         checkServerConfig(newServer);
         _servers.push_back(newServer);
     }
-    //verifier si 2 serveurs ont pas meme port ET meme host ET meme server_name
+    for (i = 0; i < _serverNb - 1; i++)
+    {
+        for (j = i + 1; j < _serverNb - 1; j++)
+        {
+            if (_servers[i].getPort() == _servers[j].getPort() && _servers[i].getHost() == _servers[j].getHost() && _servers[i].getServerName() == _servers[j].getServerName())
+                throw ConfParserException("Two server blocks can't share same port, host and server name");
+        }
+    }
 }
