@@ -59,6 +59,7 @@ class Server {
 		std::string						_index;
 		std::map<int, std::string>      _error_pages;
 		// std::vector<Location> 			_locations;
+		int								_listenSocket;
 };
 
 #endif

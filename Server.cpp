@@ -8,6 +8,7 @@ Server::Server(void) {
 	_root = "";
 	_client_max_body_size = 0;
 	_index = "";
+	_error_pages.clear();
 }
 
 Server::Server(Server const &src) {
@@ -139,8 +140,39 @@ void	Server::setIndex(std::string index) {
 }
 
 void	Server::setErrorPages(std::vector<std::string> errorPages) {
-	(void)errorPages;
-	//a implementer
+	
+	if (errorPages.empty() == true)
+		return ;
+	size_t size = errorPages.size();
+	size_t j;
+	int code;
+	std::string path;
+	if (size % 2 != 0)
+		throw ServerException("Listing after 'error_page' directive must follow pattern : <error_number> <file_path>");
+	for (size_t i = 0 ; i < size ; i++)
+	{
+		j = 0;
+		if (i % 2 == 0)
+		{
+			if (errorPages[i].length() != 3)
+				throw ServerException("Invalid http error code : " + errorPages[i]);
+			code = stringToInt(errorPages[i]);
+			if (getStatus(code) == "Unknown")
+				throw ServerException("Invalid http error code : " + errorPages[i]);
+		}
+		else
+		{
+			path = errorPages[i];
+			if (i == errorPages.size() - 1)
+			{
+				if (isValidConfValue(path) == false)
+					throw ServerException("';' symbol must be at the end of 'error_page' list");
+			}
+			if (checkFile(path, _root) == false)
+				throw ServerException("Invalid error file path : " + path);
+			// a finir
+		}
+	}
 }
 
 void	Server::setLocations(std::string path, std::vector<std::string> content) {

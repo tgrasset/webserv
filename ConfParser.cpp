@@ -148,6 +148,7 @@ void    ConfParser::splitServerBlocks(std::string &content) {
 void    ConfParser::configurateServer(Server &server, std::string &config) const {
 
     std::vector<std::string> params = cpp_split(config, " \n\t");
+    std::vector<std::string> errorPages;
     int size = params.size();
     if (size < 3)
         throw ConfParserException("Server context can't be left empty");
@@ -193,7 +194,6 @@ void    ConfParser::configurateServer(Server &server, std::string &config) const
         }
         else if (params[i] == "error_page" && i + 1 < size && inLocations == false)
         {
-            std::vector<std::string> errorPages;
             i++;
             while (i < size)
             {
@@ -204,7 +204,6 @@ void    ConfParser::configurateServer(Server &server, std::string &config) const
             }
             if (i == size)
                 throw ConfParserException("Missing ';' symbol after error_page line");
-            server.setErrorPages(errorPages);
         }
         else if (params[i] == "location" && i + 1 < size)
         {
@@ -233,18 +232,7 @@ void    ConfParser::configurateServer(Server &server, std::string &config) const
                 throw ConfParserException("Unknown directive : " + params[i]);
         }
     }
-}
-
-bool    ConfParser::checkFile(std::string const &index, std::string const &root) const {
-
-    struct stat test;
-
-	if (stat(index.c_str(), &test) == 0 && test.st_mode & S_IFREG && access(index.c_str(), R_OK) == 0)
-        return (true);
-    std::string full = root + index;
-    if (stat(full.c_str(), &test) == 0 && test.st_mode & S_IFREG && access(full.c_str(), R_OK) == 0)
-        return (true);
-    return (false);
+    server.setErrorPages(errorPages);
 }
 
 void    ConfParser::checkServerConfig(Server &server) const {

@@ -19,5 +19,7 @@
 std::vector<std::string>    cpp_split(std::string str, char const *charset);
 int							stringToInt(std::string str);
 bool						isValidConfValue(std::string &str);
+std::string					getStatus(int code);
+bool						checkFile(std::string const &file, std::string const &root);
 
 #endif
