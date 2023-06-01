@@ -55,7 +55,7 @@ std::string ConfParser::extractContent(std::string const &path) {
     if (access(path.c_str(), R_OK) != 0)
         throw ConfParserException("No reading rights on configuration file");
     fileStream.open(path.c_str());
-    if (fileStream.is_open() == false)
+    if (fileStream.fail())
         throw ConfParserException("Configuration file could not be opened");
 
     std::stringstream result;
@@ -221,7 +221,7 @@ void    ConfParser::configurateServer(Server &server, std::string &config) const
                 content.push_back(params[i]);
             if (i == size)
                 throw ConfParserException("Missing '}' symbol at the end of 'location' block");
-            server.setLocations(path, content);
+            server.setLocation(path, content);
             inLocations = true;
         }
         else if (params[i] != "{" && params[i] != "}")
@@ -244,10 +244,9 @@ void    ConfParser::checkServerConfig(Server &server) const {
     if (server.getIndex() == "")
         server.setIndex("index.html;");
     if (server.getPort() == 0)
-        throw ConfParserException("Missing port, please add 'listen' directive");
+        server.setPort("80;");
     if (checkFile(server.getIndex(), server.getRoot()) == false)
         throw ConfParserException("Index doesn't exist or couldn't be read");
-    //ajouter les locations
 }
 
 void    ConfParser::parse() {

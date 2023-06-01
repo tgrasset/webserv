@@ -30,7 +30,7 @@ Server &Server::operator=(Server const &rhs) {
 	_client_max_body_size = rhs.getClientMaxBodySize();
 	_index = rhs.getIndex();
 	_error_pages = rhs.getErrorPages();
-	// _locations = rhs.getLocations();
+	_locations = rhs.getLocations();
 	_listenSocket = rhs.getListenSocket();
     return (*this);
 }
@@ -70,10 +70,10 @@ std::map<int, std::string>	Server::getErrorPages(void) const {
 	return (_error_pages);
 }
 
-// std::vector<Location>	Server::getLocations(void) const {
+std::vector<Location>	Server::getLocations(void) const {
 
-// 	return (_locations);
-// }
+	return (_locations);
+}
 
 int	Server::getListenSocket(void) const {
 
@@ -189,8 +189,15 @@ void	Server::setErrorPages(std::vector<std::string> errorPages) {
 	}
 }
 
-void	Server::setLocations(std::string path, std::vector<std::string> content) {
-	(void)content;
+void	Server::setLocation(std::string path, std::vector<std::string> content) {
+	
 	(void)path;
-	//a implementer
+	(void)content;
+	// Location loc;
+	// loc.setPath(path);
+
+	// int	size = content.size();
+	// for (int i = 0; i < size; i++)
+	// 	;
+	//encore du parsing...Pas le courage ce soir ! Suite (et fin) demain =)
 }

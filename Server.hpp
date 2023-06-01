@@ -3,8 +3,7 @@
 # define SERVER_HPP
 
 # include "webserv.hpp"
-
-class Location;
+# include "Location.hpp"
 
 class Server {
 
@@ -34,7 +33,7 @@ class Server {
 		void						setClientMaxBodySize(std::string clientMaxBodySize);
 		void						setIndex(std::string index);
 		void						setErrorPages(std::vector<std::string> errorPages);
-		void						setLocations(std::string path, std::vector<std::string> content);
+		void						setLocation(std::string path, std::vector<std::string> content);
 
 		class ServerException : public std::exception {
             public :
@@ -59,7 +58,7 @@ class Server {
 		unsigned int					_client_max_body_size;
 		std::string						_index;
 		std::map<int, std::string>      _error_pages;
-		// std::vector<Location> 			_locations;
+		std::vector<Location> 			_locations;
 		int								_listenSocket;
 };
 

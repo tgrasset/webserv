@@ -1,5 +1,6 @@
 #include "webserv.hpp"
 #include "ConfParser.hpp"
+#include "Server.hpp"
 
 int main(int ac, char **av) {
 
@@ -16,6 +17,7 @@ int main(int ac, char **av) {
     ConfParser confParser(path);
     try {
         confParser.parse();
+        std::vector<Server> servers = confParser.getServers();
         // TO BE CONTINUED...
     }
     catch (std::exception &e) {

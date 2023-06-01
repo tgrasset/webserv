@@ -4,6 +4,7 @@
 SRCS	=	./main.cpp \
 			./ConfParser.cpp \
 			./Server.cpp \
+			./Location.cpp \
 			./utils.cpp \
 
 OBJS	=	$(SRCS:%.cpp=%.o)
