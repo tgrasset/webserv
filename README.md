@@ -66,3 +66,24 @@ Prend un groupe de File Descriptor et te dis quand il y a quelque chose a lire s
 ## getprotobyname
 
 ## fcntl
+
+
+
+# Ressources interessantes
+## Understanding Nginx Server and Location Block Selection Algorithms
+https://www.digitalocean.com/community/tutorials/understanding-nginx-server-and-location-block-selection-algorithms
+
+# Write Your Own HTTP Server
+https://betterprogramming.pub/writing-your-own-http-server-introduction-b2f94581268b
+
+# Documentation officielle HTTP
+https://www.rfc-editor.org/rfc/rfc9112.html
+
+# Wikipedia Common Gateway Interface
+https://en.wikipedia.org/wiki/Common_Gateway_Interface
+
+# Wikipedia Werbserver
+https://en.wikipedia.org/wiki/Web_server
+
+# Lecture universite sur Poll et Select 
+https://youtu.be/tAGF0T2cXRA
