@@ -251,6 +251,8 @@ void	Server::setLocation(std::string path, std::vector<std::string> content) {
 
 void	Server::checkDoubleLocations(void) {
 
+	if (_locations.empty())
+		return ;
 	size_t i, j;
 	for (i = 0; i < _locations.size() - 1; i++)
 	{

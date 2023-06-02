@@ -38,15 +38,15 @@ bool    checkFile(std::string const &file, std::string const &root) {
 
 	if (stat(file.c_str(), &test) == 0 && test.st_mode & S_IFREG && access(file.c_str(), R_OK) == 0)
         return (true);
-    std::string full = root + file;
-    if (stat(full.c_str(), &test) == 0 && test.st_mode & S_IFREG && access(full.c_str(), R_OK) == 0)
-        return (true);
+    std::string full = root + "/" + file;
+    if (stat(full.c_str(), &test) == 0 && test.st_mode & S_IFREG && access(full.c_str(), R_OK) == 0){
+        return (true); }
     return (false);
 }
 
 bool	isValidConfValue(std::string &str) {
 
-	if (str.rfind(';') != str.length() - 1)
+	if (str.rfind(';') != str.length() - 1 || str[0] == ';')
 		return (false);
 	str.erase(str.length() - 1);
 	return (true);

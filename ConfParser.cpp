@@ -207,6 +207,8 @@ void    ConfParser::configurateServer(Server &server, std::string &config) const
         }
         else if (params[i] == "location" && i + 1 < size)
         {
+            if (server.getRoot() == "")
+                throw ConfParserException("Please define server 'root' before 'location' blocks");
             std::string path;
             std::vector<std::string> content;
             i++;
@@ -239,7 +241,7 @@ void    ConfParser::configurateServer(Server &server, std::string &config) const
 void    ConfParser::checkServerConfig(Server &server) const {
 
     if (server.getRoot() == "")
-        server.setRoot("/;");
+        throw ConfParserException("Please define 'root' in all 'server' contexts");
     if (server.getHost() == 0)
         server.setHost("localhost;");
     if (server.getIndex() == "")
@@ -274,4 +276,5 @@ void    ConfParser::parse() {
                 throw ConfParserException("Two server blocks can't share same port, host and server name");
         }
     }
+    std::cout << "Configuration file successful" << std::endl;
 }
