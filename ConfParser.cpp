@@ -159,37 +159,37 @@ void    ConfParser::configurateServer(Server &server, std::string &config) const
         if (params[i].compare("listen") == 0 && i + 1 < size && inLocations == false)
         {
             if (server.getPort() != 0)
-                throw ConfParserException("Each server context can't have more than one 'listen' directive");
+                throw ConfParserException("Each 'server' context can't have more than one 'listen' directive");
             server.setPort(params[++i]);
         }
         else if (params[i] == "server_name" && i + 1 < size && inLocations == false)
         {
             if (server.getServerName() != "")
-                throw ConfParserException("Each server context can't have more than one 'server_name' directive");
+                throw ConfParserException("Each 'server' context can't have more than one 'server_name' directive");
             server.setServerName(params[++i]);
         }
         else if (params[i] == "host" && i + 1 < size && inLocations == false)
         {
             if (server.getHost() != 0)
-                throw ConfParserException("Each server context can't have more than one 'host' directive");
+                throw ConfParserException("Each 'server' context can't have more than one 'host' directive");
             server.setHost(params[++i]);
         }
         else if (params[i] == "root" && i + 1 < size && inLocations == false)
         {
             if (server.getRoot() != "")
-                throw ConfParserException("Each server context can't have more than one 'root' directive");
+                throw ConfParserException("Each 'server' context can't have more than one 'root' directive");
             server.setRoot(params[++i]);
         }
         else if (params[i] == "client_max_body_size" && i + 1 < size && inLocations == false)
         {
             if (server.getClientMaxBodySize() != 0)
-                throw ConfParserException("Each server context can't have more than one 'client_max_body_size' directive");
+                throw ConfParserException("Each 'server' context can't have more than one 'client_max_body_size' directive");
             server.setClientMaxBodySize(params[++i]);
         }
         else if (params[i] == "index" && i + 1 < size && inLocations == false)
         {
             if (server.getIndex() != "")
-                throw ConfParserException("Each server context can't have more than one 'index' directive");
+                throw ConfParserException("Each 'server' context can't have more than one 'index' directive");
             server.setIndex(params[++i]);
         }
         else if (params[i] == "error_page" && i + 1 < size && inLocations == false)
@@ -233,6 +233,7 @@ void    ConfParser::configurateServer(Server &server, std::string &config) const
         }
     }
     server.setErrorPages(errorPages);
+    server.checkDoubleLocations();
 }
 
 void    ConfParser::checkServerConfig(Server &server) const {
@@ -246,7 +247,7 @@ void    ConfParser::checkServerConfig(Server &server) const {
     if (server.getPort() == 0)
         server.setPort("80;");
     if (checkFile(server.getIndex(), server.getRoot()) == false)
-        throw ConfParserException("Index doesn't exist or couldn't be read");
+        throw ConfParserException("Index file doesn't exist or couldn't be read");
 }
 
 void    ConfParser::parse() {

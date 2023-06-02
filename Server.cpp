@@ -191,13 +191,72 @@ void	Server::setErrorPages(std::vector<std::string> errorPages) {
 
 void	Server::setLocation(std::string path, std::vector<std::string> content) {
 	
-	(void)path;
-	(void)content;
-	// Location loc;
-	// loc.setPath(path);
+	Location loc;
+	std::vector<std::string> methods;
+	size_t size = content.size();
+	bool autoindexAlreadySet = false;
 
-	// int	size = content.size();
-	// for (int i = 0; i < size; i++)
-	// 	;
-	//encore du parsing...Pas le courage ce soir ! Suite (et fin) demain =)
+	loc.setPath(path);
+	for (size_t i = 0; i < size; i++)
+	{
+		if (content[i] == "root" && i + i < size)
+		{
+			if (loc.getRoot() != "")
+				throw ServerException("Each 'location' context can't have more than one 'root' directive");
+			loc.setRoot(content[++i]);
+		}
+		else if (content[i] == "allow_methods" && i + 1 < size)
+		{
+			if (loc.getMethods().empty() == false)
+				throw ServerException("Each 'location' context can't have more than one 'allow_methods' directive");
+			while (++i < size)
+			{
+				if (content[i].find(";") != std::string::npos)
+				{
+					if (isValidConfValue(content[i]) == false)
+						throw ServerException("';' symbol needed after 'allow_methods' line in 'location' context");
+					methods.push_back(content[i]);
+					break;
+				}
+				else
+					methods.push_back(content[i]);
+				if (i + 1 == size)
+					throw ServerException("';' symbol needed after 'allow_methods' line in 'location' context");
+			}
+			loc.setMethods(methods);
+		}
+		else if (content[i] == "autoindex" && i + 1 < size)
+		{
+			if (autoindexAlreadySet == true)
+				throw ServerException("Each 'location' context can't have more than one 'autoindex' directive");
+			if (content[++i] == "on;")
+				loc.setAutoIndex(true);
+			else if (content[i] != "off;")
+				throw ServerException("autoindex must be set to 'on' or 'off'");
+			autoindexAlreadySet = true;
+		}
+		else if(content[i] == "index" && i + 1 < size)
+		{
+			if (loc.getIndex() != "")
+				throw ServerException("Each 'location' context can't have more than one 'index' directive");
+			loc.setIndex(content[++i]);
+		}
+		else
+			throw ServerException("Unknown directive in 'location' context : " + content[i]);
+	}
+	loc.checkConfig(_root);
+	_locations.push_back(loc);
+}
+
+void	Server::checkDoubleLocations(void) {
+
+	size_t i, j;
+	for (i = 0; i < _locations.size() - 1; i++)
+	{
+		for (j = i + 1; j < _locations.size(); j++)
+		{
+			if (_locations[i].getPath() == _locations[j].getPath())
+				throw ServerException("Two 'location' contexts can't be defined for the same path : " + _locations[i].getPath());
+		}
+	}
 }

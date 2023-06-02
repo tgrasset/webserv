@@ -35,6 +35,8 @@ class Server {
 		void						setErrorPages(std::vector<std::string> errorPages);
 		void						setLocation(std::string path, std::vector<std::string> content);
 
+		void						checkDoubleLocations(void);
+
 		class ServerException : public std::exception {
             public :
                 ServerException(std::string errMessage) throw() {
