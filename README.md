@@ -36,10 +36,32 @@ Prend un groupe de File Descriptor et te dis quand il y a quelque chose a lire s
 **Pas sur que ca soit vraiment interessant d'utiliser a la place des Threads, mais a voir...**
 
 ## poll
+C'est un cousin de select. Mais en mieux.
+Pas besoin de mettre les sockets dans un set de FD, ni de calculer le plus grand des FD. Juste besoin d'envoyer un tableau de pollfd struct (aui contient un fd, un short qui decrit le requested event et un short qui decrit le returned event).
+
+- event c'est nous qui le definissont pour dire ce qu'on cherche comme event.
+- revents c'est ce qui s'est passe chez le client. 
+Interet aussi c'est que contrairement a Select, les fd ne changent pas. 
+
+Partie d'une video qui parle de ca. 
+https://youtu.be/tAGF0T2cXRA?t=2935
+
+Pb c'est que pour Select et pour Poll ca peut etre assez lent si on a genre 100 sockets. 
 
 ## epoll (epoll_create, epoll_ctl, epoll_wait)
 
+epoll est une variante de poll que l'on peut déclencher par niveau ou par changement d'état, et monte bien en charge pour un grand nombre de descripteurs simultanés. Trois appels système sont fournis pour configurer et commander un ensemble epoll : epoll_create, epoll_ctl, epoll_wait.
+
+Un ensemble epoll est connecté à un descripteur de fichier créé par epoll_create. L'interêt pour certains descripteurs est ensuite enregistré avec epoll_ctl. Enfin, l'attente effective démarre avec l'appel epoll_wait. 
+
+http://manpagesfr.free.fr/man/man7/epoll.7.html
+
 ## kqueue (kqueue, kevent)
+C'est une autre facon de gerer les IO asynchronus que select et Poll. C'est via la libevent. 
+J'ai trouver un tuto qui explique un peu le concept
+https://wiki.netbsd.org/tutorials/kqueue_tutorial/
+
+
 
 ## socket
 
