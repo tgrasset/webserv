@@ -87,7 +87,8 @@ void	Server::setPort(std::string port) {
 	int n = stringToInt(port);
 	if (n < 1 || n > 65535)
 		throw ServerException("Invalid port value in 'listen' line");
-	_port = htons(n);
+	u_int16_t nShort = n;
+	_port = htons(nShort);
 }
 
 void	Server::setHost(std::string host) {
