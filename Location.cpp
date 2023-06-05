@@ -6,6 +6,7 @@ Location::Location(void) {
 	_root = "";
 	_index = "";
 	_autoindex = false;
+	_cgiLocation = false;
 }
 
 Location::Location(Location const &src) {
@@ -51,6 +52,11 @@ bool	Location::getAutoIndex(void) const {
 std::vector<std::string>	Location::getMethods(void) const {
 
 	return (_methods);
+}
+
+bool	Location::getCgiBool(void) const {
+
+	return (_cgiLocation);
 }
 
 void	Location::setPath(std::string path) {
@@ -111,6 +117,10 @@ void	Location::setMethods(std::vector<std::string> methods) {
 	}
 }
 
+void	Location::setCgiBool(bool cgi) {
+
+	_cgiLocation = cgi;
+}
 void	Location::checkConfig(std::string serverRoot) {
 
 	if (_path[0] != '/')

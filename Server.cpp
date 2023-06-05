@@ -198,6 +198,8 @@ void	Server::setLocation(std::string path, std::vector<std::string> content) {
 	bool autoindexAlreadySet = false;
 
 	loc.setPath(path);
+	if (path == "/cgi-bin")
+		loc.setCgiBool(true);
 	for (size_t i = 0; i < size; i++)
 	{
 		if (content[i] == "root" && i + i < size)
