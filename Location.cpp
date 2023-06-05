@@ -6,6 +6,7 @@ Location::Location(void) {
 	_root = "";
 	_index = "";
 	_autoindex = false;
+	_cgiLocation = false;
 }
 
 Location::Location(Location const &src) {
@@ -51,6 +52,11 @@ bool	Location::getAutoIndex(void) const {
 std::vector<std::string>	Location::getMethods(void) const {
 
 	return (_methods);
+}
+
+bool	Location::getCgiBool(void) const {
+
+	return (_cgiLocation);
 }
 
 void	Location::setPath(std::string path) {
@@ -111,12 +117,22 @@ void	Location::setMethods(std::vector<std::string> methods) {
 	}
 }
 
+void	Location::setCgiBool(bool cgi) {
+
+	_cgiLocation = cgi;
+}
 void	Location::checkConfig(std::string serverRoot) {
 
 	if (_path[0] != '/')
 		throw LocationException("Invalid path format after 'location' directive");
 	if (_root == "")
 		_root = serverRoot;
+	if (this->getMethods().empty() == true)
+	{
+		_methods.push_back("GET");
+		_methods.push_back("POST");
+		_methods.push_back("DELETE");
+	}
 	if (_autoindex == false && _index != "" && checkFile(_index, _root + _path) == false)
 		throw LocationException("Index file in 'location' context doesn't exist or couldn't be read");
 }

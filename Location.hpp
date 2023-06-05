@@ -20,12 +20,14 @@ class Location {
 		std::string					getIndex(void) const;
 		bool						getAutoIndex(void) const;
 		std::vector<std::string>	getMethods(void) const;
+		bool						getCgiBool(void) const;
 
 		void	setPath(std::string path);
 		void	setRoot(std::string root);
 		void	setIndex(std::string index);
 		void	setAutoIndex(bool autoindex);
 		void	setMethods(std::vector<std::string> methods);
+		void	setCgiBool(bool cgi);
 
 		void	checkConfig(std::string serverRoot);
 
@@ -50,6 +52,7 @@ class Location {
 		std::string					_index;
 		bool						_autoindex;
 		std::vector<std::string>	_methods;
+		bool						_cgiLocation;
 };
 
 #endif
