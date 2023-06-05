@@ -117,6 +117,12 @@ void	Location::checkConfig(std::string serverRoot) {
 		throw LocationException("Invalid path format after 'location' directive");
 	if (_root == "")
 		_root = serverRoot;
+	if (this->getMethods().empty() == true)
+	{
+		_methods.push_back("GET");
+		_methods.push_back("POST");
+		_methods.push_back("DELETE");
+	}
 	if (_autoindex == false && _index != "" && checkFile(_index, _root + _path) == false)
 		throw LocationException("Index file in 'location' context doesn't exist or couldn't be read");
 }
