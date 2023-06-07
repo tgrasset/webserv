@@ -7,6 +7,8 @@ Location::Location(void) {
 	_index = "";
 	_autoindex = false;
 	_cgiLocation = false;
+	_redirectionCode = 0;
+	_redirection = "";
 }
 
 Location::Location(Location const &src) {
@@ -57,6 +59,21 @@ std::vector<std::string>	Location::getMethods(void) const {
 bool	Location::getCgiBool(void) const {
 
 	return (_cgiLocation);
+}
+
+unsigned int	Location::getRedirectionCode(void) const {
+
+	return (_redirectionCode);
+}
+
+std::string	Location::getRedirectionPath(void) const {
+
+	return (_redirection);
+}
+
+std::map<std::string, std::string>	Location::getCgiExtensionAndPath(void) const {
+
+	return (_cgiExtensionAndPath);
 }
 
 void	Location::setPath(std::string path) {
@@ -121,18 +138,86 @@ void	Location::setCgiBool(bool cgi) {
 
 	_cgiLocation = cgi;
 }
+
+void	Location::setCgiExtensionAndPath(std::vector<std::string> cgiInfo) {
+
+	if (cgiInfo.empty() == true)
+		throw LocationException("'cgi' directive with appropriate information needed in 'cgi-bin' location");
+	size_t size = cgiInfo.size();
+	std::string ext;
+	std::string path;
+
+	if (size % 2 != 0)
+		throw LocationException("Listing after 'cgi' directive must follow pattern : <file_extension> <cgi_path>");
+	if (size == 4 && cgiInfo[0] == cgiInfo[2])
+		throw LocationException("Duplicate file extension after 'cgi' directive in 'cgi-bin' location");
+	if (size > 4)
+		throw LocationException("Only 'php and 'python' CGI can be handled by this server");
+	for (size_t i = 0 ; i < size ; i++)
+	{
+		if (i % 2 == 0)
+		{
+			ext = cgiInfo[i];
+			if (ext != ".py" && ext != ".php")
+				throw LocationException("Unknown cgi extension : " + ext);
+		}
+		else
+		{
+			path = cgiInfo[i];
+			if (i == cgiInfo.size() - 1)
+			{
+				if (isValidConfValue(path) == false)
+					throw LocationException("';' symbol needed at the end of 'cgi' list");
+			}
+			if (checkFile(path, "/") == false)
+				throw LocationException("Invalid cgi path : " + path);
+			_cgiExtensionAndPath.insert(std::make_pair(ext, path));
+		}
+	}
+}
+
+void	Location::setRedirectionCode(int code) {
+
+	_redirectionCode = code;
+}
+
+void	Location::setRedirectionPath(std::string path) {
+
+	_redirection = path;
+}
+
 void	Location::checkConfig(std::string serverRoot) {
 
-	if (_path[0] != '/')
-		throw LocationException("Invalid path format after 'location' directive");
-	if (_root == "")
-		_root = serverRoot;
-	if (this->getMethods().empty() == true)
+	if (_cgiLocation == true)
 	{
-		_methods.push_back("GET");
-		_methods.push_back("POST");
-		_methods.push_back("DELETE");
+		if (_index == "")
+			throw LocationException("Missing 'index' directive in 'cgi-bin' location");
+		if (_root == "")
+			_root = serverRoot;
+		if (checkFile(_index, _root + _path) == false)
+		{
+			std::string root = getcwd(NULL, 0);
+			_root = root;
+			std::string path = root + _path + "/" + _index;
+			if (path.empty() || checkFile(path, _root) == false)
+				throw LocationException("Index file for 'cgi-bin' location doesn't exist or couldn't be read");
+		}	
 	}
-	if (_autoindex == false && _index != "" && checkFile(_index, _root + _path) == false)
-		throw LocationException("Index file in 'location' context doesn't exist or couldn't be read");
+	else
+	{
+		if (_path[0] != '/')
+			throw LocationException("Invalid path format after 'location' directive");
+		if (_root == "")
+			_root = serverRoot;
+		if (this->getMethods().empty() == true)
+		{
+			_methods.push_back("GET");
+			_methods.push_back("POST");
+			_methods.push_back("DELETE");
+		}
+		if (_autoindex == false && _index != "" && checkFile(_index, _root + _path) == false)
+			throw LocationException("Index file in 'location' context doesn't exist or couldn't be read");
+		if (_redirectionCode != 0 && checkFile(_redirection, serverRoot) == false)
+			throw LocationException("Invalid redirection path at the end of 'return' line");
+	}
 }
