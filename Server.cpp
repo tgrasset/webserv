@@ -153,7 +153,6 @@ void	Server::setErrorPages(std::vector<std::string> errorPages) {
 	if (errorPages.empty() == true)
 		return ;
 	size_t size = errorPages.size();
-	size_t j;
 	int code;
 	std::string path;
 	std::map<int, std::string>::iterator it;
@@ -162,7 +161,6 @@ void	Server::setErrorPages(std::vector<std::string> errorPages) {
 		throw ServerException("Listing after 'error_page' directive must follow pattern : <error_number> <file_path>");
 	for (size_t i = 0 ; i < size ; i++)
 	{
-		j = 0;
 		if (i % 2 == 0)
 		{
 			if (errorPages[i].length() != 3)
@@ -194,6 +192,7 @@ void	Server::setLocation(std::string path, std::vector<std::string> content) {
 	
 	Location loc;
 	std::vector<std::string> methods;
+	std::vector<std::string> cgiInfo;
 	size_t size = content.size();
 	bool autoindexAlreadySet = false;
 
@@ -202,7 +201,7 @@ void	Server::setLocation(std::string path, std::vector<std::string> content) {
 		loc.setCgiBool(true);
 	for (size_t i = 0; i < size; i++)
 	{
-		if (content[i] == "root" && i + i < size)
+		if (content[i] == "root" && i + 1 < size)
 		{
 			if (loc.getRoot() != "")
 				throw ServerException("Each 'location' context can't have more than one 'root' directive");
@@ -232,7 +231,10 @@ void	Server::setLocation(std::string path, std::vector<std::string> content) {
 		{
 			if (autoindexAlreadySet == true)
 				throw ServerException("Each 'location' context can't have more than one 'autoindex' directive");
-			if (content[++i] == "on;")
+			if (loc.getCgiBool() == true)
+				throw ServerException("'autoindex' directive is incompatible with cgi-bin 'location'");
+			i++;
+			if (content[i] == "on;")
 				loc.setAutoIndex(true);
 			else if (content[i] != "off;")
 				throw ServerException("autoindex must be set to 'on' or 'off'");
@@ -244,9 +246,40 @@ void	Server::setLocation(std::string path, std::vector<std::string> content) {
 				throw ServerException("Each 'location' context can't have more than one 'index' directive");
 			loc.setIndex(content[++i]);
 		}
+		else if (content[i] == "return" && i + 1 < size)
+		{
+			if (loc.getRedirectionCode() != 0)
+				throw ServerException("Each 'location' context can't have more than one 'index' directive");
+			if (loc.getCgiBool() == true)
+				throw ServerException("'return' directive is incompatible with cgi-bin 'location'");
+			i++;
+			int code = stringToInt(content[i]);
+			if (code != 300 && code != 301 && code != 302 && code != 303 && code != 304 && code != 307 && code != 308)
+				throw ServerException("Unknown redirection code after 'return' directive : " + content[i]);
+			loc.setRedirectionCode(code);
+			i++;
+			if (isValidConfValue(content[i]) == false)
+				throw ServerException("';' symbol needed after 'return' line in 'location' context");
+			loc.setRedirectionPath(content[i]);	
+		}
+		else if (content[i] == "cgi" && i + 1 < size)
+		{
+			i++;
+            while (i < size)
+            {
+                cgiInfo.push_back(content[i]);
+                if (content[i].find(';') != std::string::npos)
+                    break ;
+                i++;
+            }
+            if (i == size)
+                throw ServerException("Missing ';' symbol after 'cgi' line");
+		}
 		else
-			throw ServerException("Unknown directive in 'location' context : " + content[i]);
+			throw ServerException("Unknown or incomplete directive in 'location' context : " + content[i]);
 	}
+	if (loc.getCgiBool() == true)
+		loc.setCgiExtensionAndPath(cgiInfo);
 	loc.checkConfig(_root);
 	_locations.push_back(loc);
 }

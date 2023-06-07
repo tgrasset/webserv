@@ -231,7 +231,7 @@ void    ConfParser::configurateServer(Server &server, std::string &config) const
             if (inLocations == true)
                 throw ConfParserException("'location' blocks must be at the end of 'server' context");
             else
-                throw ConfParserException("Unknown directive : " + params[i]);
+                throw ConfParserException("Unknown or incomplete directive : " + params[i]);
         }
     }
     server.setErrorPages(errorPages);
@@ -276,5 +276,5 @@ void    ConfParser::parse() {
                 throw ConfParserException("Two server blocks can't share same port, host and server name");
         }
     }
-    std::cout << "Configuration file successful" << std::endl;
+    std::cout << "Configuration file parsed successfully" << std::endl;
 }
