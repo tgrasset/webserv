@@ -1,6 +1,19 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.cpp                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/06/09 20:36:38 by mbocquel          #+#    #+#             */
+/*   Updated: 2023/06/09 20:42:47 by mbocquel         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "webserv.hpp"
 #include "ConfParser.hpp"
 #include "Server.hpp"
+#include "Launcher.hpp"
 
 int main(int ac, char **av) {
 
@@ -14,11 +27,11 @@ int main(int ac, char **av) {
         path = "./configs/default.conf";
     else
         path = av[1];
-    ConfParser confParser(path);
+        
+    Launcher launcher(path);
     try {
-        confParser.parse();
-        std::vector<Server> servers = confParser.getServers();
-        // TO BE CONTINUED...
+        launcher.parse();
+        launcher.launch_servers();
     }
     catch (std::exception &e) {
         std::cerr << e.what() << std::endl;
@@ -26,4 +39,3 @@ int main(int ac, char **av) {
     }
     return (0);
 }
-
