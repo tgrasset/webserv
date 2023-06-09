@@ -109,3 +109,14 @@ https://en.wikipedia.org/wiki/Web_server
 
 # Lecture universite sur Poll et Select 
 https://youtu.be/tAGF0T2cXRA
+
+
+# TO DO dans le code
+- On cree une classe "Server_manager" qui va etre en charge de lancer la boucle while principale. avec du multiplexing. 
+	- Contient vecteur de serveur (du main curent). Chaqun des serveurs a un listen FD. 
+	- Elle a aussi un vecteur de Client. Chaque client a son fd de com (un status du genre, je veux parler, j'attend une reponse etc. ), son socket, sa requette HTTP, sa reponse HTTP. ==> **Besoin d'une classe requette et reponse HTTP.** 
+
+	*Voir comment faire pour que un FD deja utilise puisse etre remis dans la pool de connexion*
+	**Attention** si deux serveurs declares ont le meme port et meme host, il faut qu'on utilise le socket deja en place. (on listen sur le meme socket, mais en fonction de la requette on utilisera les param d'un serveur ou d'un autre.)
+
+- 
