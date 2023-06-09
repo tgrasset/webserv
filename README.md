@@ -119,4 +119,4 @@ https://youtu.be/tAGF0T2cXRA
 	*Voir comment faire pour que un FD deja utilise puisse etre remis dans la pool de connexion*
 	**Attention** si deux serveurs declares ont le meme port et meme host, il faut qu'on utilise le socket deja en place. (on listen sur le meme socket, mais en fonction de la requette on utilisera les param d'un serveur ou d'un autre.)
 
-- 
+- Josef prend en charge la creation de la classe requete HTTP qui parse une string comme il faut.
