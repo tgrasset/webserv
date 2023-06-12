@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/12 15:48:32 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/12 16:05:02 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/12 17:54:26 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,6 +120,11 @@ void	Server::setPort(std::string port) {
 		throw ServerException("Invalid port value in 'listen' line");
 	u_int16_t nShort = n;
 	_port = htons(nShort);
+}
+
+void	Server::setListenSocket(int listen_socket)
+{
+	_listenSocket = listen_socket;
 }
 
 void	Server::setHost(std::string host) {
@@ -313,6 +318,19 @@ void	Server::setLocation(std::string path, std::vector<std::string> content) {
 		loc.setCgiExtensionAndPath(cgiInfo);
 	loc.checkConfig(_root);
 	_locations.push_back(loc);
+}
+
+void	Server::setServaddr(void)
+{
+	_servaddr.sin_family = AF_INET;
+	_servaddr.sin_addr.s_addr = _host;
+	_servaddr.sin_port = _port;
+}
+
+void	Server::bind_server(void)
+{
+	if (bind(_listenSocket, (struct sockaddr *)&_servaddr, sizeof(_servaddr)) < 0)
+		throw ServerException("Impossible de bind !");
 }
 
 void	Server::checkDoubleLocations(void) {

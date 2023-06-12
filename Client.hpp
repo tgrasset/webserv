@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/12 16:03:39 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/12 16:54:08 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,8 +33,9 @@ class Client
 private:
 	int						_com_socket;
 	t_status_c				_status;
-	std::vector<HttpReq>	_req;
-	std::vector<HttpRes>	_res;
+	HttpReq					_req;
+	HttpRes					_res;
+	std::string				_incoming_msg;
 	static bool				_verbose;
 	
 public:

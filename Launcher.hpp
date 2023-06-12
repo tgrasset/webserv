@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:33 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/12 16:24:23 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/12 17:20:45 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,19 @@ public:
 
 	void	launch_servers(void); //Fonction avec boucle globale
 	void	parse(void);
+
+	class LauncherException : public std::exception {
+	public :
+		LauncherException(std::string errMessage) throw() {
+			_errMessage = "Launcher Error: " + errMessage;
+		}
+		virtual const char* what() const throw() {
+			return (_errMessage.c_str());
+		}
+		~LauncherException() throw() {}
+	private:
+		std::string _errMessage;
+};
 };
 
 #endif

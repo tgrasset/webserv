@@ -17,6 +17,8 @@
 # include <unistd.h>
 # include <netdb.h>
 
+# define MAX_WAIT 15
+
 std::vector<std::string>    cpp_split(std::string str, char const *charset);
 int							stringToInt(std::string str);
 bool						isValidConfValue(std::string &str);

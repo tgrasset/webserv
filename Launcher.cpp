@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/12 16:25:28 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/12 18:16:37 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,5 +63,20 @@ void	Launcher::parse(void)
 
 void	Launcher::launch_servers(void)
 {
-	
+	for (std::vector<Server>::iterator it = this->_servers.begin();
+	it != this->_servers.end(); ++it)
+	{
+		int listensocket = socket(AF_INET, SOCK_STREAM, 0);
+		if (listensocket < 0)
+			throw LauncherException("Socket error");
+		it->setListenSocket(listensocket);
+		it->setServaddr();
+		it->bind_server();
+		if (listen(it->getListenSocket(), MAX_WAIT) < 0)
+			throw LauncherException("Impossible de listen !");
+	}
+	/*while (1)
+	{
+		
+	}*/
 }
