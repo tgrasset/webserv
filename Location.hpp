@@ -62,6 +62,7 @@ class Location {
 		std::map<std::string, std::string> 	_cgiExtensionAndPath;
 		int							_redirectionCode;
 		std::string					_redirection;
+		static bool					_verbose;
 };
 
 #endif
