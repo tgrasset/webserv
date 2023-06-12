@@ -1,53 +1,48 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Client.cpp                                         :+:      :+:    :+:   */
+/*   HttpReq.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/12 16:05:57 by mbocquel         ###   ########.fr       */
+/*   Created: 2023/06/09 19:19:03 by mbocquel          #+#    #+#             */
+/*   Updated: 2023/06/12 16:05:39 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Client.hpp"
+#include "HttpReq.hpp"
 
-bool	Client::_verbose = true;
+bool	HttpReq::_verbose = true;
 /* ************************************************************************** */
 /*                     Constructeurs et destructeurs                          */
 /* ************************************************************************** */
-Client::Client(void)
+HttpReq::HttpReq(void)
 {
-	if (Client::_verbose)
-		std::cout << "Client default constructor called" << std::endl;
+	if (HttpReq::_verbose)
+		std::cout << "HttpReq default constructor called" << std::endl;
 }
 
-Client::Client(Client const & copy)
+HttpReq::HttpReq(HttpReq const & copy)
 {
 	*this = copy;
-	if (Client::_verbose)
-		std::cout << "Client copy constructor called" << std::endl;
+	if (HttpReq::_verbose)
+		std::cout << "HttpReq copy constructor called" << std::endl;
 }
 
-Client::~Client(void)
+HttpReq::~HttpReq(void)
 {
-	if (Client::_verbose)
-		std::cout << "Client destructor called" << std::endl;
+	if (HttpReq::_verbose)
+		std::cout << "HttpReq destructor called" << std::endl;
 }
 
 /* ************************************************************************** */
 /*                     Surcharge d'operateur                                  */
 /* ************************************************************************** */
-Client	& Client::operator=(Client const & client)
+HttpReq	& HttpReq::operator=(HttpReq const & httpreq)
 {
-	if (this != &client)
+	if (this != &httpreq)
 	{
-		this->_com_socket = client._com_socket;
-		this->_status = client._status;
-		this->_req.clear();
-		this->_req = client._req;
-		this->_res.clear();
-		this->_res = client._res;
+		
 	}
 	return (*this);
 }

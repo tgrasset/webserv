@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/09 19:53:47 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/12 16:03:39 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 # define CLIENT_HPP
 # include "HttpReq.hpp"
 # include "HttpRes.hpp"
+# include "webserv.hpp"
 
 class HttpRes;
 class HttpReq;
@@ -34,6 +35,7 @@ private:
 	t_status_c				_status;
 	std::vector<HttpReq>	_req;
 	std::vector<HttpRes>	_res;
+	static bool				_verbose;
 	
 public:
 	Client(void);

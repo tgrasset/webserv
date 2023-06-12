@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:33 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/09 20:39:35 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/12 16:02:58 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ private:
 	std::vector<Client> _clients;
 	ConfParser			*_conf_parser;
 	std::string			_path_conf;
+	static bool			_verbose;
 	Launcher(void);
 	
 public:

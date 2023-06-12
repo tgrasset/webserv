@@ -1,7 +1,25 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Location.cpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/06/12 15:27:21 by mbocquel          #+#    #+#             */
+/*   Updated: 2023/06/12 16:06:03 by mbocquel         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "Location.hpp"
 
-Location::Location(void) {
-
+bool	Location::_verbose = false;
+/* ************************************************************************** */
+/*                     Constructeurs et destructeurs                          */
+/* ************************************************************************** */
+Location::Location(void) 
+{
+	if (Location::_verbose)
+		std::cout << "Location default constructor called" << std::endl;
 	_path = "";
 	_root = "";
 	_index = "";
@@ -11,26 +29,39 @@ Location::Location(void) {
 	_redirection = "";
 }
 
-Location::Location(Location const &src) {
-
+Location::Location(Location const &src) 
+{
 	if (this != &src)
         *this = src;
+	if (Location::_verbose)
+		std::cout << "Location copy constructor called" << std::endl;
 }
 
-Location::~Location() {
-
+Location::~Location() 
+{
+	if (Location::_verbose)
+		std::cout << "Location destructor called" << std::endl;
 }
 
-Location &Location::operator=(Location const &rhs) {
-
-	_path = rhs.getPath();
-	_root = rhs.getRoot();
-	_index = rhs.getIndex();
-	_autoindex = rhs.getAutoIndex();
-	_methods = rhs.getMethods();
+/* ************************************************************************** */
+/*                     Surcharge d'operateur                                  */
+/* ************************************************************************** */
+Location &Location::operator=(Location const &rhs) 
+{
+	if (this != &rhs)
+	{
+		_path = rhs.getPath();
+		_root = rhs.getRoot();
+		_index = rhs.getIndex();
+		_autoindex = rhs.getAutoIndex();
+		_methods = rhs.getMethods();
+	}
     return (*this);
 }
 
+/* ************************************************************************** */
+/*                     Methodes                                               */
+/* ************************************************************************** */
 std::string		Location::getPath(void) const {
 
 	return (_path);

@@ -1,7 +1,25 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Server.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/06/12 15:48:32 by mbocquel          #+#    #+#             */
+/*   Updated: 2023/06/12 16:05:02 by mbocquel         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "Server.hpp"
 
-Server::Server(void) {
-
+bool	Server::_verbose = true;
+/* ************************************************************************** */
+/*                     Constructeurs et destructeurs                          */
+/* ************************************************************************** */
+Server::Server(void) 
+{
+	if (Server::_verbose)
+		std::cout << "Server default constructor called" << std::endl;
 	_port = 0;
 	_host = 0;
 	_server_name = "";
@@ -11,30 +29,43 @@ Server::Server(void) {
 	_error_pages.clear();
 }
 
-Server::Server(Server const &src) {
-
+Server::Server(Server const &src) 
+{
+	if (Server::_verbose)
+		std::cout << "Server copy constructor called" << std::endl;
 	if (this != &src)
         *this = src;
 }
 
-Server::~Server() {
-
+Server::~Server() 
+{
+	if (Server::_verbose)
+		std::cout << "Server destructor called" << std::endl;
 }
 
-Server &Server::operator=(Server const &rhs) {
-
-	_port = rhs.getPort();
-	_host = rhs.getHost();
-	_server_name = rhs.getServerName();
-	_root = rhs.getRoot();
-	_client_max_body_size = rhs.getClientMaxBodySize();
-	_index = rhs.getIndex();
-	_error_pages = rhs.getErrorPages();
-	_locations = rhs.getLocations();
-	_listenSocket = rhs.getListenSocket();
+/* ************************************************************************** */
+/*                     Surcharge d'operateur                                  */
+/* ************************************************************************** */
+Server &Server::operator=(Server const &rhs) 
+{
+	if (this != &rhs)
+	{
+		_port = rhs.getPort();
+		_host = rhs.getHost();
+		_server_name = rhs.getServerName();
+		_root = rhs.getRoot();
+		_client_max_body_size = rhs.getClientMaxBodySize();
+		_index = rhs.getIndex();
+		_error_pages = rhs.getErrorPages();
+		_locations = rhs.getLocations();
+		_listenSocket = rhs.getListenSocket();
+	}
     return (*this);
 }
 
+/* ************************************************************************** */
+/*                     Methodes                                               */
+/* ************************************************************************** */
 in_port_t	Server::getPort(void) const {
 
 	return (_port);

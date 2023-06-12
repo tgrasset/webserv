@@ -1,51 +1,82 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ConfParser.cpp                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/06/12 15:35:55 by mbocquel          #+#    #+#             */
+/*   Updated: 2023/06/12 16:05:48 by mbocquel         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "ConfParser.hpp"
 
-ConfParser::ConfParser(std::string path) : _path(path) {
-
+bool	ConfParser::_verbose = true;
+/* ************************************************************************** */
+/*                     Constructeurs et destructeurs                          */
+/* ************************************************************************** */
+ConfParser::ConfParser(std::string path) : _path(path) 
+{
+	if (ConfParser::_verbose)
+		std::cout << "ConfParser default constructor called" << std::endl;
     _serverNb = 0;
 }
 
-ConfParser::ConfParser(ConfParser const &src) {
-
-    if (this != &src)
-        *this = src;
+ConfParser::ConfParser(ConfParser const &src)
+{
+	if (ConfParser::_verbose)
+		std::cout << "ConfParser copy constructor called" << std::endl;
+	if (this != &src)
+		*this = src;
 }
 
-ConfParser::~ConfParser() {
-
+ConfParser::~ConfParser() 
+{
+	if (ConfParser::_verbose)
+		std::cout << "ConfParser destructor called" << std::endl;
 }
 
-ConfParser &ConfParser::operator=(ConfParser const &rhs) {
-
-    _path = rhs.getPath();
-    _servers = rhs.getServers();
-    _serverConf = rhs.getServerConf();
-    _serverNb = rhs.getServerNb();
+/* ************************************************************************** */
+/*                     Surcharge d'operateur                                  */
+/* ************************************************************************** */
+ConfParser &ConfParser::operator=(ConfParser const &rhs)
+{
+    if (this != &rhs)
+    {
+		_path = rhs.getPath();
+		_servers = rhs.getServers();
+		_serverConf = rhs.getServerConf();
+		_serverNb = rhs.getServerNb();
+    }
     return (*this);
 }
 
-std::string ConfParser::getPath() const {
-
+/* ************************************************************************** */
+/*                     Methodes                                               */
+/* ************************************************************************** */
+std::string ConfParser::getPath() const 
+{
     return (_path);
 }
 
-std::vector<Server> ConfParser::getServers() const {
-
+std::vector<Server> ConfParser::getServers() const 
+{
     return (_servers);
 }
 
-std::vector<std::string>    ConfParser::getServerConf() const {
-
+std::vector<std::string>    ConfParser::getServerConf() const 
+{
     return (_serverConf);
 }
 
-int ConfParser::getServerNb() const {
-
+int ConfParser::getServerNb() const
+{
     return (_serverNb);
 }
 
-std::string ConfParser::extractContent(std::string const &path) {
-
+std::string ConfParser::extractContent(std::string const &path) 
+{
     struct stat buf;
     int ret = stat(path.c_str(), &buf);
     std::ifstream fileStream;
@@ -66,8 +97,8 @@ std::string ConfParser::extractContent(std::string const &path) {
 
 void    ConfParser::cleanComments(std::string &content) const {
 
-    size_t sharp = content.find('#');
-    while (sharp != std::string::npos)
+	size_t sharp = content.find('#');
+	while (sharp != std::string::npos)
 	{
 		size_t nl;
 		nl = content.find('\n', sharp);

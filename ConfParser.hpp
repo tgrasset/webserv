@@ -47,10 +47,11 @@ class ConfParser {
     private:
         ConfParser();
 
-        std::string _path;
-        std::vector<Server> _servers;
-        std::vector<std::string> _serverConf;
-        int _serverNb;
+        std::string 				_path;
+        std::vector<Server> 		_servers;
+        std::vector<std::string>	_serverConf;
+        int 						_serverNb;
+		static bool					_verbose;
 };
 
 #endif

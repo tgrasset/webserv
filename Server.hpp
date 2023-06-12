@@ -62,6 +62,7 @@ class Server {
 		std::map<int, std::string>      _error_pages;
 		std::vector<Location> 			_locations;
 		int								_listenSocket;
+		static bool						_verbose;
 };
 
 #endif

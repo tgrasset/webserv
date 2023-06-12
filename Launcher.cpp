@@ -6,18 +6,19 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/09 20:41:57 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/12 16:05:22 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Launcher.hpp"
 
+bool	Launcher::_verbose = true;
 /* ************************************************************************** */
 /*                     Constructeurs et destructeurs                          */
 /* ************************************************************************** */
 Launcher::Launcher(std::string path)
 {
-	if (VERBOSE)
+	if (Launcher::_verbose)
 		std::cout << "Launcher path constructor called" << std::endl;
 	this->_path_conf = path;
 	return ;
@@ -26,16 +27,16 @@ Launcher::Launcher(std::string path)
 Launcher::Launcher(Launcher const & copy)
 {
 	*this = copy;
-	if (VERBOSE)
+	if (Launcher::_verbose)
 		std::cout << "Launcher copy constructor called" << std::endl;
 }
 
 Launcher::~Launcher(void)
 {
-	if (VERBOSE)
-		std::cout << "Launcher destructor called" << std::endl;
 	if (this->_conf_parser)
 		delete this->_conf_parser;
+	if (Launcher::_verbose)
+		std::cout << "Launcher destructor called" << std::endl;
 }
 
 /* ************************************************************************** */

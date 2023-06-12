@@ -6,7 +6,7 @@
 #    By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/12/06 10:48:53 by mbocquel          #+#    #+#              #
-#    Updated: 2023/06/09 18:37:54 by mbocquel         ###   ########.fr        #
+#    Updated: 2023/06/12 15:46:54 by mbocquel         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,6 +21,11 @@ SOURCES =	main.cpp \
 			Server.cpp \
 			Location.cpp \
 			utils.cpp \
+			Launcher.cpp \
+			Client.cpp \
+			HttpRes.cpp \
+			HttpReq.cpp
+			
 
 OBJECTS		= $(addprefix ${BUILD_DIR}, ${SOURCES:.cpp=.o})
 
@@ -28,7 +33,7 @@ DEPS := $(OBJECTS:.o=.d)
 
 CC = c++
 
-CFLAGS = -Wall -Wextra -Werror -MMD -MP -std=c++98
+CFLAGS = -Wall -Wextra -Werror -MMD -MP -std=c++98 -g3
 
 RM = rm -rf
 
