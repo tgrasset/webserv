@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/12 16:05:22 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/12 16:25:28 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,8 +33,6 @@ Launcher::Launcher(Launcher const & copy)
 
 Launcher::~Launcher(void)
 {
-	if (this->_conf_parser)
-		delete this->_conf_parser;
 	if (Launcher::_verbose)
 		std::cout << "Launcher destructor called" << std::endl;
 }
@@ -46,9 +44,6 @@ Launcher & Launcher::operator=(Launcher const & launcher)
 {
 	if (this != &launcher)
 	{
-		if (this->_conf_parser)
-			delete this->_conf_parser;
-		this->_conf_parser = new ConfParser(*(launcher._conf_parser));
 		this->_servers = launcher._servers;
 		this->_clients = launcher._clients;
 	}
@@ -61,9 +56,9 @@ Launcher & Launcher::operator=(Launcher const & launcher)
 
 void	Launcher::parse(void)
 {
-	this->_conf_parser = new ConfParser(this->_path_conf);
-	this->_conf_parser->parse();
-	this->_servers = this->_conf_parser->getServers();
+	ConfParser conf_parser(this->_path_conf);
+	conf_parser.parse();
+	this->_servers = conf_parser.getServers();
 }
 
 void	Launcher::launch_servers(void)
