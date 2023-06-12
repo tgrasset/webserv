@@ -6,7 +6,7 @@
 #    By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/12/06 10:48:53 by mbocquel          #+#    #+#              #
-#    Updated: 2023/06/12 16:09:53 by mbocquel         ###   ########.fr        #
+#    Updated: 2023/06/12 16:12:34 by mbocquel         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,11 +16,15 @@ SOURCES_DIR = ./
 
 BUILD_DIR = ./build/
 
-SOURCES =	main.cpp \
+SOURCES =	Client.cpp \
 			ConfParser.cpp \
-			Server.cpp \
+			HttpReq.cpp \
+			HttpRes.cpp \
+			Launcher.cpp \
 			Location.cpp \
-			utils.cpp \
+			main.cpp \
+			Server.cpp \
+			utils.cpp 			
 
 OBJECTS		= $(addprefix ${BUILD_DIR}, ${SOURCES:.cpp=.o})
 
