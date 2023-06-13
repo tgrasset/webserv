@@ -16,8 +16,12 @@
 # include <arpa/inet.h>
 # include <unistd.h>
 # include <netdb.h>
+# include <sys/epoll.h>
+# include <string.h>
 
 # define MAX_WAIT 15
+# define MAX_EVENTS 100
+# define BUFFER_SIZE 4096
 
 std::vector<std::string>    cpp_split(std::string str, char const *charset);
 int							stringToInt(std::string str);

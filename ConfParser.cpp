@@ -6,13 +6,13 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/12 15:35:55 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/12 16:05:48 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/13 16:32:21 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ConfParser.hpp"
 
-bool	ConfParser::_verbose = true;
+bool	ConfParser::_verbose = false;
 /* ************************************************************************** */
 /*                     Constructeurs et destructeurs                          */
 /* ************************************************************************** */
