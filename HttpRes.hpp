@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/14 13:48:45 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/14 15:23:44 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ class HttpRes
 		int		checkHttpVersion(std::string version, bool &error);
 		int		checkMethod(std::string method, bool &error);
 		int		checkUri(std::string uri, std::string body, bool &error);
-		int		checkBody(std::string body);
+		int		checkRequestBodySize(int maxSize, int bodySize, bool &error);
 		void	formatResponse();
 		
 

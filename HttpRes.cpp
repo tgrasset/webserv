@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/14 14:37:50 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/14 15:25:24 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -156,6 +156,16 @@ int	HttpRes::checkMethod(std::string method, bool &error) {
 	return (200);
 }
 
+int	HttpRes::checkRequestBodySize(int maxSize, int bodySize, bool &error) {
+
+	if (bodySize > maxSize)
+	{
+		error = true;
+		return (413);
+	}
+	return (200);
+}
+
 int	HttpRes::checkUri(std::string uri, std::string body, bool &error) {
 	
 	(void)uri;
@@ -172,6 +182,8 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 	_statusCode = checkHttpVersion(request.getHttpVersion(), error);
 	if (error == false)
 		_statusCode = checkMethod(request.getMethod(), error);
+	if (error == false && _server->getClientMaxBodySize() != 0)
+		_statusCode = checkRequestBodySize(_server->getClientMaxBodySize(), request.getBody().size(), error);
 	if (error == false)
 		_statusCode = checkUri(request.getUri(), request.getBody(), error); //verif redirections, cgi...
 	_statusMessage = getStatus(_statusCode);
