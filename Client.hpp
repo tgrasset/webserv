@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/13 15:35:26 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/14 14:57:10 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,8 +35,8 @@ class Client
 private:
 	int						_com_socket;
 	t_status_c				_status;
-	HttpReq					_req;
-	HttpRes					_res;
+	HttpReq					*_req;
+	HttpRes					*_res;
 	std::string				_incoming_msg;
 	std::vector< Server *> 	_server_ptr;
 	struct sockaddr_in		_client_addr;
