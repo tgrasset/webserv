@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/13 17:46:22 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/14 13:24:04 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,14 @@ Launcher::Launcher(Launcher const & copy)
 
 Launcher::~Launcher(void)
 {
+	// Closing all socket
+	close(_efd);
+	for (std::vector<Client>::iterator it = this->_clients.begin(); 
+		it != this->_clients.end(); ++it)
+		close(it->getCom_socket());
+	for (std::vector<Server>::iterator it = this->_servers.begin(); 
+		it != this->_servers.end(); ++it)
+		close(it->getListenSocket());
 	if (Launcher::_verbose)
 		std::cout << "Launcher destructor called" << std::endl;
 }
@@ -88,8 +96,6 @@ void	Launcher::launch_servers(void)
 	for (std::vector<Server>::iterator it = this->_servers.begin();
 	it != this->_servers.end(); ++it)
 	{
-		std::cout << "it->getHost() " << it->getHost() << std::endl;
-		std::cout << "it->getPort() " << it->getPort() << std::endl;
 		if (this->getServerWithSameHostPort(it) != this->_servers.end())
 			it->setListenSocket(this->getServerWithSameHostPort(it)->getListenSocket());
 		else
@@ -97,34 +103,32 @@ void	Launcher::launch_servers(void)
 			int listensocket = socket(AF_INET, SOCK_STREAM, 0);
 			if (listensocket < 0)
 				throw LauncherException("Problem with socket !");
-			std::cout << "listensocket " << listensocket << std::endl;
+			//setsockopt(listensocket, int level, int option_name, const void *option_value, socklen_t option_len);
 			it->setListenSocket(listensocket);
 			it->setServaddr();
 			it->bind_server();
 			if (listen(it->getListenSocket(), MAX_WAIT) < 0)
 				throw LauncherException("Impossible de listen !");
-			
 		}
 		ev.events = EPOLLIN;
 		ev.data.fd = it->getListenSocket();
-		std::cout << "	Listen socket is " << it->getListenSocket() << std::endl;
 		if (epoll_ctl(_efd, EPOLL_CTL_ADD, it->getListenSocket(), &ev) == -1)
 			throw LauncherException("\e[31mProblem with epoll_ctl ! 1\e[0m");
 	}
 		
-	/*Global loop for the Webser*/
+	/* Global loop for the Webserv */
 	while (1)
 	{
 		/*Block until there is something to do ...*/
-		std::cout << "I am waiting for things to do" << std::endl;
-		if ((nfds = epoll_wait (_efd, static_cast< struct epoll_event * >(_ep_event.data()), this->_servers.size() * MAX_EVENTS, -1)) == -1)
+		this->print_ep_event();
+		if ((nfds = epoll_wait(_efd, static_cast< struct epoll_event * >(_ep_event.data()), this->_servers.size() * MAX_EVENTS, -1)) == -1)
 			throw LauncherException("Problem with epoll_wait !");
 		// Some sockets are ready. Examine readfds
         for (int i = 0; i < nfds; i++)
 		{
 			if ((_ep_event[i].events & EPOLLIN) == EPOLLIN) // File descriptor is available for read.
 			{
-				if (check_if_listen_socket(i)) //new client wants to connect
+				if (check_if_listen_socket(_ep_event[i].data.fd )) //new client wants to connect
 					this->process_new_client(i);
 				else
 					this->process_reading_existing_client(i);				
@@ -170,12 +174,12 @@ void	Launcher::process_new_client(int i)
 	std::cout << "	I just accepted a new connexion from " << str_ip_client << std::endl;
 }
 
-bool	Launcher::check_if_listen_socket(int i)
+bool	Launcher::check_if_listen_socket(int socket)
 {
 	for (std::vector<Server>::iterator it = this->_servers.begin();
 	it != this->_servers.end(); ++it)
 	{
-		if (_ep_event[i].data.fd == it->getListenSocket())
+		if (socket == it->getListenSocket())
 			return (true);
 	}
 	return (false);
@@ -220,3 +224,47 @@ void	Launcher::process_reading_existing_client(int i)
 	}
 	
 }
+
+void	Launcher::print_ep_event(void)
+{
+	std::cout << "Waiting for an event :" << std::endl;
+	std::cout << "	Server listen socket : ";
+	for (std::vector<Server>::iterator it = this->_servers.begin();
+		it != this->_servers.end(); ++it)
+	{
+		std::cout << it->getListenSocket() << " ";
+	}
+	std::cout << std::endl << "	Client sending request : ";
+	for (std::vector<Client>::iterator it = this->_clients.begin();
+		it != this->_clients.end(); ++it)
+	{
+		if (it->getStatus() == WANT_TO_SEND_REQ || it->getStatus() == SENDING_REQ)
+			std::cout << it->getCom_socket() << " ";
+	}
+	std::cout << std::endl << "	Client waiting for response : ";
+	for (std::vector<Client>::iterator it = this->_clients.begin();
+		it != this->_clients.end(); ++it)
+	{
+		if (it->getStatus() == REQ_SENT)
+			std::cout << it->getCom_socket() << " ";
+	}
+	std::cout << std::endl << std::endl;
+}
+
+//std::vector<struct epoll_event>	_ep_event;
+
+/*if ((_ep_event[i].events & EPOLLIN) == EPOLLIN) // File descriptor is available for read.
+{
+	if (check_if_listen_socket(i)) //new client wants to connect
+		this->process_new_client(i);
+	else
+		this->process_reading_existing_client(i);				
+}
+else if ((_ep_event[i].events & EPOLLOUT) == EPOLLOUT) // File descriptor is available for write.
+{
+	
+}
+else if ((_ep_event[i].events & EPOLLRDHUP) == EPOLLRDHUP) // Stream socket peer closed connection.
+{
+	
+}*/

@@ -6,7 +6,7 @@
 #    By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/12/06 10:48:53 by mbocquel          #+#    #+#              #
-#    Updated: 2023/06/12 16:24:13 by mbocquel         ###   ########.fr        #
+#    Updated: 2023/06/14 11:26:12 by mbocquel         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -73,8 +73,12 @@ clean:
 
 fclean: clean
 	$(RM)  $(NAME)
+	@clear
 
 re: fclean all
+
+memcheck: all
+	valgrind --track-fds=yes --trace-children=yes --leak-check=full --show-leak-kinds=definite,indirect,possible ./$(NAME)
 
 avatar:
 	@echo "\n			Water. Earth. Fire. Air.\n"

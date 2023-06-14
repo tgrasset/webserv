@@ -18,6 +18,7 @@
 # include <netdb.h>
 # include <sys/epoll.h>
 # include <string.h>
+# include <signal.h>
 
 # define MAX_WAIT 15
 # define MAX_EVENTS 100
