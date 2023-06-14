@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/12 15:48:32 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/12 16:05:02 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/14 13:12:00 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -280,7 +280,7 @@ void	Server::setLocation(std::string path, std::vector<std::string> content) {
 		else if (content[i] == "return" && i + 1 < size)
 		{
 			if (loc.getRedirectionCode() != 0)
-				throw ServerException("Each 'location' context can't have more than one 'index' directive");
+				throw ServerException("Each 'location' context can't have more than one 'return' directive");
 			if (loc.getCgiBool() == true)
 				throw ServerException("'return' directive is incompatible with cgi-bin 'location'");
 			i++;

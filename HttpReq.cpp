@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:03 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/13 11:43:05 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/14 11:59:18 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,8 +24,13 @@ HttpReq::HttpReq(std::string &content)
 	_uri = "";
 	_httpVersion = "";
 	_header.clear();
+	_host = "";
+	_accept.clear();
+	_contentType = "";
+	_contentLength = 0;
+	_keepAlive = true;
 	_body = "";
-	(void)content; // parsing a faire ici, have fun joseph :p
+	(void)content; // parsing a faire ici, have fun joseph :p  (j'ai void 'content' juste pour que ca compile)
 }
 
 HttpReq::HttpReq(HttpReq const & copy)
@@ -52,6 +57,11 @@ HttpReq	& HttpReq::operator=(HttpReq const & httpreq)
 		_uri = httpreq.getUri();
 		_httpVersion = httpreq.getHttpVersion();
 		_header = httpreq.getHeader();
+		_host = httpreq.getHost();
+		_accept = httpreq.getAccept();
+		_contentType = httpreq.getContentType();
+		_contentLength = httpreq.getContentLength();
+		_keepAlive = httpreq.getKeepAlive();
 		_body = httpreq.getBody();
 	}
 	return (*this);
@@ -78,6 +88,31 @@ std::string		HttpReq::getHttpVersion() const {
 std::map<std::string, std::string> HttpReq::getHeader() const {
 
 	return (_header);
+}
+
+std::string		HttpReq::getHost() const {
+
+	return (_host);
+}
+
+std::vector<std::string>	HttpReq::getAccept() const {
+
+	return (_accept);
+}
+
+std::string		HttpReq::getContentType() const {
+
+	return (_contentType);
+}
+
+int	HttpReq::getContentLength() const {
+	
+	return (_contentLength);
+}
+
+bool	HttpReq::getKeepAlive() const {
+
+	return (_keepAlive);
 }
 
 std::string		HttpReq::getBody() const {

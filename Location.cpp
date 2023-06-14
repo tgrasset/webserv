@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Location.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/12 15:27:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/12 16:06:03 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/14 11:36:23 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,8 +122,8 @@ void	Location::setRoot(std::string root) {
 		_root = root;
 		return ;
 	}
-	char buffer[1024];
-	getcwd(buffer, 1024);
+	char buffer[4096];
+	getcwd(buffer, 4096);
 	std::string root2 = buffer + root;
 	if (stat(root2.c_str(), &test) == 0 && test.st_mode & S_IFDIR)
 		_root = root2;
@@ -227,9 +227,10 @@ void	Location::checkConfig(std::string serverRoot) {
 			_root = serverRoot;
 		if (checkFile(_index, _root + _path) == false)
 		{
-			std::string root = getcwd(NULL, 0);
-			_root = root;
-			std::string path = root + _path + "/" + _index;
+			char buffer[4096];
+			getcwd(buffer, 4096);
+			_root = buffer;
+			std::string path = buffer + _path + "/" + _index;
 			if (path.empty() || checkFile(path, _root) == false)
 				throw LocationException("Index file for 'cgi-bin' location doesn't exist or couldn't be read");
 		}	

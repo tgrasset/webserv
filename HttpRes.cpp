@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/13 16:04:22 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/14 13:11:26 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,6 +98,10 @@ std::map<std::string, std::string> HttpRes::getHeader() const {
 	return (_header);
 }
 
+std::string	HttpRes::getBody() const {
+	
+	return (_body);
+}
 Server	*HttpRes::getServer() const {
 
 	return (_server);
@@ -113,41 +117,73 @@ bool	HttpRes::getKeepAlive() const {
 	return (_keepAlive);
 }
 
-int	HttpRes::checkHttpVersion(std::string version) {
+void	HttpRes::setServer(std::string reqHost, std::vector<Server *> servers) {
+
+	if (servers.size() == 1)
+	{
+		_server = servers[0];
+		return ;
+	}
+	for (std::vector<Server *>::iterator it = servers.begin(); it != servers.end(); it++)
+	{
+		if ((*it)->getServerName() == reqHost)
+		{
+			_server = *it;
+			return;
+		}
+	}
+	_server = servers[0];
+}
+
+int	HttpRes::checkHttpVersion(std::string version, bool &error) {
 
 	if (version != "HTTP/1.0" && version != "HTTP/1.1" && version != "HTTP/0.9")
+	{
+		error = true;
 		return (505);
+	}
 	_httpVersion = version;
 	return (200);
 }
 
-int	HttpRes::checkMethod(std::string method) {
+int	HttpRes::checkMethod(std::string method, bool &error) {
 
 	if (method != "GET" && method != "POST" && method != "DELETE")
+	{
+		error = true;
 		return (405);
+	}
 	_method = method;
 	return (200);
 }
 
-int	HttpRes::checkHeader(std::map<std::string, std::string> const reqHeader, std::vector <Server *> servers) {
+int	HttpRes::checkHeader(std::map<std::string, std::string> const reqHeader, std::vector <Server *> servers, bool &error) {
 
-	std::string date;
+	(void)reqHeader;
+	(void)servers;
+	(void)error;
+	return (0);
 }
 
-int	HttpRes::checkUri(std::string uri, std::string body) {
+int	HttpRes::checkUri(std::string uri, std::string body, bool &error) {
 	
-	
+	(void)uri;
+	(void)body;
+	(void)error;
+	return (0);
 }
 
 void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 	
-	_statusCode = checkHttpVersion(request.getHttpVersion());
-	if (_statusCode == 200)
-		_statusCode = checkMethod(request.getMethod());
-	if (_statusCode == 200)
-		_statusCode = checkHeader(request.getHeader(), servers);
-	if (_statusCode == 200)
-		_statusCode = checkUri(request.getUri(), request.getBody()); //verif redirections, cgi...
+	bool	error = false;
+	
+	_statusCode = checkHttpVersion(request.getHttpVersion(), error);
+	if (error == false)
+		_statusCode = checkMethod(request.getMethod(), error);
+	if (error == false)
+		_statusCode = checkHeader(request.getHeader(), servers, error);
+	if (error == false)
+		_statusCode = checkUri(request.getUri(), request.getBody(), error); //verif redirections, cgi...
 	_statusMessage = getStatus(_statusCode);  //fonction dans utils.cpp
-	formatResponse();				// tout recuperer et mettre au bon format dans _toSend
+	//formatResponse();				// tout recuperer et mettre au bon format dans _toSend
 }

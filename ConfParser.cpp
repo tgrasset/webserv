@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfParser.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/12 15:35:55 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/12 16:05:48 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/14 13:17:28 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -301,9 +301,9 @@ void    ConfParser::parse() {
     }
     for (i = 0; i < _serverNb - 1; i++)
     {
-        for (j = i + 1; j < _serverNb - 1; j++)
+        for (j = i + 1; j < _serverNb; j++)
         {
-            if (_servers[i].getPort() == _servers[j].getPort() && _servers[i].getHost() == _servers[j].getHost() && _servers[i].getServerName() == _servers[j].getServerName())
+            if (_servers[i].getPort() == _servers[j].getPort() && _servers[i].getHost() == _servers[j].getHost() && _servers[i].getServerName() == _servers[j].getServerName() && _servers[i].getServerName() != "")
                 throw ConfParserException("Two server blocks can't share same port, host and server name");
         }
     }

@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/13 15:55:47 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/14 12:07:37 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,10 +37,11 @@ class HttpRes
 		bool	getKeepAlive() const;
 
 		void	handleRequest(HttpReq &request, std::vector<Server *> servers);
-		int		checkHttpVersion(std::string version);
-		int		checkMethod(std::string method);
-		int		checkUri(std::string uri, std::string body);
-		int		checkHeader(std::map<std::string, std::string> const reqHeader, std::vector <Server *> servers);
+		void	setServer(std::string reqHost, std::vector<Server *> servers);
+		int		checkHttpVersion(std::string version, bool &error);
+		int		checkMethod(std::string method, bool &error);
+		int		checkUri(std::string uri, std::string body, bool &error);
+		int		checkHeader(std::map<std::string, std::string> const reqHeader, std::vector <Server *> servers, bool &error);
 		int		checkBody(std::string body);
 		void	formatResponse();
 		

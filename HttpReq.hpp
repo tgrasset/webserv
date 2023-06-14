@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:03 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/13 11:40:34 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/14 11:55:27 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,11 @@ private:
 	std::string							_uri;
 	std::string							_httpVersion;
 	std::map<std::string, std::string>	_header;
+	std::string							_host;
+	std::vector<std::string>			_accept;
+	std::string							_contentType;
+	int									_contentLength;
+	bool								_keepAlive;
 	std::string							_body;
 	
 public:
@@ -39,6 +44,11 @@ public:
 	std::string		getUri() const;
 	std::string		getHttpVersion() const;
 	std::map<std::string, std::string> getHeader() const;
+	std::string		getHost() const;
+	std::vector<std::string>	getAccept() const;
+	std::string		getContentType() const;
+	int				getContentLength() const;
+	bool			getKeepAlive() const;
 	std::string		getBody() const;
 	
 };
