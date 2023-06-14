@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/14 14:37:50 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/14 17:57:32 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -141,7 +141,7 @@ int	HttpRes::checkHttpVersion(std::string version, bool &error) {
 		error = true;
 		return (505);
 	}
-	_httpVersion = version;
+	_httpVersion = "HTTP/1.1";
 	return (200);
 }
 
@@ -156,12 +156,59 @@ int	HttpRes::checkMethod(std::string method, bool &error) {
 	return (200);
 }
 
+int	HttpRes::checkRequestBodySize(int maxSize, int bodySize, bool &error) {
+
+	if (bodySize > maxSize)
+	{
+		error = true;
+		return (413);
+	}
+	return (200);
+}
+
+int	HttpRes::checkRequestHeader(std::map<std::string, std::string> header, bool &error) {
+
+	std::map<std::string, std::string>::iterator it2;
+	
+	for (std::map<std::string, std::string>::iterator it = header.begin(); it != header.end(); it++)
+	{
+		if (it->first.length() > 70)
+		{
+			error = true;
+			return (431);
+		}
+		for (it2 = header.begin(); it2 != it; it2++)
+			;
+		it2++;
+		for (; it2 != header.end(); it2++)
+		{
+			if (it2->first == it->first)
+			{
+				error = true;
+				return (400);
+			}
+		}
+	}
+	return (200);
+}
+
 int	HttpRes::checkUri(std::string uri, std::string body, bool &error) {
 	
 	(void)uri;
 	(void)body;
 	(void)error;
 	return (0);
+}
+
+void	HttpRes::formatResponse() {
+	
+	std::stringstream response;
+	response << _httpVersion << " " << _statusCode << " " << _statusMessage << "\r\n";
+	for (std::map<std::string, std::string>::iterator it = _header.begin(); it != _header.end(); it++)
+		response << it->first << " " << it->second << "\r\n";
+	response << "\r\n";
+	response << _body;
+	_toSend = response.str();
 }
 
 void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
@@ -172,11 +219,15 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 	_statusCode = checkHttpVersion(request.getHttpVersion(), error);
 	if (error == false)
 		_statusCode = checkMethod(request.getMethod(), error);
+	if (error == false && _server->getClientMaxBodySize() != 0)
+		_statusCode = checkRequestBodySize(_server->getClientMaxBodySize(), request.getBody().size(), error);
+	if (error == false)
+		_statusCode = checkRequestHeader(request.getHeader(), error);
 	if (error == false)
 		_statusCode = checkUri(request.getUri(), request.getBody(), error); //verif redirections, cgi...
-	_statusMessage = getStatus(_statusCode);
-	// buildHeader();
-	// formatResponse();      tout mettre au bon format dans toSend
 	if (request.getKeepAlive() == false)
 		_keepAlive = false;
+	// buildHeader();
+	_statusMessage = getStatus(_statusCode);
+	formatResponse();
 }
