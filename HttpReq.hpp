@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpReq.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:03 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/14 11:55:27 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/14 15:17:16 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,9 @@ private:
 	int									_contentLength;
 	bool								_keepAlive;
 	std::string							_body;
-	
+
+	bool	parse(std::string &content);
+
 public:
 
 	HttpReq(std::string &content);    // content sera la string a parser
@@ -50,7 +52,7 @@ public:
 	int				getContentLength() const;
 	bool			getKeepAlive() const;
 	std::string		getBody() const;
-	
+
 };
 
 

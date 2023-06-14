@@ -26,6 +26,7 @@
 # define BUFFER_SIZE 4096
 
 std::vector<std::string>    cpp_split(std::string str, char const *charset);
+std::vector<std::string>    cpp_split_sep(std::string str, std::string sep);
 int							stringToInt(std::string str);
 bool						isValidConfValue(std::string &str);
 std::string					getStatus(int code);

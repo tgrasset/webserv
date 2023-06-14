@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpReq.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:03 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/14 14:31:19 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/14 19:11:32 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,28 @@ HttpReq::HttpReq(std::string &content)
 	_contentLength = 0;
 	_keepAlive = true;
 	_body = "";
-	(void)content; // parsing a faire ici, have fun joseph :p  (j'ai void 'content' juste pour que ca compile)
+	HttpReq::parse(content); // parsing a faire ici, have fun joseph :p  (j'ai void 'content' juste pour que ca compile)
+}
+
+bool	HttpReq::parse(std::string &content)
+{
+	std::vector<std::string>	head_and_body;
+	std::vector<std::string>	head;
+	size_t	body_start = 0;
+
+	head_and_body = cpp_split_sep(content, "\r\n\r\n");
+	head = cpp_split_sep(head_and_body[0], "\r\n");
+
+	const int	first_space = head[0].find(' ');
+	const int	second_space = head[0].find(' ', first_space);
+	_method			= head[0].substr(0, first_space);
+	_uri			= head[0].substr(first_space, second_space - first_space);
+	_httpVersion	= head[0].substr(second_space, second_space - head[0].size());
+
+
+
+	if (head_and_body.size() == 2)
+		_body = head_and_body[1];
 }
 
 HttpReq::HttpReq(HttpReq const & copy)
@@ -71,7 +92,7 @@ HttpReq	& HttpReq::operator=(HttpReq const & httpreq)
 /*                     Methodes                                               */
 /* ************************************************************************** */
 std::string		HttpReq::getMethod() const {
-	
+
 	return (_method);
 }
 
@@ -81,7 +102,7 @@ std::string		HttpReq::getUri() const {
 }
 
 std::string		HttpReq::getHttpVersion() const {
-	
+
 	return (_httpVersion);
 }
 
@@ -106,7 +127,7 @@ std::string		HttpReq::getContentType() const {
 }
 
 int	HttpReq::getContentLength() const {
-	
+
 	return (_contentLength);
 }
 
