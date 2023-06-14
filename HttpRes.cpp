@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/14 13:11:26 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/14 13:56:39 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,14 +157,6 @@ int	HttpRes::checkMethod(std::string method, bool &error) {
 	return (200);
 }
 
-int	HttpRes::checkHeader(std::map<std::string, std::string> const reqHeader, std::vector <Server *> servers, bool &error) {
-
-	(void)reqHeader;
-	(void)servers;
-	(void)error;
-	return (0);
-}
-
 int	HttpRes::checkUri(std::string uri, std::string body, bool &error) {
 	
 	(void)uri;
@@ -177,13 +169,15 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 	
 	bool	error = false;
 	
+	setServer(request.getHost(), servers);
 	_statusCode = checkHttpVersion(request.getHttpVersion(), error);
 	if (error == false)
 		_statusCode = checkMethod(request.getMethod(), error);
 	if (error == false)
-		_statusCode = checkHeader(request.getHeader(), servers, error);
-	if (error == false)
 		_statusCode = checkUri(request.getUri(), request.getBody(), error); //verif redirections, cgi...
-	_statusMessage = getStatus(_statusCode);  //fonction dans utils.cpp
-	//formatResponse();				// tout recuperer et mettre au bon format dans _toSend
+	_statusMessage = getStatus(_statusCode);
+	// buildHeader();
+	// formatResponse();      tout mettre au bon format dans toSend
+	if (request.getKeepAlive() == false)
+		_keepAlive = false;
 }
