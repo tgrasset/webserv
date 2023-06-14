@@ -17,6 +17,19 @@ std::vector<std::string>    cpp_split(std::string str, char const *charset) {
 	return (res);
 }
 
+bool	caseInsensitiveCmp(std::string const &a, std::string const &b) {
+
+	size_t size = a.size();
+	if (b.size() != size)
+		return (false);
+	for (size_t i = 0; i < size; i++)
+	{
+		if (tolower(a[i]) != tolower(b[i]))
+			return (false);
+	}
+	return (true);
+}
+
 int	stringToInt(std::string str) {
 
 	if (str.length() > 10)
