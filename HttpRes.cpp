@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/15 11:28:04 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/15 18:16:21 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,9 +29,11 @@ HttpRes::HttpRes(HttpReq &request, std::vector<Server *> servers) {
 	_body = "";
 	_toSend.clear();
 	_server = NULL;
+	_location = NULL;
 	_keepAlive = true;
 	_uriPath = "";
 	_uriQuery = "";
+	_resourceType = NORMALFILE;
 	handleRequest(request, servers);
 }
 
@@ -67,6 +69,8 @@ HttpRes	& HttpRes::operator=(HttpRes const & httpres)
 		_keepAlive = httpres.getKeepAlive();
 		_uriPath = httpres.getUriPath();
 		_uriQuery = httpres.getUriQuery();
+		_resourceType = httpres.getResourceType();
+		_location = httpres.getLocation();
 	}
 	return (*this);
 }
@@ -129,6 +133,16 @@ std::string HttpRes::getUriQuery() const {
 	return (_uriQuery);
 }
 
+r_type	HttpRes::getResourceType() const {
+
+	return (_resourceType);
+}
+
+Location	*HttpRes::getLocation() const {
+
+	return (_location);
+}
+
 void	HttpRes::setServer(std::string reqHost, std::vector<Server *> servers) {
 
 	if (servers.size() == 1)
@@ -136,6 +150,11 @@ void	HttpRes::setServer(std::string reqHost, std::vector<Server *> servers) {
 		_server = servers[0];
 		return ;
 	}
+	std::string hostname;
+	if (reqHost.find(':') != std::string::npos)
+		hostname = reqHost.substr(0, reqHost.length() - reqHost.find(':'));
+	else
+		hostname = reqHost;
 	for (std::vector<Server *>::iterator it = servers.begin(); it != servers.end(); it++)
 	{
 		if ((*it)->getServerName() == reqHost)
@@ -204,14 +223,82 @@ int	HttpRes::checkRequestHeader(std::map<std::string, std::string> header, bool 
 	return (200);
 }
 
-int	HttpRes::checkUri(std::string uri, std::string body, bool &error) {
+r_type HttpRes::checkResourceType() {
+
+	
+	struct stat test;
+	if (access(_uriPath.c_str(), F_OK) != 0)
+		return (NOT_FOUND);
+	else if (access(_uriPath.c_str(), R_OK) != 0)
+		return (FORBIDDEN);
+	if (stat(_uriPath.c_str(), &test) == 0)
+	{
+		if (test.st_mode & S_IFDIR)
+		{
+			if (_location == NULL)
+			{
+				_uriPath += _server->getIndex();
+				if (access(_uriPath.c_str(), F_OK) != 0)
+					return (NOT_FOUND);
+				else if (access(_uriPath.c_str(), R_OK) != 0)
+					return (FORBIDDEN);
+				else
+					return (NORMALFILE);
+			}
+			else
+			{
+				if ((_location->getCgiBool() == true || _location->getAutoIndex() == false) && _location->getIndex() == "")
+					return (FORBIDDEN);
+				else if (_location->getAutoIndex() == true && _location->getIndex() == "")
+					return (AUTOINDEX);
+				else
+				{
+					_uriPath += _location->getIndex();
+					if (access(_uriPath.c_str(), F_OK) != 0)
+						return (NOT_FOUND);
+					else if (access(_uriPath.c_str(), R_OK) != 0)
+						return (FORBIDDEN);
+					else
+						return (NORMALFILE);
+				}
+			}
+		}
+		else if (test.st_mode & S_IFREG)
+		{
+			if (_location != NULL && _location->getCgiBool() == true)
+			{
+				size_t len = _uriPath.length();
+				if (len > 3 && _uriPath[len - 1] == 'y' && _uriPath[len - 2] == 'p' && _uriPath[len - 3] == '.')
+					return (PYTHON);
+				else if (len > 4 && _uriPath[len - 1] == 'p' && _uriPath[len - 2] == 'h' && _uriPath[len - 3] == 'p' && _uriPath[len - 4] == '.')
+					return (PHP);
+				else
+					return (NORMALFILE);
+			}
+			else
+			{
+				size_t len = _uriPath.length();
+				if (len > 3 && _uriPath[len - 1] == 'y' && _uriPath[len - 2] == 'p' && _uriPath[len - 3] == '.')
+					return (FORBIDDEN);
+				else if (len > 4 && _uriPath[len - 1] == 'p' && _uriPath[len - 2] == 'h' && _uriPath[len - 3] == 'p' && _uriPath[len - 4] == '.')
+					return (FORBIDDEN);
+				else
+					return (NORMALFILE);
+			}
+		}
+		else
+			return (FORBIDDEN);
+	}
+	else
+		return (FORBIDDEN);
+}
+
+int	HttpRes::checkUri(std::string uri) {
 	
 	size_t questionMark = uri.find('?');
 	size_t end = uri.rfind('#');
 	std::string tempPath;
 
-	(void)body;
-	(void)error;
 	if (questionMark == std::string::npos)
 		tempPath = uri;
 	else
@@ -222,7 +309,60 @@ int	HttpRes::checkUri(std::string uri, std::string body, bool &error) {
 		else if (uri[questionMark + 1] != '\0')
 			_uriQuery = uri.substr(questionMark + 1, end - (questionMark + 1));
 	}
-	return (0);
+	std::vector<Location> locs = _server->getLocations();
+	for (std::vector<Location>::iterator it = locs.begin(); it != locs.end(); it++)
+	{
+		if (tempPath.find((*it).getPath()) == 0)
+		{
+			_location = &(*it);
+			break;
+		}
+	}
+	if (_location != NULL && _location->getRedirectionCode() > 0)
+	{
+		_resourceType = REDIRECTION;
+		return (_location->getRedirectionCode());
+	}
+	if (_location == NULL || _location->getRoot() == _server->getRoot())
+		_uriPath = _server->getRoot() + "/" + tempPath;
+	else 
+		_uriPath = _location->getRoot() + "/" + tempPath;
+	_resourceType = checkResourceType();
+	if (_resourceType == NOT_FOUND)
+		return (404);
+	else if (_resourceType == FORBIDDEN)
+		return (403);
+	else
+		return (200);
+}
+
+void	HttpRes::bodyBuild() {
+
+	if (_resourceType == REDIRECTION)
+		;// formaliser en html le lien de redirection dans _body, en integrant le bon numero de redir avec le bon message
+	else if (_resourceType == PYTHON || _resourceType == PHP)
+		;// envoyer les CGI et balancer leur output dans _body
+	else if (_resourceType == AUTOINDEX)
+		;// formaliser en html les fichiers presents dans le dossier et mettre dans _body
+	else if (_statusCode != 200)
+	{
+		std::map<int, std::string> error_pages = _server->getErrorPages();
+		if (error_pages.empty() || error_pages.find(_statusCode) == error_pages.end())
+			;// formaliser en html un message d'erreur par defaut en integrant _statusCode et _statusMessage
+		else
+			;// reverifier que la page existe est qu'on a les droits, puis mettre son contenu dans _body, et sinon faire comme au dessus
+	}
+	else
+		;// ouvrir le fichier, et envoyer son contenu dans _body
+}
+
+void	HttpRes::headerBuild() {
+	
+	std::pair<std::string, std::string> header;
+
+	header.first = "Date:";
+	header.second = timeStamp(); //bordel a modifier pour avoir le jour de la semaine et le mois en lettres...
+	//to be continued...
 }
 
 void	HttpRes::formatResponse() {
@@ -249,11 +389,11 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 	if (error == false)
 		_statusCode = checkRequestHeader(request.getHeader(), error);
 	if (error == false)
-		_statusCode = checkUri(request.getUri(), request.getBody(), error);
-	// bodyBuild();
+		_statusCode = checkUri(request.getUri());
+	_statusMessage = getStatus(_statusCode);
+	bodyBuild();
 	if (request.getKeepAlive() == false)
 		_keepAlive = false;
-	// headerBuild();
-	_statusMessage = getStatus(_statusCode);
+	headerBuild();
 	formatResponse();
 }

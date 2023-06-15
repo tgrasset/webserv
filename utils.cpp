@@ -1,4 +1,5 @@
 #include "webserv.hpp"
+#include "Server.hpp"
 
 std::vector<std::string>    cpp_split(std::string str, char const *charset) {
 
@@ -15,19 +16,6 @@ std::vector<std::string>    cpp_split(std::string str, char const *charset) {
 		res.push_back(str.substr(start, end - start));
 	}
 	return (res);
-}
-
-bool	caseInsensitiveCmp(std::string const &a, std::string const &b) {
-
-	size_t size = a.size();
-	if (b.size() != size)
-		return (false);
-	for (size_t i = 0; i < size; i++)
-	{
-		if (tolower(a[i]) != tolower(b[i]))
-			return (false);
-	}
-	return (true);
 }
 
 int	stringToInt(std::string str) {
@@ -176,4 +164,13 @@ std::string getStatus(int code) {
 		default:
 			return ("Unknown");
 	}
+}
+
+std::string  timeStamp(void) {
+
+	std::stringstream str;
+    std::time_t t = time(NULL);
+    std::tm *gmt = gmtime(&t);
+	str << gmt->tm_wday << ", " << std::setw(2) << std::setfill('0') << gmt->tm_mday << " " << gmt->tm_mon << " " << gmt->tm_year+ 1900 << " " << std::setw(2) << std::setfill('0') << gmt->tm_hour << ":" << std::setw(2) << std::setfill('0') << gmt->tm_min << ":" << std::setw(2) << std::setfill('0') << gmt->tm_sec << " GMT";
+	return (str.str());
 }

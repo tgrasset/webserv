@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/12 15:48:32 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/15 11:44:02 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/15 15:58:29 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,8 +159,9 @@ void	Server::setRoot(std::string root) {
 		_root = root;
 		return ;
 	}
-	char buffer[1024];
-	getcwd(buffer, 1024);
+	char buffer[4096];
+	if (getcwd(buffer, 4096) == false)
+		throw ServerException("getcwd error");
 	std::string root2 = buffer + root;
 	if (stat(root2.c_str(), &test) == 0 && test.st_mode & S_IFDIR)
 		_root = root2;

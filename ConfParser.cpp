@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/12 15:35:55 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/14 14:37:30 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/15 16:09:50 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -276,7 +276,7 @@ void    ConfParser::checkServerConfig(Server &server) const {
     if (server.getHost() == 0)
         server.setHost("localhost;");
     if (server.getIndex() == "")
-        server.setIndex("index.html;");
+        throw ConfParserException("Server must have an index");
     if (server.getPort() == 0)
         server.setPort("80;");
     if (checkFile(server.getIndex(), server.getRoot()) == false)
