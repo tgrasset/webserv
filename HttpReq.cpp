@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:03 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/14 19:11:32 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/06/15 17:35:32 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,15 @@ bool	HttpReq::parse(std::string &content)
 	_uri			= head[0].substr(first_space, second_space - first_space);
 	_httpVersion	= head[0].substr(second_space, second_space - head[0].size());
 
+	head.erase(head.begin());
 
+	for (int i = 0; i < head.size(); i++)
+	{
+		int	pos = 0;
+		pos = head[i].find(':');
+		_header.insert(head[i].substr(0, pos), head[i].substr(pos + 1, head[i].size() - pos));
+		if (_header[i] == "host")
+	}
 
 	if (head_and_body.size() == 2)
 		_body = head_and_body[1];

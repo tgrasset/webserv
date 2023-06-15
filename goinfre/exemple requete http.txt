@@ -1,0 +1,6 @@
+GET /page.html HTTP/1.0
+Host: example.com
+Referer: http://example.com/
+User-Agent: CERN-LineMode/2.15 libwww/2.17b3
+
+<!DOCTYPE HTML PUBLIC “-//IETF//DTD HTML 2.0//EN”></code.
