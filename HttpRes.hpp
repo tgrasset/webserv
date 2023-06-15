@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/14 16:51:15 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/15 10:41:48 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,8 @@ class HttpRes
 		Server	*getServer() const;
 		std::string	getToSend() const;
 		bool	getKeepAlive() const;
+		std::string	getUriPath() const;
+		std::string getUriQuery() const;
 
 		void	handleRequest(HttpReq &request, std::vector<Server *> servers);
 		void	setServer(std::string reqHost, std::vector<Server *> servers);
@@ -60,6 +62,8 @@ class HttpRes
 		Server								*_server;
 		std::string							_toSend;
 		bool								_keepAlive;
+		std::string							_uriPath;
+		std::string							_uriQuery;
 };
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/12 15:48:32 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/14 14:33:30 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/15 11:44:02 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -243,7 +243,7 @@ void	Server::setLocation(std::string path, std::vector<std::string> content) {
 		{
 			if (loc.getRoot() != "")
 				throw ServerException("Each 'location' context can't have more than one 'root' directive");
-			loc.setRoot(content[++i]);
+			loc.setRoot(content[++i], _root);
 		}
 		else if (content[i] == "allow_methods" && i + 1 < size)
 		{

@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/12 15:27:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/14 11:36:23 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/15 12:12:25 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,7 +112,7 @@ void	Location::setPath(std::string path) {
 	_path = path;
 }
 
-void	Location::setRoot(std::string root) {
+void	Location::setRoot(std::string root, std::string serverRoot) {
 
 	if (isValidConfValue(root) == false)
 		throw LocationException("';' symbol needed after 'root' line in 'location' context");
@@ -122,9 +122,7 @@ void	Location::setRoot(std::string root) {
 		_root = root;
 		return ;
 	}
-	char buffer[4096];
-	getcwd(buffer, 4096);
-	std::string root2 = buffer + root;
+	std::string root2 = serverRoot + "/" + root;
 	if (stat(root2.c_str(), &test) == 0 && test.st_mode & S_IFDIR)
 		_root = root2;
 	else
@@ -219,37 +217,22 @@ void	Location::setRedirectionPath(std::string path) {
 
 void	Location::checkConfig(std::string serverRoot) {
 
-	if (_cgiLocation == true)
+	if (_cgiLocation == true && _index == "")
+		throw LocationException("Missing 'index' directive in 'cgi-bin' location");
+	if (_path[0] != '/')
+		throw LocationException("Invalid path format after 'location' directive");
+	if (_root == "")
+		_root = serverRoot;
+	if (this->getMethods().empty() == true)
 	{
-		if (_index == "")
-			throw LocationException("Missing 'index' directive in 'cgi-bin' location");
-		if (_root == "")
-			_root = serverRoot;
-		if (checkFile(_index, _root + _path) == false)
-		{
-			char buffer[4096];
-			getcwd(buffer, 4096);
-			_root = buffer;
-			std::string path = buffer + _path + "/" + _index;
-			if (path.empty() || checkFile(path, _root) == false)
-				throw LocationException("Index file for 'cgi-bin' location doesn't exist or couldn't be read");
-		}	
+		_methods.push_back("GET");
+		_methods.push_back("POST");
+		_methods.push_back("DELETE");
 	}
-	else
-	{
-		if (_path[0] != '/')
-			throw LocationException("Invalid path format after 'location' directive");
-		if (_root == "")
-			_root = serverRoot;
-		if (this->getMethods().empty() == true)
-		{
-			_methods.push_back("GET");
-			_methods.push_back("POST");
-			_methods.push_back("DELETE");
-		}
-		if (_autoindex == false && _index != "" && checkFile(_index, _root + _path) == false)
+	if (_root == serverRoot && _autoindex == false && _index != "" && checkFile(_index, _root + _path) == false)
 			throw LocationException("Index file in 'location' context doesn't exist or couldn't be read");
-		if (_redirectionCode != 0 && checkFile(_redirection, serverRoot) == false)
-			throw LocationException("Invalid redirection path at the end of 'return' line");
-	}
+	else if (_root != serverRoot && _autoindex == false && _index != "" && checkFile(_index, _root) == false)
+		throw LocationException("Index file in 'location' context doesn't exist or couldn't be read");
+	if (_redirectionCode != 0 && checkFile(_redirection, serverRoot) == false)
+		throw LocationException("Invalid redirection path at the end of 'return' line");
 }

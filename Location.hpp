@@ -26,7 +26,7 @@ class Location {
 		std::map<std::string, std::string>	getCgiExtensionAndPath(void) const;
 
 		void	setPath(std::string path);
-		void	setRoot(std::string root);
+		void	setRoot(std::string root, std::string serverRoot);
 		void	setIndex(std::string index);
 		void	setAutoIndex(bool autoindex);
 		void	setMethods(std::vector<std::string> methods);

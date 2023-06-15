@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/14 17:57:32 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/15 11:28:04 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,8 @@ HttpRes::HttpRes(HttpReq &request, std::vector<Server *> servers) {
 	_toSend.clear();
 	_server = NULL;
 	_keepAlive = true;
+	_uriPath = "";
+	_uriQuery = "";
 	handleRequest(request, servers);
 }
 
@@ -63,7 +65,8 @@ HttpRes	& HttpRes::operator=(HttpRes const & httpres)
 		_toSend = httpres.getToSend();
 		_server = httpres.getServer();
 		_keepAlive = httpres.getKeepAlive();
-		
+		_uriPath = httpres.getUriPath();
+		_uriQuery = httpres.getUriQuery();
 	}
 	return (*this);
 }
@@ -114,6 +117,16 @@ std::string	HttpRes::getToSend() const {
 bool	HttpRes::getKeepAlive() const {
 
 	return (_keepAlive);
+}
+
+std::string	HttpRes::getUriPath() const {
+
+	return (_uriPath);
+}
+
+std::string HttpRes::getUriQuery() const {
+
+	return (_uriQuery);
 }
 
 void	HttpRes::setServer(std::string reqHost, std::vector<Server *> servers) {
@@ -177,8 +190,7 @@ int	HttpRes::checkRequestHeader(std::map<std::string, std::string> header, bool 
 			error = true;
 			return (431);
 		}
-		for (it2 = header.begin(); it2 != it; it2++)
-			;
+		it2 = it;
 		it2++;
 		for (; it2 != header.end(); it2++)
 		{
@@ -194,9 +206,22 @@ int	HttpRes::checkRequestHeader(std::map<std::string, std::string> header, bool 
 
 int	HttpRes::checkUri(std::string uri, std::string body, bool &error) {
 	
-	(void)uri;
+	size_t questionMark = uri.find('?');
+	size_t end = uri.rfind('#');
+	std::string tempPath;
+
 	(void)body;
 	(void)error;
+	if (questionMark == std::string::npos)
+		tempPath = uri;
+	else
+	{
+		tempPath = uri.substr(0, questionMark);
+		if (uri[questionMark + 1] != '\0' && end == std::string::npos)
+			_uriQuery = uri.substr(questionMark + 1, uri.length() - (questionMark + 1));
+		else if (uri[questionMark + 1] != '\0')
+			_uriQuery = uri.substr(questionMark + 1, end - (questionMark + 1));
+	}
 	return (0);
 }
 
@@ -224,10 +249,11 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 	if (error == false)
 		_statusCode = checkRequestHeader(request.getHeader(), error);
 	if (error == false)
-		_statusCode = checkUri(request.getUri(), request.getBody(), error); //verif redirections, cgi...
+		_statusCode = checkUri(request.getUri(), request.getBody(), error);
+	// bodyBuild();
 	if (request.getKeepAlive() == false)
 		_keepAlive = false;
-	// buildHeader();
+	// headerBuild();
 	_statusMessage = getStatus(_statusCode);
 	formatResponse();
 }
