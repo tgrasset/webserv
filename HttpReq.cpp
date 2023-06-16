@@ -3,23 +3,23 @@
 /*                                                        :::      ::::::::   */
 /*   HttpReq.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:03 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/14 14:31:19 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/16 17:19:47 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpReq.hpp"
 
-bool	HttpReq::_verbose = false;
+//bool	HttpReq::_verbose = false;
 /* ************************************************************************** */
 /*                     Constructeurs et destructeurs                          */
 /* ************************************************************************** */
 HttpReq::HttpReq(std::string &content)
 {
-	if (HttpReq::_verbose)
-		std::cout << "HttpReq default constructor called" << std::endl;
+	/*if (HttpReq::_verbose)
+		std::cout << "HttpReq default constructor called" << std::endl;*/
 	_method = "";
 	_uri = "";
 	_httpVersion = "";
@@ -36,14 +36,14 @@ HttpReq::HttpReq(std::string &content)
 HttpReq::HttpReq(HttpReq const & copy)
 {
 	*this = copy;
-	if (HttpReq::_verbose)
-		std::cout << "HttpReq copy constructor called" << std::endl;
+	/*if (HttpReq::_verbose)
+		std::cout << "HttpReq copy constructor called" << std::endl;*/
 }
 
 HttpReq::~HttpReq(void)
 {
-	if (HttpReq::_verbose)
-		std::cout << "HttpReq destructor called" << std::endl;
+	/*if (HttpReq::_verbose)
+		std::cout << "HttpReq destructor called" << std::endl;*/
 }
 
 /* ************************************************************************** */
@@ -118,4 +118,9 @@ bool	HttpReq::getKeepAlive() const {
 std::string		HttpReq::getBody() const {
 
 	return (_body);
+}
+
+void	HttpReq::setBody(std::string body)
+{
+	(void)body;
 }
