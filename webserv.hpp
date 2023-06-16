@@ -32,6 +32,7 @@ int							stringToInt(std::string str);
 bool						isValidConfValue(std::string &str);
 std::string					getStatus(int code);
 bool						checkFile(std::string const &file, std::string const &root);
+std::string					getTimestamp(void);
 std::string					timeStamp(void);
 std::string					sizeToString(size_t n);
 

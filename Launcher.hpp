@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:33 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/14 12:08:34 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/14 17:39:57 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,8 @@ public:
 	bool							check_if_listen_socket(int socket);
 	void				 			add_server_of_client(int listen_sock, Client *client);
 	void							process_reading_existing_client(int i);
-	void							print_ep_event(void);
+	void							process_writing_to_client(int i);
+	void							print_situation(void);
 
 	class LauncherException : public std::exception {
 	public :

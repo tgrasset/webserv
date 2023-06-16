@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/14 14:57:10 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/16 14:03:12 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,10 @@ private:
 	struct sockaddr_in		_client_addr;
 	static bool				_verbose;
 	std::string				_req_recived;
+	int						_id;
+	int						_byte_sent;
+	
+	static int				_count;
 	
 public:
 	Client(void);
@@ -51,11 +55,17 @@ public:
 
 	Client	&operator=(Client const & client);
 
-	void		AddServerPtr(Server * new_server_ptr);
-	int			getCom_socket(void) const;
-	void		add_to_req_recived(char *str);
-	void		SetStatus(t_status_c status);
-	t_status_c	getStatus(void) const;
+	void						AddServerPtr(Server * new_server_ptr);
+	int							getCom_socket(void) const;
+	void						add_to_req_recived(char *str);
+	void						SetStatus(t_status_c status);
+	t_status_c					getStatus(void) const;
+	struct sockaddr_in		 	getClient_addr(void) const;
+	int							getId(void) const;
+	void						print_ClientServer(void) const;
+	std::string					get_res_string(void) const;
+	int							get_byte_sent(void) const;
+	void						set_byte_sent(int byte);
 
 };
 

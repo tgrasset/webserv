@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/12 15:48:32 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/15 15:58:29 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/16 14:06:31 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,7 +119,6 @@ void	Server::setPort(std::string port) {
 	if (n < 1 || n > 65535)
 		throw ServerException("Invalid port value in 'listen' line");
 	u_int16_t nShort = n;
-	std::cout << std::endl << "	SetPort n " << n << " nshort " << nShort << std::endl;
 	_port = htons(nShort);
 }
 
@@ -137,9 +136,7 @@ void	Server::setHost(std::string host) {
 	struct sockaddr_in test;
 	if (inet_pton(AF_INET, host.c_str(), &test.sin_addr) == 0)
 		throw ServerException("IPv4 address format could not be recognised in 'host' line");
-	std::cout << "host : " << host << std::endl;
 	_host = inet_addr(host.c_str());
-	std::cout << "_host : " << _host << std::endl;
 }
 
 void 	Server::setServerName(std::string name) {
@@ -333,7 +330,6 @@ void	Server::setServaddr(void)
 
 void	Server::bind_server(void)
 {
-	std::cout << "_listenSocket " << _listenSocket << std::endl;
 	/*besoin de tester qu'il y a pas d'autres server avec les memes infos de host et port. */
 	if (bind(this->_listenSocket, (struct sockaddr *)&(this->_servaddr), sizeof(this->_servaddr)) < 0)
 		throw ServerException("Impossible de bind !");

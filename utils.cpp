@@ -173,6 +173,30 @@ std::string getStatus(int code) {
 	}
 }
 
+std::string	getTimestamp(void)
+{
+	time_t				rawtime;
+	struct tm 			*timeinfo;
+	std::ostringstream	os;
+
+	time (&rawtime);
+	timeinfo = localtime (&rawtime);
+	os << timeinfo->tm_mday;
+	os << "/";
+	if (timeinfo->tm_mon < 9)
+		os << "0";
+	os << timeinfo->tm_mon + 1;
+	os << "/";
+	os << timeinfo->tm_year + 1900;
+	os << " ";
+	os << timeinfo->tm_hour;
+	os << ":" << timeinfo->tm_min;
+	os << ":" << timeinfo->tm_sec;
+
+	return (os.str());
+}
+
+
 std::string  timeStamp(void) {
 
 	std::stringstream str;
