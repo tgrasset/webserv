@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/16 14:01:00 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/16 14:09:33 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,7 +133,7 @@ void	Client::print_ClientServer(void) const
 
 std::string	Client::get_res_string(void) const
 {
-	return (this->_res.getToSend());
+	return (this->_res->getToSend());
 }
 
 int	Client::get_byte_sent(void) const
