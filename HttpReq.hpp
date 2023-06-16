@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpReq.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:03 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/14 11:55:27 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/16 17:20:03 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ class HttpReq
 {
 private:
 
-	static bool		_verbose;
+	//static bool		_verbose;
 	HttpReq(void);
 
 	std::string							_method;
@@ -50,6 +50,7 @@ public:
 	int				getContentLength() const;
 	bool			getKeepAlive() const;
 	std::string		getBody() const;
+	void			setBody(std::string body);
 	
 };
 

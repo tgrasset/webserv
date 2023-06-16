@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/16 12:22:34 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/16 17:39:58 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -199,11 +199,8 @@ void 	Launcher::add_server_of_client(int listen_sock, Client *client)
 
 void	Launcher::process_reading_existing_client(int i)
 {
-	int byte_recv = 0;
+	// Looking for the client that wants to send things. 
 	std::vector< Client >::iterator it = this->_clients.begin();
-	char recvline[BUFFER_SIZE + 1];
-	memset(recvline, 0, BUFFER_SIZE + 1);
-
 	while (it != this->_clients.end())
 	{
 		if (it->getCom_socket() == _ep_event[i].data.fd)
@@ -212,12 +209,7 @@ void	Launcher::process_reading_existing_client(int i)
 	}
 	if (it == this->_clients.end())
 		throw LauncherException("Error: Client not found !");
-	byte_recv = recv(_ep_event[i].data.fd, recvline, BUFFER_SIZE, 0);
-	if (byte_recv > 0)
-	{
-		it->SetStatus(SENDING_REQ);
-		it->add_to_req_recived(recvline);
-	}
+	it->receive_request();
 	// if the client has finish sending the request, I remove him from the listen part to add to the send part ; 
 	if (it->getStatus() == WAITING_FOR_RES)
 	{
@@ -228,7 +220,7 @@ void	Launcher::process_reading_existing_client(int i)
 		if (epoll_ctl(_efd, EPOLL_CTL_DEL, _ep_event[i].data.fd, NULL) == -1)
 			throw LauncherException("Error: epoll_ctl DEL!");
 		if (epoll_ctl(_efd, EPOLL_CTL_ADD, fd, &ev) == -1)
-			throw LauncherException("Problem with epoll_ctl ! 2");
+			throw LauncherException("Problem with epoll_ctl !");
 	}
 }
 
@@ -244,31 +236,12 @@ void	Launcher::process_writing_to_client(int i)
 	}
 	if (it == this->_clients.end())
 		throw LauncherException("Error: Client not found !");
-	
-	int			byte_already_sent = it->get_byte_sent();
-	int 		byte_sent = 0;
-	std::string	res_full = it->get_res_string();
-	std::string res_remain = res_full.substr(byte_already_sent, res_full.size() - byte_already_sent);
-	std::string	to_send;
-	if (res_remain.size() <= BUFFER_SIZE)
-		to_send = res_remain;
-	else
-		to_send = res_remain.substr(0, BUFFER_SIZE);
-	byte_sent = send(it->getCom_socket(), to_send.c_str(), to_send.size(), 0);
-	if (byte_sent != -1)
+	it->send_response();
+	if (it->getStatus() == RES_SENT)
 	{
-		it->SetStatus(RECIVING_RES);
-		it->set_byte_sent(byte_already_sent + byte_sent);
-	}
-	// I have sent everything to the client
-	if (it->get_byte_sent() == static_cast<int>( res_full.size()))
-	{
-		it->SetStatus(RES_SENT);
 		if (epoll_ctl(_efd, EPOLL_CTL_DEL, _ep_event[i].data.fd, NULL) == -1)
 			throw LauncherException("Error: epoll_ctl DEL!");
 		close(it->getCom_socket());
-		std::cout << getTimestamp() <<  "\e[33m	I have sent the following response to client " << it->getId() << " : \e[32m " << std::endl;
-		std::cout << std::endl << res_full << std::endl;
 		std::cout << std::endl << "\e[33m	I will now remove client " << it->getId() << " from my client list.\e[0m" << std::endl;
 		this->_clients.erase(it);
 	}
@@ -303,15 +276,18 @@ void	Launcher::print_situation(void)
 			std::cout << "WANT_TO_SEND_REQ";
 			break;
 		case 1:
-			std::cout << "SENDING_REQ";
+			std::cout << "SENDING_REQ_HEADER";
 			break;
 		case 2:
-			std::cout << "REQ_SENT";
+			std::cout << "SENDING_REQ_BODY";
 			break;
 		case 3:
-			std::cout << "WAITING_FOR_RES";
+			std::cout << "REQ_SENT";
 			break;
 		case 4:
+			std::cout << "WAITING_FOR_RES";
+			break;
+		case 5:
 			std::cout << "RECIVING_RES";
 			break;
 		default:
