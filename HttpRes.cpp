@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/15 18:16:21 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/16 12:40:16 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ HttpRes::HttpRes(HttpReq &request, std::vector<Server *> servers) {
 	_uriPath = "";
 	_uriQuery = "";
 	_resourceType = NORMALFILE;
+	_contentLength = 0;
 	handleRequest(request, servers);
 }
 
@@ -71,6 +72,7 @@ HttpRes	& HttpRes::operator=(HttpRes const & httpres)
 		_uriQuery = httpres.getUriQuery();
 		_resourceType = httpres.getResourceType();
 		_location = httpres.getLocation();
+		_contentLength = httpres.getContentLength();
 	}
 	return (*this);
 }
@@ -141,6 +143,11 @@ r_type	HttpRes::getResourceType() const {
 Location	*HttpRes::getLocation() const {
 
 	return (_location);
+}
+
+size_t	HttpRes::getContentLength() const {
+	
+	return (_contentLength);
 }
 
 void	HttpRes::setServer(std::string reqHost, std::vector<Server *> servers) {
@@ -243,7 +250,10 @@ r_type HttpRes::checkResourceType() {
 				else if (access(_uriPath.c_str(), R_OK) != 0)
 					return (FORBIDDEN);
 				else
+				{
+					_contentLength = test.st_size;
 					return (NORMALFILE);
+				}
 			}
 			else
 			{
@@ -259,7 +269,10 @@ r_type HttpRes::checkResourceType() {
 					else if (access(_uriPath.c_str(), R_OK) != 0)
 						return (FORBIDDEN);
 					else
+					{
+						_contentLength = test.st_size;
 						return (NORMALFILE);
+					}
 				}
 			}
 		}
@@ -273,7 +286,10 @@ r_type HttpRes::checkResourceType() {
 				else if (len > 4 && _uriPath[len - 1] == 'p' && _uriPath[len - 2] == 'h' && _uriPath[len - 3] == 'p' && _uriPath[len - 4] == '.')
 					return (PHP);
 				else
+				{
+					_contentLength = test.st_size;
 					return (NORMALFILE);
+				}
 			}
 			else
 			{
@@ -283,7 +299,10 @@ r_type HttpRes::checkResourceType() {
 				else if (len > 4 && _uriPath[len - 1] == 'p' && _uriPath[len - 2] == 'h' && _uriPath[len - 3] == 'p' && _uriPath[len - 4] == '.')
 					return (FORBIDDEN);
 				else
+				{
+					_contentLength = test.st_size;
 					return (NORMALFILE);
+				}
 			}
 		}
 		else
@@ -339,30 +358,34 @@ int	HttpRes::checkUri(std::string uri) {
 void	HttpRes::bodyBuild() {
 
 	if (_resourceType == REDIRECTION)
-		;// formaliser en html le lien de redirection dans _body, en integrant le bon numero de redir avec le bon message
-	else if (_resourceType == PYTHON || _resourceType == PHP)
-		;// envoyer les CGI et balancer leur output dans _body
+		_body = redirectionHTML(_statusCode, _statusMessage, _location->getRedirectionPath());
 	else if (_resourceType == AUTOINDEX)
-		;// formaliser en html les fichiers presents dans le dossier et mettre dans _body
+		_body = autoindexHTML(_uriPath);
 	else if (_statusCode != 200)
 	{
 		std::map<int, std::string> error_pages = _server->getErrorPages();
 		if (error_pages.empty() || error_pages.find(_statusCode) == error_pages.end())
-			;// formaliser en html un message d'erreur par defaut en integrant _statusCode et _statusMessage
+			_body = errorHTML(_statusCode, _statusMessage);
 		else
-			;// reverifier que la page existe est qu'on a les droits, puis mettre son contenu dans _body, et sinon faire comme au dessus
+			_body = getErrorPageContent(error_pages[_statusCode], _statusCode, _statusMessage);
 	}
-	else
-		;// ouvrir le fichier, et envoyer son contenu dans _body
+	if (_body != "")
+		_contentLength = _body.length();
+	// autrement, _body reste vide, puisque le fichier est de taille imprevisible et potentiellement tres gros, ou bien c'est un CGI
 }
 
 void	HttpRes::headerBuild() {
 	
-	std::pair<std::string, std::string> header;
-
-	header.first = "Date:";
-	header.second = timeStamp(); //bordel a modifier pour avoir le jour de la semaine et le mois en lettres...
-	//to be continued...
+	_header["Date:"] = timeStamp();
+	_header["Server:"] = "Webserv/1.0";
+	if (_resourceType != PYTHON && _resourceType != PHP)
+		_header["Content-Length:"] = sizeToString(_contentLength);
+	if (_keepAlive == true)
+		_header["Connection:"] = "keep-alive";
+	else
+		_header["Connection:"] = "close";
+	// get mime type
+	
 }
 
 void	HttpRes::formatResponse() {

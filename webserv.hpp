@@ -33,5 +33,11 @@ bool						isValidConfValue(std::string &str);
 std::string					getStatus(int code);
 bool						checkFile(std::string const &file, std::string const &root);
 std::string					timeStamp(void);
+std::string					sizeToString(size_t n);
+
+std::string					redirectionHTML(int code, std::string message, std::string path);
+std::string					autoindexHTML(std::string path);
+std::string					errorHTML(int code, std::string message);
+std::string					getErrorPageContent(std::string path, int code, std::string message);
 
 #endif

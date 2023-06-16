@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/15 17:55:57 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/16 10:03:44 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ class HttpRes
 		std::string getUriQuery() const;
 		r_type	getResourceType() const;
 		Location	*getLocation() const;
+		size_t	getContentLength() const;
 
 		void	handleRequest(HttpReq &request, std::vector<Server *> servers);
 		void	setServer(std::string reqHost, std::vector<Server *> servers);
@@ -82,6 +83,7 @@ class HttpRes
 		std::string							_uriPath;
 		r_type								_resourceType;
 		std::string							_uriQuery;
+		size_t								_contentLength;
 };
 
 #endif

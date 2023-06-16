@@ -33,6 +33,13 @@ int	stringToInt(std::string str) {
 	return (n);
 }
 
+std::string	sizeToString(size_t n) {
+
+	std::stringstream s;
+	s << n;
+	return (s.str());
+}
+
 bool    checkFile(std::string const &file, std::string const &root) {
 
     struct stat test;
@@ -171,6 +178,75 @@ std::string  timeStamp(void) {
 	std::stringstream str;
     std::time_t t = time(NULL);
     std::tm *gmt = gmtime(&t);
-	str << gmt->tm_wday << ", " << std::setw(2) << std::setfill('0') << gmt->tm_mday << " " << gmt->tm_mon << " " << gmt->tm_year+ 1900 << " " << std::setw(2) << std::setfill('0') << gmt->tm_hour << ":" << std::setw(2) << std::setfill('0') << gmt->tm_min << ":" << std::setw(2) << std::setfill('0') << gmt->tm_sec << " GMT";
+	std::map<int, std::string> days;
+	std::map<int, std::string> mon;
+
+	days[1] = "Mon";
+	days[2] = "Tue";
+	days[3] = "Wed";
+	days[4] = "Thu";
+	days[5] = "Fri";
+	days[6] = "Sat";
+	days[7] = "Sun";
+
+	mon[1] = "Jan";
+	mon[2] = "Feb";
+	mon[3] = "Mar";
+	mon[4] = "Apr";
+	mon[5] = "May";
+	mon[6] = "Jun";
+	mon[7] = "Jul";
+	mon[8] = "Aug";
+	mon[9] = "Sep";
+	mon[10] = "Oct";
+	mon[11] = "Nov";
+	mon[12] = "Dec";
+
+	str << days[gmt->tm_wday] << ", " << std::setw(2) << std::setfill('0') << gmt->tm_mday << " " << mon[gmt->tm_mon] << " " << gmt->tm_year + 1900 << " " << std::setw(2) << std::setfill('0') << gmt->tm_hour << ":" << std::setw(2) << std::setfill('0') << gmt->tm_min << ":" << std::setw(2) << std::setfill('0') << gmt->tm_sec << " GMT";
 	return (str.str());
+}
+
+std::string redirectionHTML(int code, std::string message, std::string path) {
+
+	std::stringstream s;
+	s << "<!doctype html>\n<html>\n<head>\n<title>" << code << " : " << message << "</title>\n<meta http-equiv=\"refresh\" content=\"3; URL=" << path << "\">\n</head>";
+	s << "<body>\nRedirection dans 3 secondes.\n</body>\n</html>";
+	return (s.str());
+}
+
+std::string autoindexHTML(std::string path) {
+
+	std::stringstream s;
+	s << "<!doctype html>\n<html>\n<head>\n<title>Index of " << path << "</title>\n</head>\n<body>\n<p>Ici, y aura bientot un magnifique autoindex =)</p>\n</body>\n</html>";
+	return (s.str());
+}
+
+std::string errorHTML(int code, std::string message) {
+
+	std::stringstream s;
+	s << "<!doctype html>\n<html>\n<head>\n<title>Error " << code << "</title>\n</head>\n<body>\n<p>" << message << "</p>\n</body>\n</html>";
+	return (s.str());
+}
+
+std::string getErrorPageContent(std::string path, int code, std::string message) {
+
+	struct stat buf;
+    int ret = stat(path.c_str(), &buf);
+    std::ifstream fileStream;
+	std::stringstream s;
+
+    if (ret < 0 || !S_ISREG(buf.st_mode) || access(path.c_str(), R_OK) != 0)
+		s << "<!doctype html>\n<html>\n<head>\n<title>Error " << code << "</title>\n</head>\n<body>\n<p>" << message << "</p>\n</body>\n</html>";
+	else
+	{
+    	fileStream.open(path.c_str());
+    	if (fileStream.fail())
+        	s << "<!doctype html>\n<html>\n<head>\n<title>Error " << code << "</title>\n</head>\n<body>\n<p>" << message << "</p>\n</body>\n</html>";
+		else
+		{
+    		s << fileStream.rdbuf();
+    		fileStream.close();
+		}
+	}
+    return (s.str());
 }
