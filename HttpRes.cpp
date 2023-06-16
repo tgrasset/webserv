@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/16 12:40:16 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/16 13:59:44 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,10 @@ HttpRes::HttpRes(HttpReq &request, std::vector<Server *> servers) {
 	_uriQuery = "";
 	_resourceType = NORMALFILE;
 	_contentLength = 0;
+	// if (_mimeTypes.empty() == true)
+	// {
+	// 	//remplir map
+	// }
 	handleRequest(request, servers);
 }
 
@@ -384,8 +388,10 @@ void	HttpRes::headerBuild() {
 		_header["Connection:"] = "keep-alive";
 	else
 		_header["Connection:"] = "close";
-	// get mime type
-	
+	if (_resourceType != NORMALFILE)
+		_header["Content-Type:"] = "text/html";
+	else
+		_header["Content-Type:"] = getMimeType(_uriPath);
 }
 
 void	HttpRes::formatResponse() {

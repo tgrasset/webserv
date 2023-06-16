@@ -39,5 +39,6 @@ std::string					redirectionHTML(int code, std::string message, std::string path)
 std::string					autoindexHTML(std::string path);
 std::string					errorHTML(int code, std::string message);
 std::string					getErrorPageContent(std::string path, int code, std::string message);
+std::string					getMimeType(std::string path);
 
 #endif

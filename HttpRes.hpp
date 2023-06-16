@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/16 10:03:44 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/16 13:55:57 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,6 +84,7 @@ class HttpRes
 		r_type								_resourceType;
 		std::string							_uriQuery;
 		size_t								_contentLength;
+		static std::map<std::string, std::string> _mimeTypes;
 };
 
 #endif

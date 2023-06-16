@@ -250,3 +250,13 @@ std::string getErrorPageContent(std::string path, int code, std::string message)
 	}
     return (s.str());
 }
+
+std::string	getMimeType(std::string path) {
+
+	size_t point = path.rfind('.');
+	if (point == std::string::npos || point == path.length() -1)
+		return ("text/plain");
+	std::string ext = path.substr(point, path.length() - point);
+	//if ()
+	return (ext);
+}
