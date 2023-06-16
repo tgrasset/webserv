@@ -205,26 +205,26 @@ std::string  timeStamp(void) {
 	std::map<int, std::string> days;
 	std::map<int, std::string> mon;
 
+	days[0] = "Sun";
 	days[1] = "Mon";
 	days[2] = "Tue";
 	days[3] = "Wed";
 	days[4] = "Thu";
 	days[5] = "Fri";
 	days[6] = "Sat";
-	days[7] = "Sun";
 
-	mon[1] = "Jan";
-	mon[2] = "Feb";
-	mon[3] = "Mar";
-	mon[4] = "Apr";
-	mon[5] = "May";
-	mon[6] = "Jun";
-	mon[7] = "Jul";
-	mon[8] = "Aug";
-	mon[9] = "Sep";
-	mon[10] = "Oct";
-	mon[11] = "Nov";
-	mon[12] = "Dec";
+	mon[0] = "Jan";
+	mon[1] = "Feb";
+	mon[2] = "Mar";
+	mon[3] = "Apr";
+	mon[4] = "May";
+	mon[5] = "Jun";
+	mon[6] = "Jul";
+	mon[7] = "Aug";
+	mon[8] = "Sep";
+	mon[9] = "Oct";
+	mon[10] = "Nov";
+	mon[11] = "Dec";
 
 	str << days[gmt->tm_wday] << ", " << std::setw(2) << std::setfill('0') << gmt->tm_mday << " " << mon[gmt->tm_mon] << " " << gmt->tm_year + 1900 << " " << std::setw(2) << std::setfill('0') << gmt->tm_hour << ":" << std::setw(2) << std::setfill('0') << gmt->tm_min << ":" << std::setw(2) << std::setfill('0') << gmt->tm_sec << " GMT";
 	return (str.str());
