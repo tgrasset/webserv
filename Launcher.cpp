@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/14 18:55:32 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/16 12:22:34 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -173,7 +173,7 @@ void	Launcher::process_new_client(int i)
 	
 	// just for log information
 	inet_ntop (AF_INET, &(client_addr.sin_addr), str_ip_client, sizeof (str_ip_client));
-	std::cout << "\e[33m	I just accepted a new connexion from " << str_ip_client << "\e[0m" << std::endl;
+	std::cout << getTimestamp() << "\e[33m	I just accepted a new connexion from " << str_ip_client << "\e[0m" << std::endl;
 }
 
 bool	Launcher::check_if_listen_socket(int socket)
@@ -244,7 +244,7 @@ void	Launcher::process_writing_to_client(int i)
 	}
 	if (it == this->_clients.end())
 		throw LauncherException("Error: Client not found !");
-		
+	
 	int			byte_already_sent = it->get_byte_sent();
 	int 		byte_sent = 0;
 	std::string	res_full = it->get_res_string();
@@ -254,7 +254,6 @@ void	Launcher::process_writing_to_client(int i)
 		to_send = res_remain;
 	else
 		to_send = res_remain.substr(0, BUFFER_SIZE);
-	
 	byte_sent = send(it->getCom_socket(), to_send.c_str(), to_send.size(), 0);
 	if (byte_sent != -1)
 	{
@@ -268,7 +267,7 @@ void	Launcher::process_writing_to_client(int i)
 		if (epoll_ctl(_efd, EPOLL_CTL_DEL, _ep_event[i].data.fd, NULL) == -1)
 			throw LauncherException("Error: epoll_ctl DEL!");
 		close(it->getCom_socket());
-		std::cout << "\e[33m	I have sent the following response to client " << it->getId() << " : \e[32m " << std::endl;
+		std::cout << getTimestamp() <<  "\e[33m	I have sent the following response to client " << it->getId() << " : \e[32m " << std::endl;
 		std::cout << std::endl << res_full << std::endl;
 		std::cout << std::endl << "\e[33m	I will now remove client " << it->getId() << " from my client list.\e[0m" << std::endl;
 		this->_clients.erase(it);

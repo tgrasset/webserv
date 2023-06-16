@@ -8,6 +8,7 @@
 # include <fstream>
 # include <sstream>
 # include <cstdlib>
+# include <ctime>
 
 # include <sys/types.h>
 # include <sys/stat.h>
@@ -29,5 +30,6 @@ int							stringToInt(std::string str);
 bool						isValidConfValue(std::string &str);
 std::string					getStatus(int code);
 bool						checkFile(std::string const &file, std::string const &root);
+std::string					getTimestamp(void);
 
 #endif
