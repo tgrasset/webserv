@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/16 14:06:21 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/16 15:36:26 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ typedef enum e_type_c {
 	REDIRECTION,
 	FORBIDDEN,
 	NOT_FOUND,
+	NOT_ACCEPTABLE,
 	AUTOINDEX
 }				r_type;
 
@@ -63,6 +64,8 @@ class HttpRes
 		void	bodyBuild();
 		void	headerBuild();
 		void	formatResponse();
+		void	fillMimeTypes();
+		void	checkIfAcceptable(std::vector<std::string> acceptable);
 		
 
 	private:
