@@ -32,5 +32,6 @@ bool						isValidConfValue(std::string &str);
 std::string					getStatus(int code);
 bool						checkFile(std::string const &file, std::string const &root);
 bool						caseInsensitiveCmp(std::string const &a, std::string const &b);
+std::string					toUpperCase(const std::string& str);
 
 #endif

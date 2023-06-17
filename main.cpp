@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 20:36:38 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/14 14:36:40 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/16 21:54:43 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ void	handle_sigint(int sig)
 	(void)sig;
 }
 
-int main(int ac, char **av)
+/* int main(int ac, char **av)
 {
 	if (ac > 2)
 	{
@@ -48,4 +48,10 @@ int main(int ac, char **av)
 		return (EXIT_FAILURE);
 	}
 	return (0);
+} */
+
+int main(void)
+{
+	std::string	std;
+	
 }

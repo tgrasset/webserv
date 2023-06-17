@@ -46,6 +46,16 @@ bool	caseInsensitiveCmp(std::string const &a, std::string const &b) {
 	return (true);
 }
 
+std::string toUpperCase(const std::string& str)
+{
+	std::string result;
+	for (int i = 0; str.size(); i++)
+	{
+		result += std::toupper(str[i]);
+	}
+	return result;
+}
+
 int	stringToInt(std::string str) {
 
 	if (str.length() > 10)

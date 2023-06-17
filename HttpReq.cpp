@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:03 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/15 17:35:32 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/06/16 18:38:51 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ HttpReq::HttpReq(std::string &content)
 	_header.clear();
 	_host = "";
 	_accept.clear();
-	_contentType = "";
+	_contentType = "";///////////
 	_contentLength = 0;
 	_keepAlive = true;
 	_body = "";
@@ -35,12 +35,10 @@ HttpReq::HttpReq(std::string &content)
 
 bool	HttpReq::parse(std::string &content)
 {
-	std::vector<std::string>	head_and_body;
 	std::vector<std::string>	head;
 	size_t	body_start = 0;
 
-	head_and_body = cpp_split_sep(content, "\r\n\r\n");
-	head = cpp_split_sep(head_and_body[0], "\r\n");
+	head = cpp_split_sep(content, "\r\n");
 
 	const int	first_space = head[0].find(' ');
 	const int	second_space = head[0].find(' ', first_space);
@@ -50,16 +48,25 @@ bool	HttpReq::parse(std::string &content)
 
 	head.erase(head.begin());
 
+	int	pos = 0;
+	std::string	key;
+	std::string	value;
 	for (int i = 0; i < head.size(); i++)
 	{
-		int	pos = 0;
 		pos = head[i].find(':');
-		_header.insert(head[i].substr(0, pos), head[i].substr(pos + 1, head[i].size() - pos));
-		if (_header[i] == "host")
+		key = toUpperCase(head[i].substr(0, pos));
+		value = head[i].substr(pos + 1, head[i].size() - pos);
+		_header.insert(key, value);
 	}
+	if (_header.find("HOST") != _header.end())
+		_host = _header["HOST"];
+	if (_header.find("ACCEPT") != _header.end())
+		_accept = cpp_split(_header["ACCEPT"], ",\n\r");
+	if (_header.find("CONNECTION") != _header.end())
+		_keepAlive = (_header["CONNECTION"] == "keep-alive");
+	if (_header.find("CONTENT-LENGTH") != _header.end())
+		std::istringstream(_header["CONTENT-LENGTH"]) >> _contentLength;
 
-	if (head_and_body.size() == 2)
-		_body = head_and_body[1];
 }
 
 HttpReq::HttpReq(HttpReq const & copy)
