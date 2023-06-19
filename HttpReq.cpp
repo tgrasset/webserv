@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:03 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/19 17:00:41 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/06/19 17:02:39 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -178,4 +178,9 @@ bool	HttpReq::getKeepAlive() const {
 std::string		HttpReq::getBody() const {
 
 	return (_body);
+}
+
+void		HttpReq::setBody(std::string &body) {
+
+	this->_body = body;
 }

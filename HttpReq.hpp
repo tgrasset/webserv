@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:03 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/19 15:39:48 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/06/19 17:03:18 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@ public:
 	int				getContentLength() const;
 	bool			getKeepAlive() const;
 	std::string		getBody() const;
+	void			setBody(std::string &body);
 
 };
 
