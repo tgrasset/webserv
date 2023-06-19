@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/16 17:58:37 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/19 15:26:14 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ Client::Client(void)
 	this->_byte_sent = 0;
 	this->_req = NULL;
 	this->_res = NULL;
+	gettimeofday(&(this->_last_activity), NULL);
 	if (Client::_verbose)
 		std::cout << "Client default constructor called" << std::endl;
 }
@@ -39,6 +40,7 @@ Client::Client(struct sockaddr_in client_addr, int com_socket)
 	this->_byte_sent = 0;
 	this->_req = NULL;
 	this->_res = NULL;
+	gettimeofday(&(this->_last_activity), NULL);
 	if (Client::_verbose)
 		std::cout << "Client constructor called" << std::endl;
 }
@@ -48,7 +50,7 @@ Client::Client(Client const & copy)
 	Client::_count++;
 	this->_id = Client::_count;
 	*this = copy;
-	this->_byte_sent = 0;
+	gettimeofday(&(this->_last_activity), NULL);
 	if (Client::_verbose)
 		std::cout << "Client copy constructor called" << std::endl;
 }
@@ -190,6 +192,8 @@ void	Client::receive_request(void)
 	}
 }
 
+
+/* Attention c'est a moi d'ouvrir le fichier et de l'envoyer au client. */
 void	Client::send_response(void)
 {
 	int	byte_sent = 0;
@@ -211,6 +215,22 @@ void	Client::send_response(void)
 	{
 		this->_status = RES_SENT;
 		std::cout << getTimestamp() <<  "\e[33m	I have sent the following response to client " << this->_id << " : \e[32m " << std::endl;
-		std::cout << std::endl << res_full << std::endl;
+		std::cout << std::endl << res_full << "\e[0m" << std::endl;
 	}
 }
+
+void	Client::reset_last_activity(void)
+{
+	gettimeofday(&(this->_last_activity), NULL);
+}
+
+unsigned long	Client::time_since_last_activity_ms(void) const
+{
+	unsigned long	ts;
+	struct timeval	now;
+
+	gettimeofday(&now, NULL);
+	ts = (now.tv_sec - this->_last_activity.tv_sec) * 1000000 + (now.tv_usec - this->_last_activity.tv_usec);
+	return (ts / 1000);
+}
+

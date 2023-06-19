@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:33 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/14 17:39:57 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/19 15:20:57 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,10 @@ public:
 	void							process_reading_existing_client(int i);
 	void							process_writing_to_client(int i);
 	void							print_situation(void);
+	std::vector<Client>::iterator	find_client(int socket);
+	void							initiate_servers_listening(void);
+	void							check_timeout_clients(void);
+	void							remove_client(std::vector<Client>::iterator client);
 
 	class LauncherException : public std::exception {
 	public :

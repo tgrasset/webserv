@@ -285,3 +285,4 @@ std::string	getMimeType(std::string path, std::map<std::string, std::string> &ty
 		return (types[ext]);
 	return ("text/plain");
 }
+

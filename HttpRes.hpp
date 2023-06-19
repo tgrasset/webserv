@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/16 15:36:26 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/16 18:13:31 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,20 +38,20 @@ class HttpRes
 
 		HttpRes	&operator=(HttpRes const & http_res);
 
-		std::string	getHttpVersion() const;
-		int	getStatusCode() const;
-		std::string	getMethod() const;
-		std::string getStatusMessage() const;
-		std::map<std::string, std::string> getHeader() const;
-		std::string	getBody() const;
-		Server	*getServer() const;
-		std::string	getToSend() const;
-		bool	getKeepAlive() const;
-		std::string	getUriPath() const;
-		std::string getUriQuery() const;
-		r_type	getResourceType() const;
-		Location	*getLocation() const;
-		size_t	getContentLength() const;
+		std::string							getHttpVersion() const;
+		int									getStatusCode() const;
+		std::string							getMethod() const;
+		std::string 						getStatusMessage() const;
+		std::map<std::string, std::string> 	getHeader() const;
+		std::string							getBody() const;
+		Server								*getServer() const;
+		std::string							getToSend() const;
+		bool								getKeepAlive() const;
+		std::string							getUriPath() const;
+		std::string 						getUriQuery() const;
+		r_type								getResourceType() const;
+		Location							*getLocation() const;
+		size_t								getContentLength() const;
 
 		void	handleRequest(HttpReq &request, std::vector<Server *> servers);
 		void	setServer(std::string reqHost, std::vector<Server *> servers);

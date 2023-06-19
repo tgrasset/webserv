@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/12 15:48:32 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/16 14:06:31 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/19 15:16:43 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -309,10 +309,11 @@ void	Server::setLocation(std::string path, std::vector<std::string> content) {
                 i++;
             }
             if (i == size)
-                throw ServerException("Missing ';' symbol after 'cgi' line");
+                throw ServerException("Missing ';' symbol after 'cgi' line \n" + static_cast<std::string>(strerror(errno)));
 		}
 		else
-			throw ServerException("Unknown or incomplete directive in 'location' context : " + content[i]);
+			throw ServerException("Unknown or incomplete directive in 'location' context : " + content[i]
+									+ "\n" + static_cast<std::string>(strerror(errno)));
 	}
 	if (loc.getCgiBool() == true)
 		loc.setCgiExtensionAndPath(cgiInfo);
@@ -323,16 +324,14 @@ void	Server::setLocation(std::string path, std::vector<std::string> content) {
 void	Server::setServaddr(void)
 {
 	_servaddr.sin_family = AF_INET;
-	//_servaddr.sin_addr.s_addr = htonl(_host);
-	_servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	_servaddr.sin_addr.s_addr = _host;
 	_servaddr.sin_port = _port;
 }
 
 void	Server::bind_server(void)
 {
-	/*besoin de tester qu'il y a pas d'autres server avec les memes infos de host et port. */
 	if (bind(this->_listenSocket, (struct sockaddr *)&(this->_servaddr), sizeof(this->_servaddr)) < 0)
-		throw ServerException("Impossible de bind !");
+		throw ServerException("bind: " + static_cast<std::string>(strerror(errno)));
 }
 
 void	Server::checkDoubleLocations(void) {
@@ -345,7 +344,8 @@ void	Server::checkDoubleLocations(void) {
 		for (j = i + 1; j < _locations.size(); j++)
 		{
 			if (_locations[i].getPath() == _locations[j].getPath())
-				throw ServerException("Two 'location' contexts can't be defined for the same path : " + _locations[i].getPath());
+				throw ServerException("Two 'location' contexts can't be defined for the same path : " 
+				+ _locations[i].getPath() + "\n" + static_cast<std::string>(strerror(errno)));
 		}
 	}
 }
