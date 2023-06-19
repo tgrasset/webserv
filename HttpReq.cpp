@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:03 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/16 18:38:51 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/06/19 17:00:41 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,38 +26,50 @@ HttpReq::HttpReq(std::string &content)
 	_header.clear();
 	_host = "";
 	_accept.clear();
-	_contentType = "";///////////
+	_contentType = "";
 	_contentLength = 0;
 	_keepAlive = true;
 	_body = "";
 	HttpReq::parse(content); // parsing a faire ici, have fun joseph :p  (j'ai void 'content' juste pour que ca compile)
 }
 
-bool	HttpReq::parse(std::string &content)
+void	HttpReq::parse(std::string &content)
 {
+	//delete \r from string
+	std::string::size_type r_pos = content.find('\r');
+	while (r_pos != std::string::npos)
+	{
+		content.erase(r_pos, 1);
+		r_pos = content.find('\r', r_pos);
+	}
+
 	std::vector<std::string>	head;
-	size_t	body_start = 0;
+	head = cpp_split(content, "\n");
 
-	head = cpp_split_sep(content, "\r\n");
-
+	// parse first line
 	const int	first_space = head[0].find(' ');
-	const int	second_space = head[0].find(' ', first_space);
+	const int	second_space = head[0].find(' ', first_space + 1);
 	_method			= head[0].substr(0, first_space);
-	_uri			= head[0].substr(first_space, second_space - first_space);
-	_httpVersion	= head[0].substr(second_space, second_space - head[0].size());
-
+	_uri			= head[0].substr(first_space + 1, second_space - first_space - 1);
+	_httpVersion	= head[0].substr(second_space + 1, second_space - head[0].size());
 	head.erase(head.begin());
 
+	//create _header map
 	int	pos = 0;
 	std::string	key;
 	std::string	value;
-	for (int i = 0; i < head.size(); i++)
+	for (unsigned long i = 0; i < head.size(); i++)
 	{
 		pos = head[i].find(':');
 		key = toUpperCase(head[i].substr(0, pos));
 		value = head[i].substr(pos + 1, head[i].size() - pos);
-		_header.insert(key, value);
+		if (value[0] == ' ')
+			value.erase(0, 1);
+		_header.insert(std::make_pair(key, value));
+		//std::cout << "$" << key << "$			$" << value << "$" << std::endl;
 	}
+
+	// parse rest of request
 	if (_header.find("HOST") != _header.end())
 		_host = _header["HOST"];
 	if (_header.find("ACCEPT") != _header.end())
@@ -66,7 +78,19 @@ bool	HttpReq::parse(std::string &content)
 		_keepAlive = (_header["CONNECTION"] == "keep-alive");
 	if (_header.find("CONTENT-LENGTH") != _header.end())
 		std::istringstream(_header["CONTENT-LENGTH"]) >> _contentLength;
+	if (_header.find("CONTENT-TYPE") != _header.end())
+		_contentType = _header["CONTENT-TYPE"];
 
+	/*std::cout << "method		: $" << _method << "$" << std::endl;
+	std::cout << "uri		: $" << _uri << "$" << std::endl;
+	std::cout << "httpVersion	: $" << _httpVersion << "$" << std::endl << std::endl;
+	std::cout << _host << std::endl;
+	std::cout << _accept[0] << std::endl;
+	std::cout << _accept[1] << std::endl;
+	std::cout << _accept[2] << std::endl;
+	std::cout << _keepAlive << std::endl;
+	std::cout << _contentLength;
+	std::cout << _contentType << std::endl; */
 }
 
 HttpReq::HttpReq(HttpReq const & copy)

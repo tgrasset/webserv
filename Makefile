@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+         #
+#    By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/12/06 10:48:53 by mbocquel          #+#    #+#              #
-#    Updated: 2023/06/14 11:26:12 by mbocquel         ###   ########.fr        #
+#    Updated: 2023/06/19 15:42:35 by jlanza           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -36,7 +36,7 @@ CFLAGS = -Wall -Wextra -Werror -MMD -MP -std=c++98 -g3
 
 RM = rm -rf
 
-CLIB = 
+CLIB =
 
 all: $(NAME)
 

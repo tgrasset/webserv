@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:03 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/14 15:17:16 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/06/19 15:39:48 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ private:
 	bool								_keepAlive;
 	std::string							_body;
 
-	bool	parse(std::string &content);
+	void	parse(std::string &content);
 
 public:
 

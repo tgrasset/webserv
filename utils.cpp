@@ -17,22 +17,6 @@ std::vector<std::string>    cpp_split(std::string str, char const *charset) {
 	return (res);
 }
 
-std::vector<std::string>    cpp_split_sep(std::string str, std::string sep) {
-
-	std::vector<std::string> res;
-	size_t start = 0;
-	size_t end = 0;
-
-	while (42)
-	{
-		if (start == std::string::npos)
-			break;
-		end = str.find(str, start);
-		res.push_back(str.substr(start + sep.size(), end - start));
-	}
-	return (res);
-}
-
 bool	caseInsensitiveCmp(std::string const &a, std::string const &b) {
 
 	size_t size = a.size();
@@ -49,7 +33,7 @@ bool	caseInsensitiveCmp(std::string const &a, std::string const &b) {
 std::string toUpperCase(const std::string& str)
 {
 	std::string result;
-	for (int i = 0; str.size(); i++)
+	for (unsigned long i = 0; i < str.size(); i++)
 	{
 		result += std::toupper(str[i]);
 	}
