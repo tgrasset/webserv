@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/20 12:08:08 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/20 16:48:33 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,8 @@ class HttpRes
 		r_type								getResourceType() const;
 		Location							*getLocation() const;
 		size_t								getContentLength() const;
+		int									getCgiPipeFd() const;
+		pid_t								getCgiPid() const;
 
 		void	handleRequest(HttpReq &request, std::vector<Server *> servers);
 		void	setServer(std::string reqHost, std::vector<Server *> servers);
@@ -66,6 +68,7 @@ class HttpRes
 		void	fillMimeTypes();
 		void	checkIfAcceptable(std::vector<std::string> acceptable);
 		bool	methodIsAllowed(std::string method);
+		void	buildCgiResponse(std::string cgiOutput, bool timeout);
 		
 
 	private:
@@ -88,6 +91,8 @@ class HttpRes
 		std::string							_uriQuery;
 		size_t								_contentLength;
 		static std::map<std::string, std::string> _mimeTypes;
+		int									_cgiPipeFd;
+		pid_t								_cgiPid;
 };
 
 #endif

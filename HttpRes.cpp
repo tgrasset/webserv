@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/20 13:31:57 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/20 16:59:40 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,8 @@ HttpRes::HttpRes(HttpReq &request, std::vector<Server *> servers) {
 	_uriQuery = "";
 	_resourceType = NORMALFILE;
 	_contentLength = 0;
+	_cgiPipeFd = -1;
+	_cgiPid = -42;
 	if (_mimeTypes.empty() == true)
 		fillMimeTypes();
 	handleRequest(request, servers);
@@ -76,6 +78,8 @@ HttpRes	& HttpRes::operator=(HttpRes const & httpres)
 		_resourceType = httpres.getResourceType();
 		_location = httpres.getLocation();
 		_contentLength = httpres.getContentLength();
+		_cgiPipeFd = httpres.getCgiPipeFd();
+		_cgiPid = httpres.getCgiPid();
 	}
 	return (*this);
 }
@@ -151,6 +155,16 @@ Location	*HttpRes::getLocation() const {
 size_t	HttpRes::getContentLength() const {
 	
 	return (_contentLength);
+}
+
+int	HttpRes::getCgiPipeFd() const {
+	
+	return (_cgiPipeFd);
+}
+
+pid_t	HttpRes::getCgiPid() const {
+
+	return (_cgiPid);
 }
 
 void	HttpRes::setServer(std::string reqHost, std::vector<Server *> servers) {
@@ -325,7 +339,14 @@ r_type HttpRes::checkResourceType() {
 					return (FORBIDDEN);
 				else
 				{
-					_contentLength = test.st_size;
+					std::ifstream is (_uriPath.c_str(), std::ifstream::binary);
+  					if (is) {
+    					is.seekg(0, is.end);
+    					_contentLength = is.tellg();
+						is.close();
+					}
+					else
+						return (FORBIDDEN);
 					return (NORMALFILE);
 				}
 			}
@@ -344,7 +365,14 @@ r_type HttpRes::checkResourceType() {
 						return (FORBIDDEN);
 					else
 					{
-						_contentLength = test.st_size;
+						std::ifstream is (_uriPath.c_str(), std::ifstream::binary);
+  						if (is) {
+    						is.seekg(0, is.end);
+    						_contentLength = is.tellg();
+							is.close();
+						}
+						else
+							return (FORBIDDEN);
 						return (NORMALFILE);
 					}
 				}
@@ -361,7 +389,14 @@ r_type HttpRes::checkResourceType() {
 					return (PHP);
 				else
 				{
-					_contentLength = test.st_size;
+					std::ifstream is (_uriPath.c_str(), std::ifstream::binary);
+  					if (is) {
+    					is.seekg(0, is.end);
+    					_contentLength = is.tellg();
+						is.close();
+					}
+					else
+						return (FORBIDDEN);
 					return (NORMALFILE);
 				}
 			}
@@ -373,7 +408,14 @@ r_type HttpRes::checkResourceType() {
 					return (FORBIDDEN);
 				else
 				{
-					_contentLength = test.st_size;
+					std::ifstream is (_uriPath.c_str(), std::ifstream::binary);
+  					if (is) {
+    					is.seekg(0, is.end);
+    					_contentLength = is.tellg();
+						is.close();
+					}
+					else
+						return (FORBIDDEN);
 					return (NORMALFILE);
 				}
 			}
@@ -464,8 +506,7 @@ void	HttpRes::headerBuild() {
 	
 	_header["Date:"] = timeStamp();
 	_header["Server:"] = "Webserv/1.0";
-	if (_resourceType != PYTHON && _resourceType != PHP)
-		_header["Content-Length:"] = sizeToString(_contentLength);
+	_header["Content-Length:"] = sizeToString(_contentLength);
 	if (_keepAlive == true)
 		_header["Connection:"] = "keep-alive";
 	else
@@ -523,10 +564,37 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 		if (std::remove(_uriPath.c_str()) != 0)
 			_statusCode = 400;
 	}
+	else if (_statusCode == 200 && (_resourceType == PHP || _resourceType == PYTHON))
+	{
+		// C'est la que ca se passe pour les CGI, qui doivent etre lances ici avec pipe, fork, dup. Il faut remplir _cgiPid avec le pid du process
+		// et _cgiPipeFd avec le fd de sortie du pipe dans lequel il va ecrire, pour que la classe client puisse faire son taf.
+		// La reponse pourra ensuite etre creee grace a la methode buildCgiResponse ci-dessous depuis le client.
+		return ;
+	}
 	_statusMessage = getStatus(_statusCode);
 	bodyBuild();
 	if (request.getKeepAlive() == false)
 		_keepAlive = false;
+	headerBuild();
+	formatHeader();
+}
+
+void	HttpRes::buildCgiResponse(std::string cgiOutput, bool timeout) {
+	
+	if (timeout == true)
+	{
+		_statusCode = 500;
+		_statusMessage = getStatus(500);
+		_body = errorHTML(_statusCode, _statusMessage);
+		_contentLength = _body.length();
+	}
+	else
+	{
+		_statusCode = 200;
+		_statusMessage = getStatus(200);
+		_body = cgiOutput;
+		_contentLength = _body.length();
+	}
 	headerBuild();
 	formatHeader();
 }
