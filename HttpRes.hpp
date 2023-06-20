@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/20 16:23:11 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/20 16:48:33 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,7 @@ class HttpRes
 		void	fillMimeTypes();
 		void	checkIfAcceptable(std::vector<std::string> acceptable);
 		bool	methodIsAllowed(std::string method);
-		void	buildCgiResponse(std::string cgiOutput, bool timeout); // LOL
+		void	buildCgiResponse(std::string cgiOutput, bool timeout);
 		
 
 	private:

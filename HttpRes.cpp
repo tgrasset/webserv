@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/20 16:32:20 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/20 16:59:40 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -506,8 +506,7 @@ void	HttpRes::headerBuild() {
 	
 	_header["Date:"] = timeStamp();
 	_header["Server:"] = "Webserv/1.0";
-	if (_resourceType != PYTHON && _resourceType != PHP)
-		_header["Content-Length:"] = sizeToString(_contentLength);
+	_header["Content-Length:"] = sizeToString(_contentLength);
 	if (_keepAlive == true)
 		_header["Connection:"] = "keep-alive";
 	else
@@ -569,13 +568,33 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 	{
 		// C'est la que ca se passe pour les CGI, qui doivent etre lances ici avec pipe, fork, dup. Il faut remplir _cgiPid avec le pid du process
 		// et _cgiPipeFd avec le fd de sortie du pipe dans lequel il va ecrire, pour que la classe client puisse faire son taf.
-		// La reponse pourra ensuite etre creee grace a la methode buildCgiResponse de la classe HttpRes depuis le client.
+		// La reponse pourra ensuite etre creee grace a la methode buildCgiResponse ci-dessous depuis le client.
 		return ;
 	}
 	_statusMessage = getStatus(_statusCode);
 	bodyBuild();
 	if (request.getKeepAlive() == false)
 		_keepAlive = false;
+	headerBuild();
+	formatHeader();
+}
+
+void	HttpRes::buildCgiResponse(std::string cgiOutput, bool timeout) {
+	
+	if (timeout == true)
+	{
+		_statusCode = 500;
+		_statusMessage = getStatus(500);
+		_body = errorHTML(_statusCode, _statusMessage);
+		_contentLength = _body.length();
+	}
+	else
+	{
+		_statusCode = 200;
+		_statusMessage = getStatus(200);
+		_body = cgiOutput;
+		_contentLength = _body.length();
+	}
 	headerBuild();
 	formatHeader();
 }
