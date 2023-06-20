@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/19 15:26:14 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/20 11:42:24 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -197,8 +197,10 @@ void	Client::receive_request(void)
 void	Client::send_response(void)
 {
 	int	byte_sent = 0;
-	std::string	res_full("HTTP/1.0 200 OK\r\n\r\n<html><body><h1>Hey you, I just got your message !</h1></body<</html>");
-	//std::string	res_full =this->_res->getToSend();
+	this->_res = new HttpRes(*(this->_req), this->_server_ptr);
+	
+	//std::string	res_full("HTTP/1.0 200 OK\r\n\r\n<html><body><h1>Hey you, I just got your message !</h1></body<</html>");
+	std::string	res_full =this->_res->getToSend();
 	std::string res_remain = res_full.substr(this->_byte_sent, res_full.size() - this->_byte_sent);
 	std::string	to_send;
 	if (res_remain.size() <= BUFFER_SIZE)
