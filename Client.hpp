@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/19 14:56:19 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/20 12:11:35 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,8 @@ typedef enum e_status_c {
 	SENDING_REQ_BODY,
 	REQ_SENT,
 	WAITING_FOR_RES,
-	RECIVING_RES,
+	RECIVING_RES_HEADER,
+	RECIVING_RES_BODY,
 	RES_SENT
 }				t_status_c;
 

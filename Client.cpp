@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/20 11:42:24 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/20 12:13:10 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -198,26 +198,30 @@ void	Client::send_response(void)
 {
 	int	byte_sent = 0;
 	this->_res = new HttpRes(*(this->_req), this->_server_ptr);
+	if (this->_res == NULL)
+		throw ClientException("New didn't work for _res !");
 	
-	//std::string	res_full("HTTP/1.0 200 OK\r\n\r\n<html><body><h1>Hey you, I just got your message !</h1></body<</html>");
-	std::string	res_full =this->_res->getToSend();
-	std::string res_remain = res_full.substr(this->_byte_sent, res_full.size() - this->_byte_sent);
-	std::string	to_send;
-	if (res_remain.size() <= BUFFER_SIZE)
-		to_send = res_remain;
+	/* Sending the response header  ==> Attention remplacer getToSend() par getHeader() */
+	std::string	res_header_full =this->_res->getToSend();
+	std::string res_header_remain = res_header_full.substr(this->_byte_sent, res_header_full.size() - this->_byte_sent);
+	std::string	to_send_header;
+	if (res_header_remain.size() <= BUFFER_SIZE)
+		to_send_header = res_header_remain;
 	else
-		to_send = res_remain.substr(0, BUFFER_SIZE);
-	byte_sent = send(this->_com_socket, to_send.c_str(), to_send.size(), 0);
+		to_send_header = res_header_remain.substr(0, BUFFER_SIZE);
+	byte_sent = send(this->_com_socket, to_send_header.c_str(), to_send_header.size(), 0);
 	if (byte_sent != -1)
 	{
-		this->_status = RECIVING_RES;
+		this->_status = RECIVING_RES_HEADER;
 		this->_byte_sent += byte_sent;
 	}
-	if (this->_byte_sent == static_cast<int>( res_full.size()))
+	if (this->_byte_sent == static_cast<int>(res_header_full.size()))
 	{
-		this->_status = RES_SENT;
+		this->_status = RECIVING_RES_BODY;
+		
+		
 		std::cout << getTimestamp() <<  "\e[33m	I have sent the following response to client " << this->_id << " : \e[32m " << std::endl;
-		std::cout << std::endl << res_full << "\e[0m" << std::endl;
+		std::cout << std::endl << res_header_full << "\e[0m" << std::endl;
 	}
 }
 
