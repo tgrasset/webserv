@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/20 11:30:06 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/20 12:12:07 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -311,7 +311,10 @@ void	Launcher::print_situation(void)
 			std::cout << "WAITING_FOR_RES";
 			break;
 		case 5:
-			std::cout << "RECIVING_RES";
+			std::cout << "RECIVING_RES_HEADER";
+			break;
+		case 6:
+			std::cout << "RECIVING_RES_BODY";
 			break;
 		default:
 			std::cout << "RES_SENT";
