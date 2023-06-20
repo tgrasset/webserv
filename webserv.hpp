@@ -11,6 +11,7 @@
 # include <csignal>
 # include <ctime>
 # include <iomanip>
+# include <cstdio>
 
 # include <sys/types.h>
 # include <sys/stat.h>
@@ -42,6 +43,7 @@ std::string					toUpperCase(const std::string& str);
 std::string					redirectionHTML(int code, std::string message, std::string path);
 std::string					autoindexHTML(std::string path);
 std::string					errorHTML(int code, std::string message);
+std::string					successfulDeleteHTML(std::string path);
 std::string					getErrorPageContent(std::string path, int code, std::string message);
 std::string					getMimeType(std::string path, std::map<std::string, std::string> &types);
 

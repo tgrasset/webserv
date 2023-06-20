@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/16 18:13:31 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/20 11:17:48 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,6 @@ class HttpRes
 		void	handleRequest(HttpReq &request, std::vector<Server *> servers);
 		void	setServer(std::string reqHost, std::vector<Server *> servers);
 		int		checkHttpVersion(std::string version, bool &error);
-		int		checkMethod(std::string method, bool &error);
 		int		checkUri(std::string uri);
 		r_type	checkResourceType();
 		int		checkRequestBodySize(int maxSize, int bodySize, bool &error);
@@ -66,6 +65,7 @@ class HttpRes
 		void	formatResponse();
 		void	fillMimeTypes();
 		void	checkIfAcceptable(std::vector<std::string> acceptable);
+		bool	methodIsAllowed(std::string method);
 		
 
 	private:

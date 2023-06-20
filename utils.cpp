@@ -275,6 +275,13 @@ std::string errorHTML(int code, std::string message) {
 	return (s.str());
 }
 
+std::string successfulDeleteHTML(std::string path) {
+
+	std::stringstream s;
+	s << "<!doctype html>\n<html>\n<head>\n<title>Delete successful" << "</title>\n</head>\n<body>\n<p>" << path << "was successfully deleted from the server" << "</p>\n</body>\n</html>";
+	return (s.str());
+}
+
 std::string getErrorPageContent(std::string path, int code, std::string message) {
 
 	struct stat buf;
