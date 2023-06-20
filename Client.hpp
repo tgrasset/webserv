@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/20 12:11:35 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/20 17:03:09 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,9 +47,12 @@ private:
 	std::string				_req_header;
 	std::string				_req_body;
 	int						_id;
-	int						_byte_sent;
+	int						_byte_sent_header;
+	int						_byte_sent_body;
 	struct timeval			_last_activity;
 	static int				_count;
+	std::ifstream 			_file_to_send;
+	int						_file_to_send_size;
 	
 public:
 	Client(void);
@@ -66,10 +69,11 @@ public:
 	struct sockaddr_in		 	getClient_addr(void) const;
 	int							getId(void) const;
 	void						print_ClientServer(void) const;
-	std::string					get_res_string(void) const;
-	int							get_byte_sent(void) const;
-	void						set_byte_sent(int byte);
+	int							get_byte_sent_header(void) const;
+	void						set_byte_sent_header(int byte);
 	void						send_response(void);
+	void						send_response_header(void);
+	void						send_response_body(void);
 	void						receive_request(void);
 	void						reset_last_activity(void);
 	unsigned long				time_since_last_activity_ms(void) const;

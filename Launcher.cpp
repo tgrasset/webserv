@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/20 12:12:07 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/20 18:00:09 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,28 +84,43 @@ void	Launcher::launch_servers(void)
 	{
 		/*Block until there is something to do ...*/
 		this->print_situation();
+		this->check_timeout_clients();
 		if ((nfds = epoll_wait(_efd, static_cast< struct epoll_event * >(_ep_event.data()), this->_servers.size() * MAX_EVENTS, -1)) == -1)
 			throw LauncherException("Problem with epoll_wait !");
 		/*Some sockets are ready. Examine readfds */
         for (int i = 0; i < nfds; i++)
 		{
+			std::cout << "coucou nfds = " << nfds << std::endl
+			<< "i = " << i << std::endl
+			<< "_ep_event[i].events = " << _ep_event[i].events << std::endl
+			<< "_ep_event[i].data.fd = " << _ep_event[i].data.fd << std::endl;
 			if ((_ep_event[i].events & EPOLLIN) == EPOLLIN) // File descriptor is available for read.
 			{
 				if (check_if_listen_socket(_ep_event[i].data.fd)) //new client wants to connect
+				{
+					std::cout << "	Case 1" << std::endl;
 					this->process_new_client(i);
+				}
 				else
-					this->process_reading_existing_client(i);				
+				{
+					std::cout << "	Case 2" << std::endl;
+					this->process_reading_existing_client(i);
+				}
 			}
 			else if ((_ep_event[i].events & EPOLLOUT) == EPOLLOUT) // File descriptor is available for write.
 			{
+				std::cout << "	Case 3" << std::endl;
 				this->process_writing_to_client(i);
 			}
 			else if ((_ep_event[i].events & EPOLLRDHUP) == EPOLLRDHUP) // Stream socket peer closed connection.
 			{
+				std::cout << "	Case 4" << std::endl;
 				std::vector<Client>::iterator client_it = this->find_client(_ep_event[i].data.fd);
 				std::cout << "Client " << client_it->getId() << " has close connexion" << std::endl;
 				this->remove_client(client_it);
 			}
+			else
+				std::cout << "	Case 5" << std::endl;
 		}
 	}
 }
@@ -251,12 +266,17 @@ void 	Launcher::add_server_of_client(int listen_sock, Client *client)
 
 void	Launcher::check_timeout_clients(void)
 {
+	unsigned long time = 0;
 	for(std::vector<Client>::iterator it = this->_clients.begin(); it != this->_clients.end();++it)
 	{
-		if (it->time_since_last_activity_ms() > MAX_TIME_CLIENT_MS)
+		time = it->time_since_last_activity_ms() / 1000000;
+		if (time > MAX_TIME_CLIENT_S)
 		{
-			std::cout << "Timeout for client " << it->getId() << ", it will now be removed" << std::endl;
-			this->remove_client(it);
+			std::cout << "Timeout for client " << it->getId() 
+			<< ", time = " << time << " it will now be removed" << std::endl;
+			std::vector<Client>::iterator it_tmp = it;
+			--it;
+			this->remove_client(it_tmp);
 		}
 	}
 }
@@ -274,12 +294,12 @@ void	Launcher::print_situation(void)
 	char				str_ip_client[INET_ADDRSTRLEN];
 	struct sockaddr_in  client_addr;
 	
-	std::cout << std::endl << "--------------------- Servers -----------------" << std::endl; 
-	for (std::vector<Server>::iterator it = this->_servers.begin(); it != this->_servers.end(); ++it)
+	//std::cout << std::endl << "--------------------- Servers -----------------" << std::endl; 
+	/*for (std::vector<Server>::iterator it = this->_servers.begin(); it != this->_servers.end(); ++it)
 	{
 		std::cout << "Listen Socket : " << it->getListenSocket() << " | Name : " << it->getServerName()
 		<< " | Host : " << it->getHost() << " | Port : " << ntohs(it->getPort()) << std::endl << std::endl;
-	}
+	}*/
 	for (std::vector<Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
 	{
 		if (it == this->_clients.begin())
@@ -313,6 +333,10 @@ void	Launcher::print_situation(void)
 		case 5:
 			std::cout << "RECIVING_RES_HEADER";
 			break;
+		/*case 6:
+			std::cout << "RES_HEADER_SENT";
+			break;
+		case 7:*/
 		case 6:
 			std::cout << "RECIVING_RES_BODY";
 			break;
