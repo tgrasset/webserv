@@ -37,7 +37,8 @@ bool						checkFile(std::string const &file, std::string const &root);
 std::string					getTimestamp(void);
 std::string					timeStamp(void);
 std::string					sizeToString(size_t n);
-
+bool						caseInsensitiveCmp(std::string const &a, std::string const &b);
+std::string					toUpperCase(const std::string& str);
 std::string					redirectionHTML(int code, std::string message, std::string path);
 std::string					autoindexHTML(std::string path);
 std::string					errorHTML(int code, std::string message);

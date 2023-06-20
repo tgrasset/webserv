@@ -5,10 +5,11 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/06/09 19:19:03 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/16 17:20:03 by mbocquel         ###   ########.fr       */
+/*   Created: Invalid date        by                   #+#    #+#             */
+/*   Updated: 2023/06/20 11:32:07 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 #ifndef HTTP_REQ_HPP
 # define HTTP_REQ_HPP
@@ -31,7 +32,9 @@ private:
 	int									_contentLength;
 	bool								_keepAlive;
 	std::string							_body;
-	
+
+	void	parse(std::string &content);
+
 public:
 
 	HttpReq(std::string &content);    // content sera la string a parser
@@ -50,8 +53,8 @@ public:
 	int				getContentLength() const;
 	bool			getKeepAlive() const;
 	std::string		getBody() const;
-	void			setBody(std::string body);
-	
+	void			setBody(std::string &body);
+
 };
 
 
