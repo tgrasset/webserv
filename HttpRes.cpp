@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/20 12:18:58 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/20 13:31:57 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -523,8 +523,6 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 		if (std::remove(_uriPath.c_str()) != 0)
 			_statusCode = 400;
 	}
-	else if (_statusCode == 200 && (_resourceType == PYTHON || _resourceType == PHP))
-		;//fonction de gestion de CGI ici
 	_statusMessage = getStatus(_statusCode);
 	bodyBuild();
 	if (request.getKeepAlive() == false)
