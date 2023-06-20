@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/20 11:17:48 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/20 12:08:08 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ class HttpRes
 		std::map<std::string, std::string> 	getHeader() const;
 		std::string							getBody() const;
 		Server								*getServer() const;
-		std::string							getToSend() const;
+		std::string							getFormattedHeader() const;
 		bool								getKeepAlive() const;
 		std::string							getUriPath() const;
 		std::string 						getUriQuery() const;
@@ -62,7 +62,7 @@ class HttpRes
 		int		checkRequestHeader(std::map<std::string, std::string> header, bool &error);
 		void	bodyBuild();
 		void	headerBuild();
-		void	formatResponse();
+		void	formatHeader();
 		void	fillMimeTypes();
 		void	checkIfAcceptable(std::vector<std::string> acceptable);
 		bool	methodIsAllowed(std::string method);
@@ -81,7 +81,7 @@ class HttpRes
 		std::string							_body;
 		Server								*_server;
 		Location							*_location;
-		std::string							_toSend;
+		std::string							_formattedHeader;
 		bool								_keepAlive;
 		std::string							_uriPath;
 		r_type								_resourceType;

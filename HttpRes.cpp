@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/20 11:36:00 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/20 12:09:47 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ HttpRes::HttpRes(HttpReq &request, std::vector<Server *> servers) {
 	_statusMessage = "";
 	_header.clear();
 	_body = "";
-	_toSend = "";
+	_formattedHeader = "";
 	_server = NULL;
 	_location = NULL;
 	_keepAlive = true;
@@ -68,7 +68,7 @@ HttpRes	& HttpRes::operator=(HttpRes const & httpres)
 		_statusMessage = httpres.getStatusMessage();
 		_header = httpres.getHeader();
 		_body = httpres.getBody();
-		_toSend = httpres.getToSend();
+		_formattedHeader = httpres.getFormattedHeader();
 		_server = httpres.getServer();
 		_keepAlive = httpres.getKeepAlive();
 		_uriPath = httpres.getUriPath();
@@ -118,9 +118,9 @@ Server	*HttpRes::getServer() const {
 	return (_server);
 }
 
-std::string	HttpRes::getToSend() const {
+std::string	HttpRes::getFormattedHeader() const {
 
-	return (_toSend);
+	return (_formattedHeader);
 }
 
 bool	HttpRes::getKeepAlive() const {
@@ -476,15 +476,14 @@ void	HttpRes::headerBuild() {
 		_header["Content-Type:"] = getMimeType(_uriPath, _mimeTypes);
 }
 
-void	HttpRes::formatResponse() {
+void	HttpRes::formatHeader() {
 
 	std::stringstream response;
 	response << _httpVersion << " " << _statusCode << " " << _statusMessage << "\r\n";
 	for (std::map<std::string, std::string>::iterator it = _header.begin(); it != _header.end(); it++)
 		response << it->first << " " << it->second << "\r\n";
 	response << "\r\n";
-	response << _body;
-	_toSend = response.str();
+	_formattedHeader = response.str();
 }
 
 bool	HttpRes::methodIsAllowed(std::string method) {
@@ -526,5 +525,5 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 	if (request.getKeepAlive() == false)
 		_keepAlive = false;
 	headerBuild();
-	formatResponse();
+	formatHeader();
 }
