@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/20 12:09:47 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/20 12:18:58 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -492,9 +492,14 @@ bool	HttpRes::methodIsAllowed(std::string method) {
 		return (false);
 	if (_location != NULL)
 	{
-		//to be continued
+		std::vector<std::string> methods = _location->getMethods();
+		for (std::vector<std::string>::iterator it = methods.begin(); it != methods.end(); it++)
+		{
+			if (method == *it)
+				return (true);
+		}
 	}
-	return (true);
+	return (false);
 }
 
 void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
