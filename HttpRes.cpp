@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/16 15:38:01 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/20 11:36:00 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -269,17 +269,6 @@ int	HttpRes::checkHttpVersion(std::string version, bool &error) {
 	return (200);
 }
 
-int	HttpRes::checkMethod(std::string method, bool &error) {
-
-	if (method != "GET" && method != "POST" && method != "DELETE")
-	{
-		error = true;
-		return (405);
-	}
-	_method = method;
-	return (200);
-}
-
 int	HttpRes::checkRequestBodySize(int maxSize, int bodySize, bool &error) {
 
 	if (bodySize > maxSize)
@@ -363,9 +352,9 @@ r_type HttpRes::checkResourceType() {
 		}
 		else if (test.st_mode & S_IFREG)
 		{
+			size_t len = _uriPath.length();
 			if (_location != NULL && _location->getCgiBool() == true)
 			{
-				size_t len = _uriPath.length();
 				if (len > 3 && _uriPath[len - 1] == 'y' && _uriPath[len - 2] == 'p' && _uriPath[len - 3] == '.')
 					return (PYTHON);
 				else if (len > 4 && _uriPath[len - 1] == 'p' && _uriPath[len - 2] == 'h' && _uriPath[len - 3] == 'p' && _uriPath[len - 4] == '.')
@@ -378,7 +367,6 @@ r_type HttpRes::checkResourceType() {
 			}
 			else
 			{
-				size_t len = _uriPath.length();
 				if (len > 3 && _uriPath[len - 1] == 'y' && _uriPath[len - 2] == 'p' && _uriPath[len - 3] == '.')
 					return (FORBIDDEN);
 				else if (len > 4 && _uriPath[len - 1] == 'p' && _uriPath[len - 2] == 'h' && _uriPath[len - 3] == 'p' && _uriPath[len - 4] == '.')
@@ -444,7 +432,7 @@ void	HttpRes::checkIfAcceptable(std::vector<std::string> acceptable) {
 
 	for (std::vector<std::string>::iterator it = acceptable.begin(); it != acceptable.end(); it++)
 	{
-		if (getMimeType(_uriPath, _mimeTypes) == *it)
+		if (getMimeType(_uriPath, _mimeTypes) == *it || (*it).find('*') != std::string::npos)
 			return ;
 	}
 	_resourceType = NOT_ACCEPTABLE;
@@ -457,6 +445,8 @@ void	HttpRes::bodyBuild() {
 		_body = redirectionHTML(_statusCode, _statusMessage, _location->getRedirectionPath());
 	else if (_resourceType == AUTOINDEX)
 		_body = autoindexHTML(_uriPath);
+	else if (_method == "DELETE" && _statusCode == 200)
+		_body = successfulDeleteHTML(_uriPath);
 	else if (_statusCode != 200)
 	{
 		std::map<int, std::string> error_pages = _server->getErrorPages();
@@ -497,22 +487,40 @@ void	HttpRes::formatResponse() {
 	_toSend = response.str();
 }
 
+bool	HttpRes::methodIsAllowed(std::string method) {
+
+	if (method != "GET" && method != "POST" && method != "DELETE")
+		return (false);
+	if (_location != NULL)
+	{
+		//to be continued
+	}
+	return (true);
+}
+
 void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 	
 	bool	error = false;
 	
 	setServer(request.getHost(), servers);
 	_statusCode = checkHttpVersion(request.getHttpVersion(), error);
-	if (error == false)
-		_statusCode = checkMethod(request.getMethod(), error);
 	if (error == false && _server->getClientMaxBodySize() != 0)
 		_statusCode = checkRequestBodySize(_server->getClientMaxBodySize(), request.getBody().size(), error);
 	if (error == false)
 		_statusCode = checkRequestHeader(request.getHeader(), error);
 	if (error == false)
 		_statusCode = checkUri(request.getUri());
-	if (_statusCode == 200)
+	if (_statusCode == 200 && methodIsAllowed(request.getMethod()) == false)
+		_statusCode = 405;
+	if (_statusCode == 200 && _method == "GET" && _resourceType == NORMALFILE)
 		checkIfAcceptable(request.getAccept());
+	else if (_statusCode == 200 && _method == "DELETE")
+	{
+		if (std::remove(_uriPath.c_str()) != 0)
+			_statusCode = 400;
+	}
+	else if (_statusCode == 200 && (_resourceType == PYTHON || _resourceType == PHP))
+		;//fonction de gestion de CGI ici
 	_statusMessage = getStatus(_statusCode);
 	bodyBuild();
 	if (request.getKeepAlive() == false)
