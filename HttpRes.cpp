@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/21 11:40:23 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/21 11:36:29 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -588,15 +588,14 @@ void	HttpRes::buildCgiResponse(std::string cgiOutput, bool timeout) {
 		_statusCode = 500;
 		_statusMessage = getStatus(500);
 		_body = errorHTML(_statusCode, _statusMessage);
-		_contentLength = _body.length();
 	}
 	else
 	{
 		_statusCode = 200;
 		_statusMessage = getStatus(200);
 		_body = cgiOutput;
-		_contentLength = _body.length();
 	}
+	_contentLength = _body.length();
 	headerBuild();
 	formatHeader();
 }
