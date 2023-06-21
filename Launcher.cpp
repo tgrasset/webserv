@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/21 11:22:09 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/21 16:15:02 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,29 +77,26 @@ void	Launcher::launch_servers(void)
 	_efd = epoll_create1 (0);
 	if (_efd == -1)
 		throw LauncherException("Probleme avec epoll_create !");
-	/*I add all listen socket to the monitoring of epoll*/
 	this->initiate_servers_listening();
 	/* Global loop for the Webserv */
 	while (1)
 	{
-		/*Block until there is something to do ...*/
 		this->print_situation();
 		this->check_timeout_clients();
 		if ((nfds = epoll_wait(_efd, static_cast< struct epoll_event * >(_ep_event.data()), this->_servers.size() * MAX_EVENTS, -1)) == -1)
 			throw LauncherException("Problem with epoll_wait !");
-		/*Some sockets are ready. Examine readfds */
         for (int i = 0; i < nfds; i++)
 		{
-			if ((_ep_event[i].events & EPOLLIN) == EPOLLIN) // File descriptor is available for read.
+			if ((_ep_event[i].events & EPOLLIN) == EPOLLIN) //Read.
 			{
-				if (check_if_listen_socket(_ep_event[i].data.fd)) //new client wants to connect
+				if (check_if_listen_socket(_ep_event[i].data.fd)) //New connexion
 					this->process_new_client(i);
 				else
 					this->process_reading_existing_client(i);
 			}
-			else if ((_ep_event[i].events & EPOLLOUT) == EPOLLOUT) // File descriptor is available for write.
+			else if ((_ep_event[i].events & EPOLLOUT) == EPOLLOUT) //Write.
 				this->process_writing_to_client(i);
-			else if ((_ep_event[i].events & EPOLLRDHUP) == EPOLLRDHUP) // Stream socket peer closed connection.
+			else if ((_ep_event[i].events & EPOLLRDHUP) == EPOLLRDHUP) //Peer closed connection.
 			{
 				std::vector<Client>::iterator client_it = this->find_client(_ep_event[i].data.fd);
 				std::cout << "Client " << client_it->getId() << " has close connexion" << std::endl;
@@ -139,6 +136,11 @@ void	Launcher::initiate_servers_listening(void)
 	}
 }
 
+/*
+- Get fd_new from accept
+- Add fd_new to epoll
+- Add a new client in the client vector
+*/
 void	Launcher::process_new_client(int i)
 {
 	socklen_t 			addrlen;
@@ -151,30 +153,26 @@ void	Launcher::process_new_client(int i)
 	fd_new = accept(_ep_event[i].data.fd, (struct sockaddr *) &client_addr, &addrlen);
 	if (fd_new == -1)
 		throw LauncherException("Problem with accept !");
-	
-	// add fd_new to epoll
 	ev.events = EPOLLIN;
 	ev.data.fd = fd_new;
 	if (epoll_ctl(_efd, EPOLL_CTL_ADD, fd_new, &ev) == -1)
 		throw LauncherException("Problem with epoll_ctl !");
-	
-	// I add a new client to my vector of client
 	Client	new_client(client_addr, fd_new);
 	this->add_server_of_client(_ep_event[i].data.fd, &new_client);
 	_clients.push_back(new_client);
-	
-	// just for log information
 	inet_ntop (AF_INET, &(client_addr.sin_addr), str_ip_client, sizeof (str_ip_client));
 	std::cout << getTimestamp() << "\e[33m	I just accepted a new connexion from " << str_ip_client << "\e[0m" << std::endl;
 }
 
-
+/*
+- Launch the function that recieve the client request
+- If the client is done sending request, move if to the EPOLLOUT list
+*/
 void	Launcher::process_reading_existing_client(int i)
 {
-	// Looking for the client that wants to send things.
 	std::vector< Client >::iterator client = this->find_client(_ep_event[i].data.fd);
-	client->receive_request();
-	// if the client has finish sending the request, I remove him from the listen part to add to the send part ; 
+	if (client->receive_request())
+		this->remove_client(client);
 	if (client->getStatus() == WAITING_FOR_RES)
 	{
 		client->reset_last_activity();
@@ -194,6 +192,19 @@ void	Launcher::process_writing_to_client(int i)
 	std::vector< Client >::iterator client = this->find_client(_ep_event[i].data.fd);
 	client->send_response();
 	if (client->getStatus() == RES_SENT)
+	{
+		std::cout << "Finish writing to " << client->getId() << ", I add him to listen socket" << std::endl << std::endl;
+		client->reset_client();
+		struct epoll_event	ev;
+		int fd = _ep_event[i].data.fd;
+		ev.events = EPOLLIN;
+		ev.data.fd = fd;
+		if (epoll_ctl(_efd, EPOLL_CTL_DEL, _ep_event[i].data.fd, NULL) == -1)
+			throw LauncherException("Error: epoll_ctl DEL!");
+		if (epoll_ctl(_efd, EPOLL_CTL_ADD, fd, &ev) == -1)
+			throw LauncherException("Problem with epoll_ctl !");
+	}
+	else if (client->getStatus() == ERROR_WHILE_SENDING)
 	{
 		std::cout << "Process finished for client " << client->getId() << ", it will now be removed" << std::endl << std::endl;
 		this->remove_client(client);
@@ -253,7 +264,7 @@ void	Launcher::check_timeout_clients(void)
 	unsigned long time = 0;
 	for(std::vector<Client>::iterator it = this->_clients.begin(); it != this->_clients.end();++it)
 	{
-		time = it->time_since_last_activity_ms() / 1000000;
+		time = it->time_since_last_activity_us() / 1000000;
 		if (time > MAX_TIME_CLIENT_S)
 		{
 			std::cout << "Timeout for client " << it->getId() 

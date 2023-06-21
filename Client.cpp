@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/21 11:21:10 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/21 16:48:29 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,7 @@ int		Client::_count = 0;
 /* ************************************************************************** */
 Client::Client(void)
 {
-	Client::_count++;
-	this->_id = Client::_count;
+	this->_id = 0;
 	this->_byte_sent_header = 0;
 	this->_byte_sent_body = 0;
 	this->_req = NULL;
@@ -49,10 +48,7 @@ Client::Client(struct sockaddr_in client_addr, int com_socket)
 
 Client::Client(Client const & copy)
 {
-	Client::_count++;
-	this->_id = Client::_count;
 	*this = copy;
-	gettimeofday(&(this->_last_activity), NULL);
 	if (Client::_verbose)
 		std::cout << "Client copy constructor called" << std::endl;
 }
@@ -74,6 +70,7 @@ Client	& Client::operator=(Client const & client)
 {
 	if (this != &client)
 	{
+		this->_id = client._id;
 		this->_com_socket = client._com_socket;
 		this->_status = client._status;
 		this->_req = client._req;
@@ -86,6 +83,7 @@ Client	& Client::operator=(Client const & client)
 		this->_req_body = client._req_body;
 		this->_byte_sent_header = client._byte_sent_header;
 		this->_byte_sent_body = client._byte_sent_body;
+		this->_last_activity = client._last_activity;
 	}
 	return (*this);
 }
@@ -141,13 +139,18 @@ void	Client::set_byte_sent_header(int byte)
 	this->_byte_sent_header = byte;
 }
 
-void	Client::receive_request(void)
+int	Client::receive_request(void)
 {
 	int byte_recv = 0;
 	char recvline[BUFFER_SIZE + 1];
 	
 	memset(recvline, 0, BUFFER_SIZE + 1);
 	byte_recv = recv(this->_com_socket, recvline, BUFFER_SIZE, 0);
+	if (byte_recv == 0)
+	{
+		std::cout << "Client " << this->_id << " has close connexion" << std::endl;
+		return (1);
+	}
 	std::cout << "I just got from my client " << byte_recv << " bytes for the request" << std::endl;
 	if (byte_recv > 0)
 	{
@@ -189,10 +192,9 @@ void	Client::receive_request(void)
 		std::cout << this->_req_recived << std::endl;
 		std::cout << "\e[0m";
 	}
+	return (0);
 }
 
-
-/* Attention c'est a moi d'ouvrir le fichier et de l'envoyer au client. */
 void	Client::send_response(void)
 {
 	if (this->_status == WAITING_FOR_RES)
@@ -220,7 +222,13 @@ void	Client::send_response_header(void)
 	else
 		to_send_header = res_header_remain.substr(0, BUFFER_SIZE);
 	byte_sent = send(this->_com_socket, to_send_header.c_str(), to_send_header.size(), 0);
-	if (byte_sent != -1)
+	if (byte_sent == -1)
+	{
+		this->_status = ERROR_WHILE_SENDING;
+		std::cout << "\e[33m" << getTimestamp() <<  "	I had an error sending response header to client " << this->_id << "\e[0m" << std::endl;
+		return ;
+	}
+	else
 	{
 		this->_status = RECIVING_RES_HEADER;
 		this->_byte_sent_header += byte_sent;
@@ -235,77 +243,96 @@ void	Client::send_response_header(void)
 
 void	Client::send_response_body(void)
 {
+	std::string	res_body = this->_res->getBody();
+	
+	if (res_body.size() != 0)
+		this->send_response_body_error();
+	else if (this->_res->getResourceType() == NORMALFILE)
+		this->send_response_body_normal_file();
+	else if (this->_res->getResourceType() == PYTHON || this->_res->getResourceType() == PHP)
+		this->send_response_body_cgi();
+}
+
+void	Client::send_response_body_error(void)
+{
 	int	byte_sent = 0;
 	std::string	res_body = this->_res->getBody();
 	
-	/* Cas de erreur, le body est directement accesible */
-	if (res_body.size() != 0)
+	std::string res_body_remain = res_body.substr(this->_byte_sent_body, res_body.size() - this->_byte_sent_body);
+	std::string	to_send_body;
+	if (res_body_remain.size() <= BUFFER_SIZE)
+		to_send_body = res_body_remain;
+	else
+		to_send_body = res_body_remain.substr(0, BUFFER_SIZE);
+	byte_sent = send(this->_com_socket, to_send_body.c_str(), to_send_body.size(), 0);
+	if (byte_sent == -1)
 	{
-		std::string res_body_remain = res_body.substr(this->_byte_sent_body, res_body.size() - this->_byte_sent_body);
-		std::string	to_send_body;
-		if (res_body_remain.size() <= BUFFER_SIZE)
-			to_send_body = res_body_remain;
-		else
-			to_send_body = res_body_remain.substr(0, BUFFER_SIZE);
-		byte_sent = send(this->_com_socket, to_send_body.c_str(), to_send_body.size(), 0);
-		if (byte_sent != -1)
-		{
-			this->_status = RECIVING_RES_BODY;
-			this->_byte_sent_body += byte_sent;
-			std::cout << "	body : " << this->_byte_sent_body << "/" << res_body_remain.size() << " sent" << std::endl;
-		}
-		if (this->_byte_sent_body == static_cast<int>(res_body.size()))
-		{
-			this->_status = RES_SENT;
-			std::cout << "\e[33m" <<  getTimestamp() << "	I have sent the following response body to client " << this->_id << " : \e[32m " << std::endl;
-			std::cout << std::endl << res_body << "\e[0m" << std::endl;
-		}
+		this->_status = ERROR_WHILE_SENDING;
+		std::cout << "\e[33m" << getTimestamp() <<  "	I had an error sending response body to client " << this->_id << "\e[0m" << std::endl;
+		return ;
 	}
-	/* Cas de fichier normal (pas de CGI) */
-	else if (this->_res->getResourceType() == NORMALFILE)
+	else
 	{
-		int byte_read_file = 0;
+		this->_status = RECIVING_RES_BODY;
+		this->_byte_sent_body += byte_sent;
+		std::cout << "	body : " << this->_byte_sent_body << "/" << res_body_remain.size() << " sent" << std::endl;
+	}
+	if (this->_byte_sent_body == static_cast<int>(res_body.size()))
+	{
+		this->_status = RES_SENT;
+		std::cout << "\e[33m" <<  getTimestamp() << "	I have sent the following response body to client " << this->_id << " : \e[32m " << std::endl;
+		std::cout << std::endl << res_body << "\e[0m" << std::endl;
+	}
+}
+
+void	Client::send_response_body_normal_file(void)
+{
+	int byte_read_file = 0;
+	int	byte_sent = 0;
 		
-		if (!this->_file_to_send.is_open())
-		{
-			this->_file_to_send.open(this->_res->getUriPath().c_str(), std::ifstream::binary);
-			this->_file_to_send.seekg (0, _file_to_send.end);
-			this->_file_to_send_size = this->_file_to_send.tellg();
-			this->_file_to_send.seekg (0, _file_to_send.beg);
-		}
-			
-		if (this->_file_to_send.fail())
-			throw ClientException(strerror(errno));
-		char * buffer = new char [BUFFER_SIZE];
-		memset(buffer, 0, BUFFER_SIZE);
-		if (buffer == NULL)
-			throw ClientException(" New char buffer");
-		this->_file_to_send.read(buffer, BUFFER_SIZE);
-		byte_read_file = this->_file_to_send.gcount();
-		byte_sent = send(this->_com_socket, buffer, byte_read_file, 0);
-		if (byte_sent == -1)
-		{
-			this->_status = RES_SENT;
-			std::cout << "\e[33m" << getTimestamp() <<  "	I had an error sending file to client " << this->_id << " : \e[32m " << std::endl;
-			_file_to_send.close();
-			delete[] buffer;
-			return ;
-		}
-		if (byte_sent != -1)
-		{
-			this->_status = RECIVING_RES_BODY;
-			this->_byte_sent_body += byte_sent;
-			
-			std::cout << "	body : " << (static_cast<double>(this->_byte_sent_body) / static_cast<double>(this->_file_to_send_size)) * 100 << "% sent" << std::endl;
-		}
-		if (this->_byte_sent_body == this->_file_to_send_size)
-		{
-			this->_status = RES_SENT;
-			std::cout << "\e[33m" << getTimestamp() << "	I have sent the file to client " << this->_id << "\e[0m" << std::endl;
-			this->_file_to_send.close();
-		}
-		delete[] buffer;
+	if (!this->_file_to_send.is_open())
+	{
+		this->_file_to_send.open(this->_res->getUriPath().c_str(), std::ifstream::binary);
+		this->_file_to_send.seekg (0, _file_to_send.end);
+		this->_file_to_send_size = this->_file_to_send.tellg();
+		this->_file_to_send.seekg (0, _file_to_send.beg);
 	}
+		
+	if (this->_file_to_send.fail())
+		throw ClientException(strerror(errno));
+	char * buffer = new char [BUFFER_SIZE];
+	memset(buffer, 0, BUFFER_SIZE);
+	if (buffer == NULL)
+		throw ClientException(" New char buffer");
+	this->_file_to_send.read(buffer, BUFFER_SIZE);
+	byte_read_file = this->_file_to_send.gcount();
+	byte_sent = send(this->_com_socket, buffer, byte_read_file, 0);
+	if (byte_sent == -1)
+	{
+		this->_status = ERROR_WHILE_SENDING;
+		std::cout << "\e[33m" << getTimestamp() <<  "	I had an error sending file to client " << this->_id << "\e[0m" << std::endl;
+		_file_to_send.close();
+		delete[] buffer;
+		return ;
+	}
+	else
+	{
+		this->_status = RECIVING_RES_BODY;
+		this->_byte_sent_body += byte_sent;
+		std::cout << "	body : " << (static_cast<double>(this->_byte_sent_body) / static_cast<double>(this->_file_to_send_size)) * 100 << "% sent" << std::endl;
+	}
+	if (this->_byte_sent_body == this->_file_to_send_size)
+	{
+		this->_status = RES_SENT;
+		std::cout << "\e[33m" << getTimestamp() << "	I have sent the file to client " << this->_id << "\e[0m" << std::endl;
+		this->_file_to_send.close();
+	}
+	delete[] buffer;
+}
+
+void	Client::send_response_body_cgi(void)
+{
+	
 }
 
 void	Client::reset_last_activity(void)
@@ -313,7 +340,7 @@ void	Client::reset_last_activity(void)
 	gettimeofday(&(this->_last_activity), NULL);
 }
 
-unsigned long	Client::time_since_last_activity_ms(void) const
+unsigned long	Client::time_since_last_activity_us(void) const
 {
 	unsigned long	ts;
 	struct timeval	now;
@@ -323,3 +350,25 @@ unsigned long	Client::time_since_last_activity_ms(void) const
 	return (ts);
 }
 
+void	Client::reset_client(void)
+{
+	this->reset_last_activity();
+	this->_status = WANT_TO_SEND_REQ;
+	if (this->_req)
+	{
+		delete this->_req;
+		this->_req = NULL;
+	}
+	if (this->_res)
+	{
+		delete this->_res;
+		this->_res = NULL;
+	}
+	this->_incoming_msg = "";
+	this->_req_recived = "";
+	this->_req_header = "";
+	this->_req_body = "";
+	this->_byte_sent_header = 0;
+	this->_byte_sent_body = 0;
+	this->_file_to_send_size = 0;
+}
