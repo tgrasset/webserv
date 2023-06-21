@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/21 17:51:35 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/21 18:06:25 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -516,7 +516,10 @@ void	HttpRes::headerBuild() {
 	_header["Server:"] = "Webserv/1.0";
 	_header["Content-Length:"] = sizeToString(_contentLength);
 	if (_keepAlive == true)
+	{
 		_header["Connection:"] = "keep-alive";
+		_header["Keep-Alive:"] = "timeout=" + sizeToString(MAX_TIME_CLIENT_S);
+	}
 	else
 		_header["Connection:"] = "close";
 	if (_resourceType != NORMALFILE)

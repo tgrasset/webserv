@@ -292,7 +292,7 @@ std::string autoindexHTML(std::string dirPath, std::string requestUri) {
 			s << sizeToString(test.st_size);
 		s << "</td>\n</tr>";
 	}	
-	s << "</table></body>\n</html>\n";
+	s << "</table><hr></body>\n</html>\n";
 	return (s.str());
 }
 
