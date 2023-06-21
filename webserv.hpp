@@ -29,7 +29,7 @@
 # define MAX_WAIT 15
 # define MAX_EVENTS 100
 # define BUFFER_SIZE 4096
-# define MAX_TIME_CLIENT_MS 10000
+# define MAX_TIME_CLIENT_S 5
 
 std::vector<std::string>    cpp_split(std::string str, char const *charset);
 int							stringToInt(std::string str);
