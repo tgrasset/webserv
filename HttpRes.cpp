@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/20 16:59:40 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/21 18:02:17 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ std::map<std::string, std::string> HttpRes::_mimeTypes;
 /* ************************************************************************** */
 
 HttpRes::HttpRes(HttpReq &request, std::vector<Server *> servers) {
-	
+
 	if (HttpRes::_verbose)
 		std::cout << "HttpRes default constructor called" << std::endl;
 	_httpVersion = "";
@@ -44,14 +44,14 @@ HttpRes::HttpRes(HttpReq &request, std::vector<Server *> servers) {
 }
 
 HttpRes::HttpRes(HttpRes const & copy) {
-	
+
 	*this = copy;
 	if (HttpRes::_verbose)
 		std::cout << "HttpRes copy constructor called" << std::endl;
 }
 
 HttpRes::~HttpRes(void) {
-	
+
 	if (HttpRes::_verbose)
 		std::cout << "HttpRes destructor called" << std::endl;
 }
@@ -89,7 +89,7 @@ HttpRes	& HttpRes::operator=(HttpRes const & httpres)
 /* ************************************************************************** */
 
 std::string HttpRes::getHttpVersion() const {
-	
+
 	return(_httpVersion);
 }
 
@@ -114,7 +114,7 @@ std::map<std::string, std::string> HttpRes::getHeader() const {
 }
 
 std::string	HttpRes::getBody() const {
-	
+
 	return (_body);
 }
 Server	*HttpRes::getServer() const {
@@ -153,12 +153,12 @@ Location	*HttpRes::getLocation() const {
 }
 
 size_t	HttpRes::getContentLength() const {
-	
+
 	return (_contentLength);
 }
 
 int	HttpRes::getCgiPipeFd() const {
-	
+
 	return (_cgiPipeFd);
 }
 
@@ -296,7 +296,7 @@ int	HttpRes::checkRequestBodySize(int maxSize, int bodySize, bool &error) {
 int	HttpRes::checkRequestHeader(std::map<std::string, std::string> header, bool &error) {
 
 	std::map<std::string, std::string>::iterator it2;
-	
+
 	for (std::map<std::string, std::string>::iterator it = header.begin(); it != header.end(); it++)
 	{
 		if (it->first.length() > 70)
@@ -320,7 +320,7 @@ int	HttpRes::checkRequestHeader(std::map<std::string, std::string> header, bool 
 
 r_type HttpRes::checkResourceType() {
 
-	
+
 	struct stat test;
 	if (access(_uriPath.c_str(), F_OK) != 0)
 		return (NOT_FOUND);
@@ -428,7 +428,7 @@ r_type HttpRes::checkResourceType() {
 }
 
 int	HttpRes::checkUri(std::string uri) {
-	
+
 	size_t questionMark = uri.find('?');
 	size_t end = uri.rfind('#');
 	std::string tempPath;
@@ -459,7 +459,7 @@ int	HttpRes::checkUri(std::string uri) {
 	}
 	if (_location == NULL || _location->getRoot() == _server->getRoot())
 		_uriPath = _server->getRoot() + "/" + tempPath;
-	else 
+	else
 		_uriPath = _location->getRoot() + "/" + tempPath;
 	_resourceType = checkResourceType();
 	if (_resourceType == NOT_FOUND)
@@ -503,7 +503,7 @@ void	HttpRes::bodyBuild() {
 }
 
 void	HttpRes::headerBuild() {
-	
+
 	_header["Date:"] = timeStamp();
 	_header["Server:"] = "Webserv/1.0";
 	_header["Content-Length:"] = sizeToString(_contentLength);
@@ -543,10 +543,12 @@ bool	HttpRes::methodIsAllowed(std::string method) {
 	return (false);
 }
 
+extern	char** environ;
+
 void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
-	
+
 	bool	error = false;
-	
+
 	setServer(request.getHost(), servers);
 	_statusCode = checkHttpVersion(request.getHttpVersion(), error);
 	if (error == false && _server->getClientMaxBodySize() != 0)
@@ -569,6 +571,37 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 		// C'est la que ca se passe pour les CGI, qui doivent etre lances ici avec pipe, fork, dup. Il faut remplir _cgiPid avec le pid du process
 		// et _cgiPipeFd avec le fd de sortie du pipe dans lequel il va ecrire, pour que la classe client puisse faire son taf.
 		// La reponse pourra ensuite etre creee grace a la methode buildCgiResponse ci-dessous depuis le client.
+
+		int	fd_pipe[2];
+		if (pipe(fd_pipe) == -1)
+		{
+			//throw exeption
+			std::cerr << "Failed to create pipe." << std::endl;
+		}
+		_cgiPipeFd = fd_pipe[2];
+		_cgiPid = fork();
+		if (_cgiPid == -1)
+		{
+			//throw execption
+			std::cerr << "Failed to fork." << std::endl;
+		}
+		if (_cgiPid == 0)
+		{
+			close(fd_pipe[0]);
+			dup2(fd_pipe[1], STDOUT_FILENO);
+			if (_resourceType == PYTHON)
+			{
+				setenv("REQUEST_METHOD", request.getMethod().c_str(), 1);
+				setenv("CONTENT_TYPE", request.getContentType().c_str(), 1);
+				int number = 12345;
+				char contentLen[20];
+				sprintf(contentLen, "%d", request.getContentLength());
+				setenv("CONTENT_LENGTH", contentLen, 1);
+				setenv("QUERY_STRING", getUriQuery().c_str(), 1);
+				std::string cmd = "python3 " + "path/to/cmd" + _uriQuery.replace("&", " ")
+				execve(gneugneu, environ);
+			}
+		}
 		return ;
 	}
 	_statusMessage = getStatus(_statusCode);
@@ -580,7 +613,7 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 }
 
 void	HttpRes::buildCgiResponse(std::string cgiOutput, bool timeout) {
-	
+
 	if (timeout == true)
 	{
 		_statusCode = 500;
