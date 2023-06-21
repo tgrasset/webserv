@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/20 17:03:09 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/21 17:10:10 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,8 @@ typedef enum e_status_c {
 	WAITING_FOR_RES,
 	RECIVING_RES_HEADER,
 	RECIVING_RES_BODY,
-	RES_SENT
+	RES_SENT, 
+	ERROR_WHILE_SENDING
 }				t_status_c;
 
 class Client
@@ -42,7 +43,6 @@ private:
 	std::string				_incoming_msg;
 	std::vector< Server *> 	_server_ptr;
 	struct sockaddr_in		_client_addr;
-	static bool				_verbose;
 	std::string				_req_recived;
 	std::string				_req_header;
 	std::string				_req_body;
@@ -50,9 +50,11 @@ private:
 	int						_byte_sent_header;
 	int						_byte_sent_body;
 	struct timeval			_last_activity;
-	static int				_count;
 	std::ifstream 			_file_to_send;
 	int						_file_to_send_size;
+	
+	static bool				_verbose;
+	static	int				_count;
 	
 public:
 	Client(void);
@@ -74,9 +76,14 @@ public:
 	void						send_response(void);
 	void						send_response_header(void);
 	void						send_response_body(void);
-	void						receive_request(void);
+	void						send_response_body_error(void);
+	void						send_response_body_normal_file(void);
+	void						send_response_body_cgi(void);
+	int							receive_request(void);
 	void						reset_last_activity(void);
-	unsigned long				time_since_last_activity_ms(void) const;
+	unsigned long				time_since_last_activity_us(void) const;
+	void						reset_client(void);
+	bool						getKeepAlive(void) const;
 	
 	class ClientException : public std::exception {
 	public :
