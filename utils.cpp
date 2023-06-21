@@ -261,17 +261,41 @@ std::string redirectionHTML(int code, std::string message, std::string path) {
 	return (s.str());
 }
 
-std::string autoindexHTML(std::string path) {
+std::string autoindexHTML(std::string dirPath) {
 
+	struct stat test;
+	std::string path;
+	struct dirent *dirStruct;
+	DIR *dir = opendir(dirPath.c_str());
+	if (dir == NULL)
+		return ("<!doctype html>\n<html>\n<head>\n<title>Error 403</title>\n</head>\n<body>\n<p>403 : Forbidden</p>\n</body>\n</html>");
 	std::stringstream s;
-	s << "<!doctype html>\n<html>\n<head>\n<title>Index of " << path << "</title>\n</head>\n<body>\n<p>Ici, y aura bientot un magnifique autoindex =)</p>\n</body>\n</html>";
+	s << "<!doctype html>\n<html>\n<head>\n<title>Index of " << path << "</title>\n</head>\n<body>\n<h1>Index of " << path << "</h1>\n";
+	s << "<table>\n<hr>\n<th>File name</th>\n<th>Last modified</th>\n<th>Size</th>\n";
+	while ((dirStruct = readdir(dir)) != NULL)
+	{
+		path = dirPath + dirStruct->d_name;
+		s << "<tr>\n<td>\n<a= href=\"" << dirStruct->d_name;
+		stat(path.c_str(), &test);
+		if (S_ISDIR(test.st_mode))
+			s << "/";
+		s << "\">" << dirStruct->d_name;
+		if (S_ISDIR(test.st_mode))
+			s << "/";
+		s << "</a>\n</td>\n<td>\n" << ctime(&test.st_mtim.tv_sec);
+		s << "</td><td>";
+		if (!S_ISDIR(test.st_mode))
+			s << test.st_size;
+		s << "</td>\n</tr>";
+	}	
+	s << "</table></body>\n</html>\n";
 	return (s.str());
 }
 
 std::string errorHTML(int code, std::string message) {
 
 	std::stringstream s;
-	s << "<!doctype html>\n<html>\n<head>\n<title>Error " << code << "</title>\n</head>\n<body>\n<p>" << message << "</p>\n</body>\n</html>";
+	s << "<!doctype html>\n<html>\n<head>\n<title>Error " << code << "</title>\n</head>\n<body>\n<p>" << code << " : " << message << "</p>\n</body>\n</html>";
 	return (s.str());
 }
 

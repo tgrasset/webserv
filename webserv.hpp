@@ -24,6 +24,7 @@
 # include <sys/time.h>
 # include <string.h>
 # include <signal.h>
+# include <dirent.h>
 
 # define MAX_WAIT 15
 # define MAX_EVENTS 100
@@ -41,7 +42,7 @@ std::string					sizeToString(size_t n);
 bool						caseInsensitiveCmp(std::string const &a, std::string const &b);
 std::string					toUpperCase(const std::string& str);
 std::string					redirectionHTML(int code, std::string message, std::string path);
-std::string					autoindexHTML(std::string path);
+std::string					autoindexHTML(std::string dirPath);
 std::string					errorHTML(int code, std::string message);
 std::string					successfulDeleteHTML(std::string path);
 std::string					getErrorPageContent(std::string path, int code, std::string message);

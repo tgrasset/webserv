@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/20 16:59:40 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/21 11:36:29 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -531,7 +531,9 @@ bool	HttpRes::methodIsAllowed(std::string method) {
 
 	if (method != "GET" && method != "POST" && method != "DELETE")
 		return (false);
-	if (_location != NULL)
+	if (_location == NULL)
+		return (true);
+	else
 	{
 		std::vector<std::string> methods = _location->getMethods();
 		for (std::vector<std::string>::iterator it = methods.begin(); it != methods.end(); it++)
@@ -586,15 +588,14 @@ void	HttpRes::buildCgiResponse(std::string cgiOutput, bool timeout) {
 		_statusCode = 500;
 		_statusMessage = getStatus(500);
 		_body = errorHTML(_statusCode, _statusMessage);
-		_contentLength = _body.length();
 	}
 	else
 	{
 		_statusCode = 200;
 		_statusMessage = getStatus(200);
 		_body = cgiOutput;
-		_contentLength = _body.length();
 	}
+	_contentLength = _body.length();
 	headerBuild();
 	formatHeader();
 }
