@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/21 17:06:25 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/21 17:51:35 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,8 @@ HttpRes::~HttpRes(void) {
 		std::cout << "HttpRes destructor called" << std::endl;
 	if (_location != NULL)
 		delete _location;
+	if (_server != NULL)
+		delete _server;
 }
 
 /* ************************************************************************** */
@@ -173,7 +175,7 @@ void	HttpRes::setServer(std::string reqHost, std::vector<Server *> servers) {
 
 	if (servers.size() == 1)
 	{
-		_server = servers[0];
+		_server = new Server(*servers[0]);
 		return ;
 	}
 	std::string hostname;
@@ -185,11 +187,11 @@ void	HttpRes::setServer(std::string reqHost, std::vector<Server *> servers) {
 	{
 		if ((*it)->getServerName() == reqHost)
 		{
-			_server = *it;
+			_server = new Server(*(*it));
 			return;
 		}
 	}
-	_server = servers[0];
+	_server = new Server(*servers[0]);
 }
 
 
