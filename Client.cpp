@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/20 17:57:16 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/21 11:21:10 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,7 +148,7 @@ void	Client::receive_request(void)
 	
 	memset(recvline, 0, BUFFER_SIZE + 1);
 	byte_recv = recv(this->_com_socket, recvline, BUFFER_SIZE, 0);
-	std::cout << "I just got from my client " << byte_recv << std::endl;
+	std::cout << "I just got from my client " << byte_recv << " bytes for the request" << std::endl;
 	if (byte_recv > 0)
 	{
 		if (this->_status == WANT_TO_SEND_REQ)
@@ -228,7 +228,7 @@ void	Client::send_response_header(void)
 	if (this->_byte_sent_header == static_cast<int>(res_header_full.size()))
 	{
 		this->_status = RECIVING_RES_BODY;
-		std::cout << getTimestamp() <<  "\e[33m	I have sent the following response header to client " << this->_id << " : \e[32m " << std::endl;
+		std::cout << "\e[33m" << getTimestamp() <<  "	I have sent the following response header to client " << this->_id << " : \e[32m " << std::endl;
 		std::cout << std::endl << res_header_full << "\e[0m" << std::endl;
 	}
 }
@@ -252,11 +252,12 @@ void	Client::send_response_body(void)
 		{
 			this->_status = RECIVING_RES_BODY;
 			this->_byte_sent_body += byte_sent;
+			std::cout << "	body : " << this->_byte_sent_body << "/" << res_body_remain.size() << " sent" << std::endl;
 		}
 		if (this->_byte_sent_body == static_cast<int>(res_body.size()))
 		{
 			this->_status = RES_SENT;
-			std::cout << getTimestamp() <<  "\e[33m	I have sent the following response body to client " << this->_id << " : \e[32m " << std::endl;
+			std::cout << "\e[33m" <<  getTimestamp() << "	I have sent the following response body to client " << this->_id << " : \e[32m " << std::endl;
 			std::cout << std::endl << res_body << "\e[0m" << std::endl;
 		}
 	}
@@ -270,7 +271,6 @@ void	Client::send_response_body(void)
 			this->_file_to_send.open(this->_res->getUriPath().c_str(), std::ifstream::binary);
 			this->_file_to_send.seekg (0, _file_to_send.end);
 			this->_file_to_send_size = this->_file_to_send.tellg();
-			std::cout << "file size is : " << _file_to_send_size << std::endl;
 			this->_file_to_send.seekg (0, _file_to_send.beg);
 		}
 			
@@ -282,14 +282,11 @@ void	Client::send_response_body(void)
 			throw ClientException(" New char buffer");
 		this->_file_to_send.read(buffer, BUFFER_SIZE);
 		byte_read_file = this->_file_to_send.gcount();
-		std::cout << "byte_read_file: " << byte_read_file << std::endl;
-		std::cout << buffer << std::endl << std::endl;
-
 		byte_sent = send(this->_com_socket, buffer, byte_read_file, 0);
 		if (byte_sent == -1)
 		{
 			this->_status = RES_SENT;
-			std::cout << getTimestamp() <<  "\e[33m	I had an error sending file to client " << this->_id << " : \e[32m " << std::endl;
+			std::cout << "\e[33m" << getTimestamp() <<  "	I had an error sending file to client " << this->_id << " : \e[32m " << std::endl;
 			_file_to_send.close();
 			delete[] buffer;
 			return ;
@@ -298,11 +295,13 @@ void	Client::send_response_body(void)
 		{
 			this->_status = RECIVING_RES_BODY;
 			this->_byte_sent_body += byte_sent;
+			
+			std::cout << "	body : " << (static_cast<double>(this->_byte_sent_body) / static_cast<double>(this->_file_to_send_size)) * 100 << "% sent" << std::endl;
 		}
 		if (this->_byte_sent_body == this->_file_to_send_size)
 		{
 			this->_status = RES_SENT;
-			std::cout << getTimestamp() <<  "\e[33m	I have sent the file to client " << this->_id << " : \e[32m " << std::endl;
+			std::cout << "\e[33m" << getTimestamp() << "	I have sent the file to client " << this->_id << "\e[0m" << std::endl;
 			this->_file_to_send.close();
 		}
 		delete[] buffer;

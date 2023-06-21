@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/20 18:00:09 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/21 11:22:09 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,37 +90,21 @@ void	Launcher::launch_servers(void)
 		/*Some sockets are ready. Examine readfds */
         for (int i = 0; i < nfds; i++)
 		{
-			std::cout << "coucou nfds = " << nfds << std::endl
-			<< "i = " << i << std::endl
-			<< "_ep_event[i].events = " << _ep_event[i].events << std::endl
-			<< "_ep_event[i].data.fd = " << _ep_event[i].data.fd << std::endl;
 			if ((_ep_event[i].events & EPOLLIN) == EPOLLIN) // File descriptor is available for read.
 			{
 				if (check_if_listen_socket(_ep_event[i].data.fd)) //new client wants to connect
-				{
-					std::cout << "	Case 1" << std::endl;
 					this->process_new_client(i);
-				}
 				else
-				{
-					std::cout << "	Case 2" << std::endl;
 					this->process_reading_existing_client(i);
-				}
 			}
 			else if ((_ep_event[i].events & EPOLLOUT) == EPOLLOUT) // File descriptor is available for write.
-			{
-				std::cout << "	Case 3" << std::endl;
 				this->process_writing_to_client(i);
-			}
 			else if ((_ep_event[i].events & EPOLLRDHUP) == EPOLLRDHUP) // Stream socket peer closed connection.
 			{
-				std::cout << "	Case 4" << std::endl;
 				std::vector<Client>::iterator client_it = this->find_client(_ep_event[i].data.fd);
 				std::cout << "Client " << client_it->getId() << " has close connexion" << std::endl;
 				this->remove_client(client_it);
 			}
-			else
-				std::cout << "	Case 5" << std::endl;
 		}
 	}
 }
@@ -211,7 +195,7 @@ void	Launcher::process_writing_to_client(int i)
 	client->send_response();
 	if (client->getStatus() == RES_SENT)
 	{
-		std::cout << "Process finished for client " << client->getId() << ", it will now be removed" << std::endl;
+		std::cout << "Process finished for client " << client->getId() << ", it will now be removed" << std::endl << std::endl;
 		this->remove_client(client);
 	}
 }
@@ -273,7 +257,7 @@ void	Launcher::check_timeout_clients(void)
 		if (time > MAX_TIME_CLIENT_S)
 		{
 			std::cout << "Timeout for client " << it->getId() 
-			<< ", time = " << time << " it will now be removed" << std::endl;
+			<< ", time = " << time << " it will now be removed" << std::endl << std::endl;
 			std::vector<Client>::iterator it_tmp = it;
 			--it;
 			this->remove_client(it_tmp);
