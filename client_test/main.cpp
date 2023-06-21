@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/21 11:59:37 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/21 16:36:43 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/21 17:23:20 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,10 +82,11 @@ int main (int argc, char **argv)
 	usleep(5 * 1000 * 1000); // Wait for 5 secondes
 
 	std::cout << "I am sending the request" << std::endl;
-	std::string request = "GET / HTTP/1.1\r\nHost: localhost:5403\r\nConnection: keep-alive\r\n\r\n";
+	std::string request = "GET / HTTP/1.1\r\nHost: localhost:5403\r\nConnection: closed\r\n\r\n";
 	send(sock_fd, request.c_str(), request.size(), 0);
+	usleep(5 * 1000 * 1000); // Wait for 5 secondes
 
-	std::cout << "What is the response ?" << std::endl << std::endl;
+	/*std::cout << "What is the response ?" << std::endl << std::endl;
 	char buffer[4097];
 	memset(buffer, 0, 4097);
 
@@ -96,14 +97,15 @@ int main (int argc, char **argv)
 	{
 		res += buffer;
 		memset(buffer, 0, 4097);
+		
 	}
 
-	std::cout << "res "<< res << std::endl;
+	std::cout << "res size "<< res.size() << std::endl;
 	
 	
 	std::cout << "I am waiting a bit and sending another request" << std::endl;
 	usleep(2 * 1000 * 1000); // Wait for 5 secondes
-	request = "GET / HTTP/1.1\r\nHost: localhost:5403\r\nConnection: keep-alive\r\n\r\n";
+	request = "GET / HTTP/1.1\r\nHost: localhost:5403\r\nConnection: closed\r\n\r\n";
 	int bsent = send(sock_fd, request.c_str(), request.size(), 0);
 	std::cout << bsent << " was sent "<< std::endl;
 
@@ -124,6 +126,6 @@ int main (int argc, char **argv)
 	std::cout << "I am closing the fd" << std::endl;
 	close (sock_fd);
 
-	
+	*/
 	return (0);
 }

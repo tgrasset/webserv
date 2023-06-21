@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/21 16:12:38 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/21 17:10:10 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,6 +83,7 @@ public:
 	void						reset_last_activity(void);
 	unsigned long				time_since_last_activity_us(void) const;
 	void						reset_client(void);
+	bool						getKeepAlive(void) const;
 	
 	class ClientException : public std::exception {
 	public :

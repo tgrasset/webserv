@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/21 16:15:02 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/21 17:17:49 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -191,7 +191,7 @@ void	Launcher::process_writing_to_client(int i)
 {
 	std::vector< Client >::iterator client = this->find_client(_ep_event[i].data.fd);
 	client->send_response();
-	if (client->getStatus() == RES_SENT)
+	if (client->getStatus() == RES_SENT && client->getKeepAlive())
 	{
 		std::cout << "Finish writing to " << client->getId() << ", I add him to listen socket" << std::endl << std::endl;
 		client->reset_client();
@@ -204,7 +204,7 @@ void	Launcher::process_writing_to_client(int i)
 		if (epoll_ctl(_efd, EPOLL_CTL_ADD, fd, &ev) == -1)
 			throw LauncherException("Problem with epoll_ctl !");
 	}
-	else if (client->getStatus() == ERROR_WHILE_SENDING)
+	else if (client->getStatus() == RES_SENT)
 	{
 		std::cout << "Process finished for client " << client->getId() << ", it will now be removed" << std::endl << std::endl;
 		this->remove_client(client);
@@ -267,8 +267,8 @@ void	Launcher::check_timeout_clients(void)
 		time = it->time_since_last_activity_us() / 1000000;
 		if (time > MAX_TIME_CLIENT_S)
 		{
-			std::cout << "Timeout for client " << it->getId() 
-			<< ", time = " << time << " it will now be removed" << std::endl << std::endl;
+			std::cout << "\e[31mTimeout for client " << it->getId() 
+			<< ", time = " << time << " it will now be removed\e[0m" << std::endl << std::endl;
 			std::vector<Client>::iterator it_tmp = it;
 			--it;
 			this->remove_client(it_tmp);

@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/21 16:48:29 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/21 17:11:14 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -371,4 +371,11 @@ void	Client::reset_client(void)
 	this->_byte_sent_header = 0;
 	this->_byte_sent_body = 0;
 	this->_file_to_send_size = 0;
+}
+
+bool Client::getKeepAlive(void) const
+{
+	if (this->_res)
+		return (this->_res->getKeepAlive());
+	return (false);
 }
