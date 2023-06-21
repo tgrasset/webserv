@@ -256,26 +256,30 @@ std::string  timeStamp(void) {
 std::string redirectionHTML(int code, std::string message, std::string path) {
 
 	std::stringstream s;
+	std::cout << code << "    " << message << "     " << path << std::endl;
 	s << "<!doctype html>\n<html>\n<head>\n<title>" << code << " : " << message << "</title>\n<meta http-equiv=\"refresh\" content=\"3; URL=" << path << "\">\n</head>";
-	s << "<body>\nRedirection dans 3 secondes.\n</body>\n</html>";
+	s << "<body>" << code << " : " << message << "\n<br>\nRedirection to " << path <<  " in 3 seconds.\n</body>\n</html>";
 	return (s.str());
 }
 
-std::string autoindexHTML(std::string dirPath) {
+std::string autoindexHTML(std::string dirPath, std::string requestUri) {
 
 	struct stat test;
 	std::string path;
 	struct dirent *dirStruct;
+	std::cout << dirPath << std::endl;
 	DIR *dir = opendir(dirPath.c_str());
 	if (dir == NULL)
 		return ("<!doctype html>\n<html>\n<head>\n<title>Error 403</title>\n</head>\n<body>\n<p>403 : Forbidden</p>\n</body>\n</html>");
 	std::stringstream s;
-	s << "<!doctype html>\n<html>\n<head>\n<title>Index of " << path << "</title>\n</head>\n<body>\n<h1>Index of " << path << "</h1>\n";
-	s << "<table>\n<hr>\n<th>File name</th>\n<th>Last modified</th>\n<th>Size</th>\n";
+	s << "<!doctype html>\n<html>\n<head>\n<title>Index of " << requestUri << "</title>\n</head>\n<body>\n<h1>Index of " << requestUri << "</h1>\n";
+	s << "<table style=\"width:80%; font-size:15pixel\">\n<hr>\n<th style=\"text-align:left\">File name</th>\n<th style=\"text-align:left\">Last modified</th>\n<th style=\"text-align:left\">Size</th>\n";
 	while ((dirStruct = readdir(dir)) != NULL)
 	{
+		if (strcmp(dirStruct->d_name, ".") == 0)
+			continue;
 		path = dirPath + dirStruct->d_name;
-		s << "<tr>\n<td>\n<a= href=\"" << dirStruct->d_name;
+		s << "<tr>\n<td>\n<a href=\"" << requestUri << "/" << dirStruct->d_name;
 		stat(path.c_str(), &test);
 		if (S_ISDIR(test.st_mode))
 			s << "/";
@@ -285,7 +289,7 @@ std::string autoindexHTML(std::string dirPath) {
 		s << "</a>\n</td>\n<td>\n" << ctime(&test.st_mtim.tv_sec);
 		s << "</td><td>";
 		if (!S_ISDIR(test.st_mode))
-			s << test.st_size;
+			s << sizeToString(test.st_size);
 		s << "</td>\n</tr>";
 	}	
 	s << "</table></body>\n</html>\n";

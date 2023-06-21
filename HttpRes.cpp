@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/21 11:36:29 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/21 17:06:25 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,8 @@ HttpRes::~HttpRes(void) {
 	
 	if (HttpRes::_verbose)
 		std::cout << "HttpRes destructor called" << std::endl;
+	if (_location != NULL)
+		delete _location;
 }
 
 /* ************************************************************************** */
@@ -320,7 +322,6 @@ int	HttpRes::checkRequestHeader(std::map<std::string, std::string> header, bool 
 
 r_type HttpRes::checkResourceType() {
 
-	
 	struct stat test;
 	if (access(_uriPath.c_str(), F_OK) != 0)
 		return (NOT_FOUND);
@@ -446,9 +447,10 @@ int	HttpRes::checkUri(std::string uri) {
 	std::vector<Location> locs = _server->getLocations();
 	for (std::vector<Location>::iterator it = locs.begin(); it != locs.end(); it++)
 	{
-		if (tempPath.find((*it).getPath()) == 0)
+		end = (*it).getPath().length();
+		if (tempPath.substr(0, end) == (*it).getPath() && (tempPath[end] == '\0' || tempPath[end] == '/'))
 		{
-			_location = &(*it);
+			_location = new Location(*it);
 			break;
 		}
 	}
@@ -460,7 +462,11 @@ int	HttpRes::checkUri(std::string uri) {
 	if (_location == NULL || _location->getRoot() == _server->getRoot())
 		_uriPath = _server->getRoot() + "/" + tempPath;
 	else 
-		_uriPath = _location->getRoot() + "/" + tempPath;
+	{
+		std::string tempPath2 = tempPath.substr(_location->getPath().length(), tempPath.length() - _location->getPath().length());
+		_uriPath = _location->getRoot() + "/" + tempPath2;
+	}
+	std::cout << _uriPath << std::endl;
 	_resourceType = checkResourceType();
 	if (_resourceType == NOT_FOUND)
 		return (404);
@@ -481,12 +487,12 @@ void	HttpRes::checkIfAcceptable(std::vector<std::string> acceptable) {
 	_statusCode = 406;
 }
 
-void	HttpRes::bodyBuild() {
+void	HttpRes::bodyBuild(std::string requestUri) {
 
 	if (_resourceType == REDIRECTION)
 		_body = redirectionHTML(_statusCode, _statusMessage, _location->getRedirectionPath());
 	else if (_resourceType == AUTOINDEX)
-		_body = autoindexHTML(_uriPath);
+		_body = autoindexHTML(_uriPath, requestUri);
 	else if (_method == "DELETE" && _statusCode == 200)
 		_body = successfulDeleteHTML(_uriPath);
 	else if (_statusCode != 200)
@@ -535,6 +541,7 @@ bool	HttpRes::methodIsAllowed(std::string method) {
 		return (true);
 	else
 	{
+		std::cout << _location->getPath() << std::endl;
 		std::vector<std::string> methods = _location->getMethods();
 		for (std::vector<std::string>::iterator it = methods.begin(); it != methods.end(); it++)
 		{
@@ -574,7 +581,7 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 		return ;
 	}
 	_statusMessage = getStatus(_statusCode);
-	bodyBuild();
+	bodyBuild(request.getUri());
 	if (request.getKeepAlive() == false)
 		_keepAlive = false;
 	headerBuild();

@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/12 15:27:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/15 16:02:37 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/21 15:51:43 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,10 @@ Location &Location::operator=(Location const &rhs)
 		_index = rhs.getIndex();
 		_autoindex = rhs.getAutoIndex();
 		_methods = rhs.getMethods();
+		_cgiLocation = rhs.getCgiBool();
+		_redirectionCode = rhs.getRedirectionCode();
+		_redirection = rhs.getRedirectionPath();
+		_cgiExtensionAndPath = rhs.getCgiExtensionAndPath();
 	}
     return (*this);
 }
@@ -233,6 +237,6 @@ void	Location::checkConfig(std::string serverRoot) {
 			throw LocationException("Index file in 'location' context doesn't exist or couldn't be read");
 	else if (_root != serverRoot && _autoindex == false && _index != "" && checkFile(_index, _root) == false)
 		throw LocationException("Index file in 'location' context doesn't exist or couldn't be read");
-	if (_redirectionCode != 0 && checkFile(_redirection, serverRoot) == false)
-		throw LocationException("Invalid redirection path at the end of 'return' line");
+	// if (_redirectionCode != 0 && checkFile(_redirection, serverRoot) == false)
+	// 	throw LocationException("Invalid redirection path at the end of 'return' line");
 }

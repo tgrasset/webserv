@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/20 16:48:33 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/21 15:08:28 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ class HttpRes
 		r_type	checkResourceType();
 		int		checkRequestBodySize(int maxSize, int bodySize, bool &error);
 		int		checkRequestHeader(std::map<std::string, std::string> header, bool &error);
-		void	bodyBuild();
+		void	bodyBuild(std::string requestUri);
 		void	headerBuild();
 		void	formatHeader();
 		void	fillMimeTypes();

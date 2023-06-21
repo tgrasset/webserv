@@ -42,7 +42,7 @@ std::string					sizeToString(size_t n);
 bool						caseInsensitiveCmp(std::string const &a, std::string const &b);
 std::string					toUpperCase(const std::string& str);
 std::string					redirectionHTML(int code, std::string message, std::string path);
-std::string					autoindexHTML(std::string dirPath);
+std::string					autoindexHTML(std::string dirPath, std::string requestUri);
 std::string					errorHTML(int code, std::string message);
 std::string					successfulDeleteHTML(std::string path);
 std::string					getErrorPageContent(std::string path, int code, std::string message);
