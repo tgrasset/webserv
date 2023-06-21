@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/21 17:17:49 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/21 18:23:17 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -328,15 +328,14 @@ void	Launcher::print_situation(void)
 		case 5:
 			std::cout << "RECIVING_RES_HEADER";
 			break;
-		/*case 6:
-			std::cout << "RES_HEADER_SENT";
-			break;
-		case 7:*/
 		case 6:
 			std::cout << "RECIVING_RES_BODY";
 			break;
-		default:
+		case 7:
 			std::cout << "RES_SENT";
+			break;
+		default:
+			std::cout << "ERROR_WHILE_SENDING";
 			break;
 		}
 		std::cout << std::endl << std::endl;
