@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/20 12:12:07 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/21 11:22:09 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,6 +84,7 @@ void	Launcher::launch_servers(void)
 	{
 		/*Block until there is something to do ...*/
 		this->print_situation();
+		this->check_timeout_clients();
 		if ((nfds = epoll_wait(_efd, static_cast< struct epoll_event * >(_ep_event.data()), this->_servers.size() * MAX_EVENTS, -1)) == -1)
 			throw LauncherException("Problem with epoll_wait !");
 		/*Some sockets are ready. Examine readfds */
@@ -94,12 +95,10 @@ void	Launcher::launch_servers(void)
 				if (check_if_listen_socket(_ep_event[i].data.fd)) //new client wants to connect
 					this->process_new_client(i);
 				else
-					this->process_reading_existing_client(i);				
+					this->process_reading_existing_client(i);
 			}
 			else if ((_ep_event[i].events & EPOLLOUT) == EPOLLOUT) // File descriptor is available for write.
-			{
 				this->process_writing_to_client(i);
-			}
 			else if ((_ep_event[i].events & EPOLLRDHUP) == EPOLLRDHUP) // Stream socket peer closed connection.
 			{
 				std::vector<Client>::iterator client_it = this->find_client(_ep_event[i].data.fd);
@@ -196,7 +195,7 @@ void	Launcher::process_writing_to_client(int i)
 	client->send_response();
 	if (client->getStatus() == RES_SENT)
 	{
-		std::cout << "Process finished for client " << client->getId() << ", it will now be removed" << std::endl;
+		std::cout << "Process finished for client " << client->getId() << ", it will now be removed" << std::endl << std::endl;
 		this->remove_client(client);
 	}
 }
@@ -251,12 +250,17 @@ void 	Launcher::add_server_of_client(int listen_sock, Client *client)
 
 void	Launcher::check_timeout_clients(void)
 {
+	unsigned long time = 0;
 	for(std::vector<Client>::iterator it = this->_clients.begin(); it != this->_clients.end();++it)
 	{
-		if (it->time_since_last_activity_ms() > MAX_TIME_CLIENT_MS)
+		time = it->time_since_last_activity_ms() / 1000000;
+		if (time > MAX_TIME_CLIENT_S)
 		{
-			std::cout << "Timeout for client " << it->getId() << ", it will now be removed" << std::endl;
-			this->remove_client(it);
+			std::cout << "Timeout for client " << it->getId() 
+			<< ", time = " << time << " it will now be removed" << std::endl << std::endl;
+			std::vector<Client>::iterator it_tmp = it;
+			--it;
+			this->remove_client(it_tmp);
 		}
 	}
 }
@@ -274,12 +278,12 @@ void	Launcher::print_situation(void)
 	char				str_ip_client[INET_ADDRSTRLEN];
 	struct sockaddr_in  client_addr;
 	
-	std::cout << std::endl << "--------------------- Servers -----------------" << std::endl; 
-	for (std::vector<Server>::iterator it = this->_servers.begin(); it != this->_servers.end(); ++it)
+	//std::cout << std::endl << "--------------------- Servers -----------------" << std::endl; 
+	/*for (std::vector<Server>::iterator it = this->_servers.begin(); it != this->_servers.end(); ++it)
 	{
 		std::cout << "Listen Socket : " << it->getListenSocket() << " | Name : " << it->getServerName()
 		<< " | Host : " << it->getHost() << " | Port : " << ntohs(it->getPort()) << std::endl << std::endl;
-	}
+	}*/
 	for (std::vector<Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
 	{
 		if (it == this->_clients.begin())
@@ -313,6 +317,10 @@ void	Launcher::print_situation(void)
 		case 5:
 			std::cout << "RECIVING_RES_HEADER";
 			break;
+		/*case 6:
+			std::cout << "RES_HEADER_SENT";
+			break;
+		case 7:*/
 		case 6:
 			std::cout << "RECIVING_RES_BODY";
 			break;
