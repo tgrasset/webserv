@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/21 18:02:17 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/06/22 15:25:22 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -591,6 +591,7 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 			dup2(fd_pipe[1], STDOUT_FILENO);
 			if (_resourceType == PYTHON)
 			{
+				//setup the env
 				setenv("REQUEST_METHOD", request.getMethod().c_str(), 1);
 				setenv("CONTENT_TYPE", request.getContentType().c_str(), 1);
 				int number = 12345;
@@ -598,8 +599,20 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 				sprintf(contentLen, "%d", request.getContentLength());
 				setenv("CONTENT_LENGTH", contentLen, 1);
 				setenv("QUERY_STRING", getUriQuery().c_str(), 1);
-				std::string cmd = "python3 " + "path/to/cmd" + _uriQuery.replace("&", " ")
-				execve(gneugneu, environ);
+
+				//setup the execve
+				std::string	pathToCmd = request.getUri();
+				pathToCmd = pathToCmd.substr(0, pathToCmd.find('?', 0));
+				std::vector<std::string> cmd = cpp_split(_uriQuery, "&");//replace a retravailler
+				cmd.insert(cmd.begin(), pathToCmd);
+				cmd.insert(cmd.begin(), "python3");
+				cmd.push_back(NULL);
+				char **command = reinterpret_cast<char**>(&cmd[0]);
+				std::string	pathToPython = this->_location->getCgiExtensionAndPath()[".py"];
+
+				if (execve(pathToPython.c_str(), command, environ) == -1)
+					std::cerr << "execve failed" << std::endl;
+					//throw execption
 			}
 		}
 		return ;
