@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/21 18:06:25 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/22 10:22:32 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -468,7 +468,6 @@ int	HttpRes::checkUri(std::string uri) {
 		std::string tempPath2 = tempPath.substr(_location->getPath().length(), tempPath.length() - _location->getPath().length());
 		_uriPath = _location->getRoot() + "/" + tempPath2;
 	}
-	std::cout << _uriPath << std::endl;
 	_resourceType = checkResourceType();
 	if (_resourceType == NOT_FOUND)
 		return (404);
@@ -543,7 +542,10 @@ bool	HttpRes::methodIsAllowed(std::string method) {
 	if (method != "GET" && method != "POST" && method != "DELETE")
 		return (false);
 	if (_location == NULL)
+	{
+		_method = method;
 		return (true);
+	}
 	else
 	{
 		std::cout << _location->getPath() << std::endl;
@@ -551,7 +553,10 @@ bool	HttpRes::methodIsAllowed(std::string method) {
 		for (std::vector<std::string>::iterator it = methods.begin(); it != methods.end(); it++)
 		{
 			if (method == *it)
+			{
+				_method = method;
 				return (true);
+			}
 		}
 	}
 	return (false);
