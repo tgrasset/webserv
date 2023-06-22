@@ -24,6 +24,7 @@ class Location {
 		unsigned int				getRedirectionCode(void) const;
 		std::string					getRedirectionPath(void) const;
 		std::map<std::string, std::string>	getCgiExtensionAndPath(void) const;
+		std::string					getUploadDir(void) const;
 
 		void	setPath(std::string path);
 		void	setRoot(std::string root, std::string serverRoot);
@@ -34,6 +35,7 @@ class Location {
 		void	setRedirectionCode(int code);
 		void	setRedirectionPath(std::string path);
 		void	setCgiExtensionAndPath(std::vector<std::string> cgiInfo);
+		void	setUploadDir(std::string dir);
 
 		void	checkConfig(std::string serverRoot);
 
@@ -62,6 +64,7 @@ class Location {
 		std::map<std::string, std::string> 	_cgiExtensionAndPath;
 		int							_redirectionCode;
 		std::string					_redirection;
+		std::string					_uploadDir;
 		static bool					_verbose;
 };
 

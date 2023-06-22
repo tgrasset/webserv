@@ -269,11 +269,22 @@ std::string autoindexHTML(std::string dirPath, std::string requestUri) {
 	struct dirent *dirStruct;
 	if (requestUri[requestUri.length() - 1] == '/')
 		requestUri = requestUri.substr(0, requestUri.length() - 1);
+	std::cout << requestUri << std::endl;
 	DIR *dir = opendir(dirPath.c_str());
 	if (dir == NULL)
 		return ("<!doctype html>\n<html>\n<head>\n<title>Error 403</title>\n</head>\n<body>\n<p>403 : Forbidden</p>\n</body>\n</html>");
 	std::stringstream s;
-	s << "<!doctype html>\n<html>\n<head>\n<title>Index of " << requestUri << "</title>\n</head>\n<body>\n<h1>Index of " << requestUri << "</h1>\n";
+	s << "<!doctype html>\n<html>\n<head>\n<title>Index of ";
+	if (requestUri == "")
+		s << "/";
+	else
+		s << requestUri; 
+	s << "</title>\n</head>\n<body>\n<h1>Index of ";
+	if (requestUri == "")
+		s << "/";
+	else
+		s << requestUri;
+	s << "</h1>\n";
 	s << "<table style=\"width:80%; font-size:15pixel\">\n<hr>\n<th style=\"text-align:left\">File name</th>\n<th style=\"text-align:left\">Last modified</th>\n<th style=\"text-align:left\">Size</th>\n";
 	while ((dirStruct = readdir(dir)) != NULL)
 	{
