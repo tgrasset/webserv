@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/22 15:27:55 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/06/22 15:56:44 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -578,7 +578,7 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 			//throw exeption
 			std::cerr << "Failed to create pipe." << std::endl;
 		}
-		_cgiPipeFd = fd_pipe[2];
+		_cgiPipeFd = fd_pipe[0];
 		_cgiPid = fork();
 		if (_cgiPid == -1)
 		{
@@ -588,8 +588,7 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 		if (_cgiPid == 0)
 		{
 			close(fd_pipe[0]);
-			dup2(fd_pipe[1], STDOUT_FILENO);
-			if (dup2 == -1)
+			if (dup2(fd_pipe[1], STDOUT_FILENO) == -1)
 			{
 				std::cerr << "Failed to dup" << std::endl;
 				//throw exeption
@@ -599,22 +598,24 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 				//setup the env
 				setenv("REQUEST_METHOD", request.getMethod().c_str(), 1);
 				setenv("CONTENT_TYPE", request.getContentType().c_str(), 1);
-				int number = 12345;
 				char contentLen[20];
 				sprintf(contentLen, "%d", request.getContentLength());
 				setenv("CONTENT_LENGTH", contentLen, 1);
 				setenv("QUERY_STRING", getUriQuery().c_str(), 1);
 
 				//setup the execve
-				std::string	pathToCmd = request.getUri();
-				pathToCmd = pathToCmd.substr(0, pathToCmd.find('?', 0));
-				std::vector<std::string> cmd = cpp_split(_uriQuery, "&");//replace a retravailler
-				cmd.insert(cmd.begin(), pathToCmd);
+				std::vector<std::string> cmd;
+				if (request.getMethod() == "GET")
+					cmd = cpp_split(_uriQuery, "&");
+				if (request.getMethod() == "POST")
+					cmd = cpp_split(_body, "&");
+				cmd.insert(cmd.begin(), _uriPath);
 				cmd.insert(cmd.begin(), "python3");
 				cmd.push_back(NULL);
 				char **command = reinterpret_cast<char**>(&cmd[0]);
 				std::string	pathToPython = this->_location->getCgiExtensionAndPath()[".py"];
 
+				//execve
 				if (execve(pathToPython.c_str(), command, environ) == -1)
 					std::cerr << "execve failed" << std::endl;
 					//throw execption
