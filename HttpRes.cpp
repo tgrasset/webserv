@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/22 15:56:44 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/06/22 17:33:36 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -606,11 +606,14 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 				//setup the execve
 				std::vector<std::string> cmd;
 				if (request.getMethod() == "GET")
-					cmd = cpp_split(_uriQuery, "&");
+					cmd = cpp_split(_uriQuery, "&");// in URL, "+" should be replaced by " "
 				if (request.getMethod() == "POST")
 					cmd = cpp_split(_body, "&");
 				cmd.insert(cmd.begin(), _uriPath);
-				cmd.insert(cmd.begin(), "python3");
+				if (_resourceType == PYTHON)
+					cmd.insert(cmd.begin(), "python3");
+				if (_resourceType == PHP)
+					cmd.insert(cmd.begin(), "php");
 				cmd.push_back(NULL);
 				char **command = reinterpret_cast<char**>(&cmd[0]);
 				std::string	pathToPython = this->_location->getCgiExtensionAndPath()[".py"];
