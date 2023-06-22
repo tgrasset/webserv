@@ -12,6 +12,7 @@
 # include <ctime>
 # include <iomanip>
 # include <cstdio>
+# include <list>
 
 # include <sys/types.h>
 # include <sys/stat.h>

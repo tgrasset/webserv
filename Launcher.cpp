@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/21 18:23:17 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/22 12:30:31 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ Launcher::~Launcher(void)
 {
 	// Closing all socket
 	close(_efd);
-	for (std::vector<Client>::iterator it = this->_clients.begin(); 
+	for (std::list<Client>::iterator it = this->_clients.begin(); 
 		it != this->_clients.end(); ++it)
 		close(it->getCom_socket());
 	for (std::vector<Server>::iterator it = this->_servers.begin(); 
@@ -98,7 +98,7 @@ void	Launcher::launch_servers(void)
 				this->process_writing_to_client(i);
 			else if ((_ep_event[i].events & EPOLLRDHUP) == EPOLLRDHUP) //Peer closed connection.
 			{
-				std::vector<Client>::iterator client_it = this->find_client(_ep_event[i].data.fd);
+				std::list<Client>::iterator client_it = this->find_client(_ep_event[i].data.fd);
 				std::cout << "Client " << client_it->getId() << " has close connexion" << std::endl;
 				this->remove_client(client_it);
 			}
@@ -170,7 +170,7 @@ void	Launcher::process_new_client(int i)
 */
 void	Launcher::process_reading_existing_client(int i)
 {
-	std::vector< Client >::iterator client = this->find_client(_ep_event[i].data.fd);
+	std::list<Client>::iterator client = this->find_client(_ep_event[i].data.fd);
 	if (client->receive_request())
 		this->remove_client(client);
 	if (client->getStatus() == WAITING_FOR_RES)
@@ -189,7 +189,7 @@ void	Launcher::process_reading_existing_client(int i)
 
 void	Launcher::process_writing_to_client(int i)
 {
-	std::vector< Client >::iterator client = this->find_client(_ep_event[i].data.fd);
+	std::list<Client>::iterator client = this->find_client(_ep_event[i].data.fd);
 	client->send_response();
 	if (client->getStatus() == RES_SENT && client->getKeepAlive())
 	{
@@ -224,9 +224,9 @@ std::vector<Server>::iterator 	Launcher::getServerWithSameHostPort(std::vector<S
 	return (this->_servers.end());
 }
 
-std::vector<Client>::iterator	Launcher::find_client(int socket)
+std::list<Client>::iterator	Launcher::find_client(int socket)
 {
-	std::vector< Client >::iterator it = this->_clients.begin();
+	std::list<Client>::iterator it = this->_clients.begin();
 	while (it != this->_clients.end())
 	{
 		if (it->getCom_socket() == socket)
@@ -262,21 +262,21 @@ void 	Launcher::add_server_of_client(int listen_sock, Client *client)
 void	Launcher::check_timeout_clients(void)
 {
 	unsigned long time = 0;
-	for(std::vector<Client>::iterator it = this->_clients.begin(); it != this->_clients.end();++it)
+	for(std::list<Client>::iterator it = this->_clients.begin(); it != this->_clients.end();++it)
 	{
 		time = it->time_since_last_activity_us() / 1000000;
 		if (time > MAX_TIME_CLIENT_S)
 		{
 			std::cout << "\e[31mTimeout for client " << it->getId() 
 			<< ", time = " << time << " it will now be removed\e[0m" << std::endl << std::endl;
-			std::vector<Client>::iterator it_tmp = it;
+			std::list<Client>::iterator it_tmp = it;
 			--it;
 			this->remove_client(it_tmp);
 		}
 	}
 }
 
-void	Launcher::remove_client(std::vector<Client>::iterator client)
+void	Launcher::remove_client(std::list<Client>::iterator client)
 {
 	if (epoll_ctl(_efd, EPOLL_CTL_DEL, client->getCom_socket(), NULL) == -1)
 		throw LauncherException("Error: epoll_ctl DEL!");
@@ -295,7 +295,7 @@ void	Launcher::print_situation(void)
 		std::cout << "Listen Socket : " << it->getListenSocket() << " | Name : " << it->getServerName()
 		<< " | Host : " << it->getHost() << " | Port : " << ntohs(it->getPort()) << std::endl << std::endl;
 	}*/
-	for (std::vector<Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
+	for (std::list<Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
 	{
 		if (it == this->_clients.begin())
 			std::cout << "--------------------- Clients -----------------" << std::endl; 

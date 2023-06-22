@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/21 17:11:14 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/22 12:08:33 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -247,9 +247,9 @@ void	Client::send_response_body(void)
 	
 	if (res_body.size() != 0)
 		this->send_response_body_error();
-	else if (this->_res->getResourceType() == NORMALFILE)
+	else if (this->_res && this->_res->getResourceType() == NORMALFILE)
 		this->send_response_body_normal_file();
-	else if (this->_res->getResourceType() == PYTHON || this->_res->getResourceType() == PHP)
+	else if (this->_res && (this->_res->getResourceType() == PYTHON || this->_res->getResourceType() == PHP))
 		this->send_response_body_cgi();
 }
 
