@@ -267,7 +267,8 @@ std::string autoindexHTML(std::string dirPath, std::string requestUri) {
 	struct stat test;
 	std::string path;
 	struct dirent *dirStruct;
-	std::cout << dirPath << std::endl;
+	if (requestUri[requestUri.length() - 1] == '/')
+		requestUri = requestUri.substr(0, requestUri.length() - 1);
 	DIR *dir = opendir(dirPath.c_str());
 	if (dir == NULL)
 		return ("<!doctype html>\n<html>\n<head>\n<title>Error 403</title>\n</head>\n<body>\n<p>403 : Forbidden</p>\n</body>\n</html>");

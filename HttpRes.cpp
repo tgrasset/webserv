@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/22 10:54:49 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/22 15:20:18 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -450,7 +450,7 @@ int	HttpRes::checkUri(std::string uri) {
 	for (std::vector<Location>::iterator it = locs.begin(); it != locs.end(); it++)
 	{
 		end = (*it).getPath().length();
-		if (tempPath.substr(0, end) == (*it).getPath() && (tempPath[end] == '\0' || tempPath[end] == '/'))
+		if (tempPath.length() >= end && tempPath.substr(0, end) == (*it).getPath() && (tempPath[end] == '\0' || tempPath[end] == '/'))
 		{
 			_location = new Location(*it);
 			break;
@@ -548,7 +548,6 @@ bool	HttpRes::methodIsAllowed(std::string method) {
 	}
 	else
 	{
-		std::cout << _location->getPath() << std::endl;
 		std::vector<std::string> methods = _location->getMethods();
 		for (std::vector<std::string>::iterator it = methods.begin(); it != methods.end(); it++)
 		{
