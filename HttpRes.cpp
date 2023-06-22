@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/22 15:25:22 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/06/22 15:27:55 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -582,13 +582,18 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 		_cgiPid = fork();
 		if (_cgiPid == -1)
 		{
-			//throw execption
+			//throw exeption
 			std::cerr << "Failed to fork." << std::endl;
 		}
 		if (_cgiPid == 0)
 		{
 			close(fd_pipe[0]);
 			dup2(fd_pipe[1], STDOUT_FILENO);
+			if (dup2 == -1)
+			{
+				std::cerr << "Failed to dup" << std::endl;
+				//throw exeption
+			}
 			if (_resourceType == PYTHON)
 			{
 				//setup the env
