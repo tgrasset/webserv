@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/22 10:22:32 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/22 10:54:49 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -502,7 +502,7 @@ void	HttpRes::bodyBuild(std::string requestUri) {
 		if (error_pages.empty() || error_pages.find(_statusCode) == error_pages.end())
 			_body = errorHTML(_statusCode, _statusMessage);
 		else
-			_body = getErrorPageContent(error_pages[_statusCode], _statusCode, _statusMessage);
+			_body = getErrorPageContent(_server->getRoot() + "/" + error_pages[_statusCode], _statusCode, _statusMessage);
 	}
 	if (_body != "")
 		_contentLength = _body.length();

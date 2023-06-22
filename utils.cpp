@@ -318,12 +318,12 @@ std::string getErrorPageContent(std::string path, int code, std::string message)
 	std::stringstream s;
 
     if (ret < 0 || !S_ISREG(buf.st_mode) || access(path.c_str(), R_OK) != 0)
-		s << "<!doctype html>\n<html>\n<head>\n<title>Error " << code << "</title>\n</head>\n<body>\n<p>" << message << "</p>\n</body>\n</html>";
+		s << errorHTML(code, message);
 	else
 	{
     	fileStream.open(path.c_str());
     	if (fileStream.fail())
-        	s << "<!doctype html>\n<html>\n<head>\n<title>Error " << code << "</title>\n</head>\n<body>\n<p>" << message << "</p>\n</body>\n</html>";
+        	s << errorHTML(code, message);
 		else
 		{
     		s << fileStream.rdbuf();
