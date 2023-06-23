@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/22 10:54:49 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/22 17:18:48 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -450,7 +450,7 @@ int	HttpRes::checkUri(std::string uri) {
 	for (std::vector<Location>::iterator it = locs.begin(); it != locs.end(); it++)
 	{
 		end = (*it).getPath().length();
-		if (tempPath.substr(0, end) == (*it).getPath() && (tempPath[end] == '\0' || tempPath[end] == '/'))
+		if (tempPath.length() >= end && tempPath.substr(0, end) == (*it).getPath() && (tempPath[end] == '\0' || tempPath[end] == '/'))
 		{
 			_location = new Location(*it);
 			break;
@@ -479,6 +479,8 @@ int	HttpRes::checkUri(std::string uri) {
 
 void	HttpRes::checkIfAcceptable(std::vector<std::string> acceptable) {
 
+	if (acceptable.empty())
+		return ;
 	for (std::vector<std::string>::iterator it = acceptable.begin(); it != acceptable.end(); it++)
 	{
 		if (getMimeType(_uriPath, _mimeTypes) == *it || (*it).find('*') != std::string::npos)
@@ -494,7 +496,7 @@ void	HttpRes::bodyBuild(std::string requestUri) {
 		_body = redirectionHTML(_statusCode, _statusMessage, _location->getRedirectionPath());
 	else if (_resourceType == AUTOINDEX)
 		_body = autoindexHTML(_uriPath, requestUri);
-	else if (_method == "DELETE" && _statusCode == 200)
+	else if (_method == "DELETE" && _statusCode == 204)
 		_body = successfulDeleteHTML(_uriPath);
 	else if (_statusCode != 200)
 	{
@@ -548,7 +550,6 @@ bool	HttpRes::methodIsAllowed(std::string method) {
 	}
 	else
 	{
-		std::cout << _location->getPath() << std::endl;
 		std::vector<std::string> methods = _location->getMethods();
 		for (std::vector<std::string>::iterator it = methods.begin(); it != methods.end(); it++)
 		{
@@ -582,6 +583,8 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 	{
 		if (std::remove(_uriPath.c_str()) != 0)
 			_statusCode = 400;
+		else
+			_statusCode = 204;
 	}
 	else if (_statusCode == 200 && (_resourceType == PHP || _resourceType == PYTHON))
 	{

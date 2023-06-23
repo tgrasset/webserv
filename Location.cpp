@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/12 15:27:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/21 15:51:43 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/22 18:02:45 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ Location::Location(void)
 	_cgiLocation = false;
 	_redirectionCode = 0;
 	_redirection = "";
+	_uploadDir = "";
 }
 
 Location::Location(Location const &src) 
@@ -59,6 +60,7 @@ Location &Location::operator=(Location const &rhs)
 		_redirectionCode = rhs.getRedirectionCode();
 		_redirection = rhs.getRedirectionPath();
 		_cgiExtensionAndPath = rhs.getCgiExtensionAndPath();
+		_uploadDir = rhs.getUploadDir();
 	}
     return (*this);
 }
@@ -109,6 +111,11 @@ std::string	Location::getRedirectionPath(void) const {
 std::map<std::string, std::string>	Location::getCgiExtensionAndPath(void) const {
 
 	return (_cgiExtensionAndPath);
+}
+
+std::string	Location::getUploadDir(void) const {
+
+	return (_uploadDir);
 }
 
 void	Location::setPath(std::string path) {
@@ -219,6 +226,11 @@ void	Location::setRedirectionPath(std::string path) {
 	_redirection = path;
 }
 
+void	Location::setUploadDir(std::string dir) {
+
+	_uploadDir = dir;
+}
+
 void	Location::checkConfig(std::string serverRoot) {
 
 	if (_cgiLocation == true && _index == "")
@@ -237,6 +249,13 @@ void	Location::checkConfig(std::string serverRoot) {
 			throw LocationException("Index file in 'location' context doesn't exist or couldn't be read");
 	else if (_root != serverRoot && _autoindex == false && _index != "" && checkFile(_index, _root) == false)
 		throw LocationException("Index file in 'location' context doesn't exist or couldn't be read");
-	// if (_redirectionCode != 0 && checkFile(_redirection, serverRoot) == false)
-	// 	throw LocationException("Invalid redirection path at the end of 'return' line");
+	if (_redirectionCode != 0 && checkFile(_redirection, serverRoot) == false)
+		throw LocationException("Invalid redirection path at the end of 'return' line");
+	if (_uploadDir != "")
+	{
+		struct stat test;
+		std::string dirPath = _root + "/" + _uploadDir;
+		if (stat(dirPath.c_str(), &test) != 0 || !S_ISDIR(test.st_mode))
+			throw LocationException("Invalid upload directory path at the end of 'upload_dir' line");
+	}
 }
