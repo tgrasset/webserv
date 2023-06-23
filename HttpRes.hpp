@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/23 15:19:28 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/23 17:09:46 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ class HttpRes
 		void	fillMimeTypes();
 		void	checkIfAcceptable(std::vector<std::string> acceptable);
 		bool	methodIsAllowed(std::string method);
-		void	buildCgiResponse(std::string cgiOutput, bool timeout);
+		void	uploadFileToServer(std::string tempFile);
 		
 
 	private:

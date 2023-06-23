@@ -310,7 +310,7 @@ std::string autoindexHTML(std::string dirPath, std::string requestUri) {
 std::string errorHTML(int code, std::string message) {
 
 	std::stringstream s;
-	s << "<!doctype html>\n<html>\n<head>\n<title>Error " << code << "</title>\n</head>\n<body>\n<p>" << code << " : " << message << "</p>\n</body>\n</html>";
+	s << "<!doctype html>\n<html>\n<head>\n<title>" << code << "</title>\n</head>\n<body>\n<p>" << code << " : " << message << "</p>\n</body>\n</html>";
 	return (s.str());
 }
 

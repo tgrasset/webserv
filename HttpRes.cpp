@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/23 16:40:49 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/23 17:29:05 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -393,6 +393,7 @@ int	HttpRes::checkUri(std::string uri) {
 	std::string locPath;
 	Location *tempLoc = NULL;
 
+	// Si on trouve ".py" ou ".php" dams uri, split apres ".php" ou ".py" et creer une autre variable _pathInfo dans la classe pour stocker ce qu'il y a apres
 	if (separator == std::string::npos)
 		tempPath = uri;
 	else
@@ -532,6 +533,30 @@ bool	HttpRes::methodIsAllowed(std::string method) {
 	return (false);
 }
 
+void	HttpRes::uploadFileToServer(std::string tempFile) {
+	
+	if (_location == NULL || _location->getUploadDir() == "")
+	{
+			_statusCode = 403;
+			return ;
+	}
+	else
+	{
+		std::string uploadDir = _location->getUploadDir();
+		struct stat test;
+		if (stat(uploadDir.c_str(), &test) != 0 || !S_ISDIR(test.st_mode) || access(uploadDir.c_str(), R_OK | W_OK) != 0)
+		{
+			_statusCode = 403;
+			return ;
+		}
+		std::string finalLocation = uploadDir + "/lol";
+		if (rename(tempFile.c_str(), finalLocation.c_str()) != 0)
+			_statusCode = 403;
+		else
+			_statusCode = 201;
+	}
+}
+
 void	HttpRes::handleRequest(HttpReq &request) {
 	
 	_statusCode = checkHttpVersion(request.getHttpVersion());
@@ -560,39 +585,11 @@ void	HttpRes::handleRequest(HttpReq &request) {
 		return ;
 	}
 	else if (_statusCode == 200 && _method == "POST")
-	{
-	 	if (_location == NULL || _location->getUploadDir() == "")
-			_statusCode = 403;
-		// else
-		// {
-		// 	struct stat test;
-		// 	if (stat(_location.getUploadDir(), &test) TO BE CONTINUED
-		// }
-		return ;
-	}
+		uploadFileToServer(request.getBodyTmpFile());
 	_statusMessage = getStatus(_statusCode);
 	bodyBuild(request.getUri());
 	if (request.getKeepAlive() == false)
 		_keepAlive = false;
-	headerBuild();
-	formatHeader();
-}
-
-void	HttpRes::buildCgiResponse(std::string cgiOutput, bool timeout) {
-	
-	if (timeout == true)
-	{
-		_statusCode = 500;
-		_statusMessage = getStatus(500);
-		_body = errorHTML(_statusCode, _statusMessage);
-	}
-	else
-	{
-		_statusCode = 200;
-		_statusMessage = getStatus(200);
-		_body = cgiOutput;
-	}
-	_contentLength = _body.length();
 	headerBuild();
 	formatHeader();
 }
