@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/23 12:04:49 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/23 12:41:18 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -173,7 +173,7 @@ int	Client::receive_request_header(void)
 		if (pos_end_header != std::string::npos)
 		{
 			this->_req_header = this->_req_recived.substr(0, pos_end_header);
-			this->_req = new HttpReq(this->_req_header);
+			this->_req = new HttpReq(this->_req_header, this->_server_ptr);
 			if (this->_req == NULL)
 				throw ClientException("New didn't work for _req !");
 			if (this->_req->getContentLength() == 0 || this->_req->getMethod() != "POST")
@@ -236,7 +236,7 @@ void	Client::send_response(void)
 	{
 		if (this->_res != NULL)
 			delete this->_res;
-		this->_res = new HttpRes(*(this->_req), this->_server_ptr);
+		this->_res = new HttpRes(*(this->_req));
 		if (this->_res == NULL)
 			throw ClientException("New didn't work for _res !");
 	}

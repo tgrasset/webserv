@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/23 11:32:51 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/23 12:45:59 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ std::map<std::string, std::string> HttpRes::_mimeTypes;
 /*                     Constructeurs et destructeurs                          */
 /* ************************************************************************** */
 
-HttpRes::HttpRes(HttpReq &request, std::vector<Server *> servers) {
+HttpRes::HttpRes(HttpReq &request) {
 	
 	if (HttpRes::_verbose)
 		std::cout << "HttpRes default constructor called" << std::endl;
@@ -29,7 +29,7 @@ HttpRes::HttpRes(HttpReq &request, std::vector<Server *> servers) {
 	_header.clear();
 	_body = "";
 	_formattedHeader = "";
-	_server = NULL;
+	_server = request.getServer();
 	_location = NULL;
 	_keepAlive = true;
 	_uriPath = "";
@@ -40,7 +40,7 @@ HttpRes::HttpRes(HttpReq &request, std::vector<Server *> servers) {
 	_cgiPid = -42;
 	if (_mimeTypes.empty() == true)
 		fillMimeTypes();
-	handleRequest(request, servers);
+	handleRequest(request);
 }
 
 HttpRes::HttpRes(HttpRes const & copy) {
@@ -56,8 +56,6 @@ HttpRes::~HttpRes(void) {
 		std::cout << "HttpRes destructor called" << std::endl;
 	if (_location != NULL)
 		delete _location;
-	if (_server != NULL)
-		delete _server;
 }
 
 /* ************************************************************************** */
@@ -170,30 +168,6 @@ pid_t	HttpRes::getCgiPid() const {
 
 	return (_cgiPid);
 }
-
-void	HttpRes::setServer(std::string reqHost, std::vector<Server *> servers) {
-
-	if (servers.size() == 1)
-	{
-		_server = new Server(*servers[0]);
-		return ;
-	}
-	std::string hostname;
-	if (reqHost.find(':') != std::string::npos)
-		hostname = reqHost.substr(0, reqHost.length() - reqHost.find(':'));
-	else
-		hostname = reqHost;
-	for (std::vector<Server *>::iterator it = servers.begin(); it != servers.end(); it++)
-	{
-		if ((*it)->getServerName() == reqHost)
-		{
-			_server = new Server(*(*it));
-			return;
-		}
-	}
-	_server = new Server(*servers[0]);
-}
-
 
 void	HttpRes::fillMimeTypes() {
 
@@ -577,14 +551,13 @@ bool	HttpRes::methodIsAllowed(std::string method) {
 	return (false);
 }
 
-void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
+void	HttpRes::handleRequest(HttpReq &request) {
 	
 	bool	error = false;
 	
-	setServer(request.getHost(), servers);
 	_statusCode = checkHttpVersion(request.getHttpVersion(), error);
-	if (error == false && _server->getClientMaxBodySize() != 0)
-		_statusCode = checkRequestBodySize(_server->getClientMaxBodySize(), request.getBody().size(), error);
+	// if (error == false && _server->getClientMaxBodySize() != 0)
+	// 	_statusCode = checkRequestBodySize(_server->getClientMaxBodySize(), request.getBody().size(), error);
 	if (error == false)
 		_statusCode = checkRequestHeader(request.getHeader(), error);
 	if (error == false)

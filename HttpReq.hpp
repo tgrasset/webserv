@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpReq.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/06/23 12:25:01 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/23 12:43:45 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,9 @@
 #ifndef HTTP_REQ_HPP
 # define HTTP_REQ_HPP
 # include "webserv.hpp"
+# include "Server.hpp"
+
+class Server;
 
 class HttpReq
 {
@@ -33,16 +36,17 @@ private:
 	std::string							_body_tmp_path;
 	std::ofstream 						_body_file;
 	unsigned int						_id;
+	Server								*_server;
 
 	static std::string					_body_tmp_folder;
 	static unsigned int					_count;
 	
 
-	void	parse(std::string &content);
+	void	parse(std::string &content, std::vector<Server *> servers);
 
 public:
 
-	HttpReq(std::string &content);    // content sera la string a parser
+	HttpReq(std::string &content, std::vector<Server *> servers);
 	HttpReq(HttpReq const & copy);
 	~HttpReq(void);
 
@@ -58,8 +62,11 @@ public:
 	int				getContentLength() const;
 	bool			getKeepAlive() const;
 	std::string		getBodyTmpFile() const;
+	Server 			*getServer() const;
 	void			add_to_body_file(const char *str);
 	void			close_body_file(void);
+	void			setServer(std::vector<Server *> servers);
+	
 
 	class HttpReqException : public std::exception {
 	public :
