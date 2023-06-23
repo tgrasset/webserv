@@ -52,6 +52,7 @@
 		"span": "cpp",
 		"ctime": "cpp",
 		"csignal": "cpp",
-		"iomanip": "cpp"
+		"iomanip": "cpp",
+		"list": "cpp"
 	}
 }

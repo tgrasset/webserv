@@ -6,14 +6,14 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/22 12:08:33 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/23 12:04:49 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 
-bool	Client::_verbose = false;
-int		Client::_count = 0;
+bool			Client::_verbose = false;
+unsigned int	Client::_count = 0;
 
 /* ************************************************************************** */
 /*                     Constructeurs et destructeurs                          */
@@ -23,6 +23,7 @@ Client::Client(void)
 	this->_id = 0;
 	this->_byte_sent_header = 0;
 	this->_byte_sent_body = 0;
+	this->_byte_recived_req_body = 0;
 	this->_req = NULL;
 	this->_res = NULL;
 	gettimeofday(&(this->_last_activity), NULL);
@@ -39,6 +40,7 @@ Client::Client(struct sockaddr_in client_addr, int com_socket)
 	this->_status = WANT_TO_SEND_REQ;
 	this->_byte_sent_header = 0;
 	this->_byte_sent_body = 0;
+	this->_byte_recived_req_body = 0;
 	this->_req = NULL;
 	this->_res = NULL;
 	gettimeofday(&(this->_last_activity), NULL);
@@ -84,6 +86,7 @@ Client	& Client::operator=(Client const & client)
 		this->_byte_sent_header = client._byte_sent_header;
 		this->_byte_sent_body = client._byte_sent_body;
 		this->_last_activity = client._last_activity;
+		this->_byte_recived_req_body = client._byte_recived_req_body;
 	}
 	return (*this);
 }
@@ -114,7 +117,7 @@ struct sockaddr_in 	Client::getClient_addr(void) const
 	return (this->_client_addr);
 }
 
-int	Client::getId(void) const
+unsigned int	Client::getId(void) const
 {
 	return (this->_id);
 }
@@ -141,9 +144,19 @@ void	Client::set_byte_sent_header(int byte)
 
 int	Client::receive_request(void)
 {
+	this->reset_last_activity();
+	if (this->_status == WANT_TO_SEND_REQ || this->_status == RECIVING_REQ_HEADER)
+		return (this->receive_request_header());
+	if (this->_status == RECIVING_REQ_BODY)
+		return (this->receive_request_body());
+	return (1);
+}
+
+int	Client::receive_request_header(void)
+{
+	
 	int byte_recv = 0;
 	char recvline[BUFFER_SIZE + 1];
-	
 	memset(recvline, 0, BUFFER_SIZE + 1);
 	byte_recv = recv(this->_com_socket, recvline, BUFFER_SIZE, 0);
 	if (byte_recv == 0)
@@ -151,14 +164,13 @@ int	Client::receive_request(void)
 		std::cout << "Client " << this->_id << " has close connexion" << std::endl;
 		return (1);
 	}
-	std::cout << "I just got from my client " << byte_recv << " bytes for the request" << std::endl;
+	std::cout << "Client " << this->_id << " just recieved " << byte_recv << " bytes for the request header" << std::endl;
 	if (byte_recv > 0)
 	{
-		if (this->_status == WANT_TO_SEND_REQ)
-			this->_status = SENDING_REQ_HEADER;
+		this->_status = RECIVING_REQ_HEADER;
 		this->_req_recived += recvline;
 		std::size_t pos_end_header = this->_req_recived.find("\r\n\r\n");
-		if (this->_status == SENDING_REQ_HEADER && pos_end_header != std::string::npos)
+		if (pos_end_header != std::string::npos)
 		{
 			this->_req_header = this->_req_recived.substr(0, pos_end_header);
 			this->_req = new HttpReq(this->_req_header);
@@ -168,35 +180,58 @@ int	Client::receive_request(void)
 				this->_status = WAITING_FOR_RES;
 			else
 			{
-				this->_status = SENDING_REQ_BODY;
+				this->_status = RECIVING_REQ_BODY;
 				if (this->_req_recived.size() > pos_end_header + 4)
-					this->_req_body =  this->_req_recived.substr(pos_end_header + 4, this->_req_recived.size() - pos_end_header - 4);
-				if (this->_req_body.size() == static_cast<std::size_t>(this->_req->getContentLength()))
-					this->_status = WAITING_FOR_RES;
+				{
+					std::string to_add_body = this->_req_recived.substr(pos_end_header + 4, this->_req_recived.size() - pos_end_header - 4);			
+					this->_req->add_to_body_file(to_add_body.c_str());
+					this->_byte_recived_req_body += to_add_body.size();
+					if (this->_byte_recived_req_body == this->_req->getContentLength())
+					{
+						this->_req->close_body_file();
+						this->_status = WAITING_FOR_RES;
+					}
+				}
 			}
 		}
-		else if (this->_status == SENDING_REQ_BODY)
-		{
-			if (this->_req_recived.size() > pos_end_header + 4)
-				this->_req_body = this->_req_recived.substr(pos_end_header + 4, this->_req_recived.size() - pos_end_header - 4);
-			if (this->_req_body.size() == static_cast<std::size_t>(this->_req->getContentLength()))
-			{
-				this->_req->setBody(_req_body);
-				this->_status = WAITING_FOR_RES;
-			}
-		}		
 	}
 	if (this->_status == WAITING_FOR_RES)
 	{
-		std::cout << std::endl << "\e[33m" << getTimestamp() << "	I recieved the following client request from client " << this->_id << ":\e[32m" << std::endl;
+		std::cout << std::endl << "\e[33m" << getTimestamp() << "	Client " << this->_id << " just recieved the following request:\e[32m" << std::endl;
 		std::cout << this->_req_recived << std::endl;
 		std::cout << "\e[0m";
 	}
 	return (0);
 }
 
+int	Client::receive_request_body(void)
+{
+	int byte_recv = 0;
+	char recvline[BUFFER_SIZE + 1];
+	memset(recvline, 0, BUFFER_SIZE + 1);
+	byte_recv = recv(this->_com_socket, recvline, BUFFER_SIZE, 0);
+	if (byte_recv == 0)
+	{
+		std::cout << "Client " << this->_id << " has close connexion" << std::endl;
+		return (1);
+	}
+	std::cout << "Client " << this->_id << " just recieved " << byte_recv << " bytes for the request body" << std::endl;
+	if (byte_recv > 0)
+	{
+		this->_byte_recived_req_body += byte_recv;
+		this->_req->add_to_body_file(recvline);
+		if (this->_byte_recived_req_body == this->_req->getContentLength())
+		{
+			this->_req->close_body_file();
+			this->_status = WAITING_FOR_RES;
+		}
+	}
+	return (0);
+}
+
 void	Client::send_response(void)
 {
+	this->reset_last_activity();
 	if (this->_status == WAITING_FOR_RES)
 	{
 		if (this->_res != NULL)
@@ -205,9 +240,9 @@ void	Client::send_response(void)
 		if (this->_res == NULL)
 			throw ClientException("New didn't work for _res !");
 	}
-	if (this->_status == WAITING_FOR_RES || this->_status == RECIVING_RES_HEADER)
+	if (this->_status == WAITING_FOR_RES || this->_status == SENDING_RES_HEADER)
 		this->send_response_header();
-	else if (this->_status == RECIVING_RES_BODY)
+	else if (this->_status == SENDING_RES_BODY)
 		this->send_response_body();
 }
 
@@ -230,12 +265,12 @@ void	Client::send_response_header(void)
 	}
 	else
 	{
-		this->_status = RECIVING_RES_HEADER;
+		this->_status = SENDING_RES_HEADER;
 		this->_byte_sent_header += byte_sent;
 	}
 	if (this->_byte_sent_header == static_cast<int>(res_header_full.size()))
 	{
-		this->_status = RECIVING_RES_BODY;
+		this->_status = SENDING_RES_BODY;
 		std::cout << "\e[33m" << getTimestamp() <<  "	I have sent the following response header to client " << this->_id << " : \e[32m " << std::endl;
 		std::cout << std::endl << res_header_full << "\e[0m" << std::endl;
 	}
@@ -273,7 +308,7 @@ void	Client::send_response_body_error(void)
 	}
 	else
 	{
-		this->_status = RECIVING_RES_BODY;
+		this->_status = SENDING_RES_BODY;
 		this->_byte_sent_body += byte_sent;
 		std::cout << "	body : " << this->_byte_sent_body << "/" << res_body_remain.size() << " sent" << std::endl;
 	}
@@ -317,7 +352,7 @@ void	Client::send_response_body_normal_file(void)
 	}
 	else
 	{
-		this->_status = RECIVING_RES_BODY;
+		this->_status = SENDING_RES_BODY;
 		this->_byte_sent_body += byte_sent;
 		std::cout << "	body : " << (static_cast<double>(this->_byte_sent_body) / static_cast<double>(this->_file_to_send_size)) * 100 << "% sent" << std::endl;
 	}

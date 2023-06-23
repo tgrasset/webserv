@@ -6,21 +6,23 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/06/20 11:31:32 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/23 12:25:11 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 #include "HttpReq.hpp"
 
-//bool	HttpReq::_verbose = false;
+std::string		HttpReq::_body_tmp_folder = "tmp_body/";
+unsigned int	HttpReq::_count = 0;
+
 /* ************************************************************************** */
 /*                     Constructeurs et destructeurs                          */
 /* ************************************************************************** */
 HttpReq::HttpReq(std::string &content)
 {
-	/*if (HttpReq::_verbose)
-		std::cout << "HttpReq default constructor called" << std::endl;*/
+	HttpReq::_count++;
+	this->_id = HttpReq::_count;
 	_method = "";
 	_uri = "";
 	_httpVersion = "";
@@ -30,9 +32,46 @@ HttpReq::HttpReq(std::string &content)
 	_contentType = "";
 	_contentLength = 0;
 	_keepAlive = true;
-	_body = "";
-	HttpReq::parse(content); // parsing a faire ici, have fun joseph :p  (j'ai void 'content' juste pour que ca compile)
+	_body_tmp_path = "";
+	HttpReq::parse(content);
 }
+
+HttpReq::HttpReq(HttpReq const & copy)
+{
+	*this = copy;
+}
+
+HttpReq::~HttpReq(void)
+{
+	if (access(_body_tmp_path.c_str(), F_OK) == 0 && std::remove(_body_tmp_path.c_str()))
+		std::cout << "I could not delete the file of client " << this->_id << std::endl;
+}
+
+/* ************************************************************************** */
+/*                     Surcharge d'operateur                                  */
+/* ************************************************************************** */
+HttpReq	& HttpReq::operator=(HttpReq const & httpreq)
+{
+	if (this != &httpreq)
+	{
+		_method = httpreq.getMethod();
+		_uri = httpreq.getUri();
+		_httpVersion = httpreq.getHttpVersion();
+		_header = httpreq.getHeader();
+		_host = httpreq.getHost();
+		_accept = httpreq.getAccept();
+		_contentType = httpreq.getContentType();
+		_contentLength = httpreq.getContentLength();
+		_keepAlive = httpreq.getKeepAlive();
+		_body_tmp_path = httpreq._body_tmp_path;
+		_id = httpreq._id;
+	}
+	return (*this);
+}
+
+/* ************************************************************************** */
+/*                     Methodes                                               */
+/* ************************************************************************** */
 
 void	HttpReq::parse(std::string &content)
 {
@@ -94,43 +133,6 @@ void	HttpReq::parse(std::string &content)
 	std::cout << _contentType << std::endl; */
 }
 
-HttpReq::HttpReq(HttpReq const & copy)
-{
-	*this = copy;
-	/*if (HttpReq::_verbose)
-		std::cout << "HttpReq copy constructor called" << std::endl;*/
-}
-
-HttpReq::~HttpReq(void)
-{
-	/*if (HttpReq::_verbose)
-		std::cout << "HttpReq destructor called" << std::endl;*/
-}
-
-/* ************************************************************************** */
-/*                     Surcharge d'operateur                                  */
-/* ************************************************************************** */
-HttpReq	& HttpReq::operator=(HttpReq const & httpreq)
-{
-	if (this != &httpreq)
-	{
-		_method = httpreq.getMethod();
-		_uri = httpreq.getUri();
-		_httpVersion = httpreq.getHttpVersion();
-		_header = httpreq.getHeader();
-		_host = httpreq.getHost();
-		_accept = httpreq.getAccept();
-		_contentType = httpreq.getContentType();
-		_contentLength = httpreq.getContentLength();
-		_keepAlive = httpreq.getKeepAlive();
-		_body = httpreq.getBody();
-	}
-	return (*this);
-}
-
-/* ************************************************************************** */
-/*                     Methodes                                               */
-/* ************************************************************************** */
 std::string		HttpReq::getMethod() const {
 
 	return (_method);
@@ -176,12 +178,29 @@ bool	HttpReq::getKeepAlive() const {
 	return (_keepAlive);
 }
 
-std::string		HttpReq::getBody() const {
+std::string		HttpReq::getBodyTmpFile() const {
 
-	return (_body);
+	return (_body_tmp_path);
 }
 
-void		HttpReq::setBody(std::string &body) {
+void		HttpReq::add_to_body_file(const char *str)
+{
+	if (_body_tmp_path == "")
+	{
+		std::ostringstream	file_path;
+		file_path << HttpReq::_body_tmp_folder << "body_client_" << this->_id;	
+		this->_body_tmp_path = file_path.str();
+	}
+	if (!this->_body_file.is_open())
+	{
+		this->_body_file.open(this->_body_tmp_path.c_str());
+	}
+	if (this->_body_file.fail())
+		throw HttpReqException("Error opening the body file");
+	this->_body_file << str;
+}
 
-	this->_body = body;
+void		HttpReq::close_body_file()
+{
+	this->_body_file.close();
 }
