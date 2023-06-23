@@ -256,7 +256,6 @@ std::string  timeStamp(void) {
 std::string redirectionHTML(int code, std::string message, std::string path) {
 
 	std::stringstream s;
-	std::cout << code << "    " << message << "     " << path << std::endl;
 	s << "<!doctype html>\n<html>\n<head>\n<title>" << code << " : " << message << "</title>\n<meta http-equiv=\"refresh\" content=\"3; URL=" << path << "\">\n</head>";
 	s << "<body>" << code << " : " << message << "\n<br>\nRedirection to " << path <<  " in 3 seconds.\n</body>\n</html>";
 	return (s.str());
@@ -269,7 +268,6 @@ std::string autoindexHTML(std::string dirPath, std::string requestUri) {
 	struct dirent *dirStruct;
 	if (requestUri[requestUri.length() - 1] == '/')
 		requestUri = requestUri.substr(0, requestUri.length() - 1);
-	std::cout << requestUri << std::endl;
 	DIR *dir = opendir(dirPath.c_str());
 	if (dir == NULL)
 		return ("<!doctype html>\n<html>\n<head>\n<title>Error 403</title>\n</head>\n<body>\n<p>403 : Forbidden</p>\n</body>\n</html>");
