@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/23 17:09:46 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/23 18:37:36 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ typedef enum e_type_c {
 }				r_type;
 
 class HttpRes
-{	
+{
 	public:
 
 		HttpRes(HttpReq &request);
@@ -48,6 +48,7 @@ class HttpRes
 		std::string							getFormattedHeader() const;
 		bool								getKeepAlive() const;
 		std::string							getUriPath() const;
+		std::string							getUriPathInfo() const;
 		std::string 						getUriQuery() const;
 		r_type								getResourceType() const;
 		Location							*getLocation() const;
@@ -67,13 +68,13 @@ class HttpRes
 		void	checkIfAcceptable(std::vector<std::string> acceptable);
 		bool	methodIsAllowed(std::string method);
 		void	uploadFileToServer(std::string tempFile);
-		
+
 
 	private:
-	
+
 		HttpRes(void);
 		static bool							_verbose;
-		
+
 		std::string							_httpVersion;
 		int									_statusCode;
 		std::string							_method;
@@ -85,6 +86,7 @@ class HttpRes
 		std::string							_formattedHeader;
 		bool								_keepAlive;
 		std::string							_uriPath;
+		std::string							_uriPathInfo;
 		r_type								_resourceType;
 		std::string							_uriQuery;
 		size_t								_contentLength;

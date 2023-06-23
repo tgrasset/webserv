@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Launcher.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/23 15:11:42 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/23 18:22:09 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,10 +35,10 @@ Launcher::~Launcher(void)
 {
 	// Closing all socket
 	close(_efd);
-	for (std::list<Client>::iterator it = this->_clients.begin(); 
+	for (std::list<Client>::iterator it = this->_clients.begin();
 		it != this->_clients.end(); ++it)
 		close(it->getCom_socket());
-	for (std::vector<Server>::iterator it = this->_servers.begin(); 
+	for (std::vector<Server>::iterator it = this->_servers.begin();
 		it != this->_servers.end(); ++it)
 		close(it->getListenSocket());
 	if (Launcher::_verbose)
@@ -73,10 +73,10 @@ void	Launcher::launch_servers(void)
 {
 	_ep_event.reserve(this->_servers.size() * MAX_EVENTS);
 	int nfds = 0;
-			
+
 	_efd = epoll_create1 (0);
 	if (_efd == -1)
-		throw LauncherException("Probleme avec epoll_create !");
+		throw LauncherException("Probleme epoll_create !");
 	this->initiate_servers_listening();
 	/* Global loop for the Webserv */
 	while (1)
@@ -109,7 +109,7 @@ void	Launcher::launch_servers(void)
 void	Launcher::initiate_servers_listening(void)
 {
 	struct epoll_event	ev;
-	
+
 	for (std::vector<Server>::iterator it = this->_servers.begin();
 	it != this->_servers.end(); ++it)
 	{
@@ -147,7 +147,7 @@ void	Launcher::process_new_client(int i)
 	struct epoll_event	ev;
 	struct sockaddr_in  client_addr;
 	char				str_ip_client[INET_ADDRSTRLEN];
-	
+
 	addrlen = sizeof (struct sockaddr_in);
 	int fd_new;
 	fd_new = accept(_ep_event[i].data.fd, (struct sockaddr *) &client_addr, &addrlen);
@@ -272,7 +272,7 @@ void	Launcher::check_timeout_clients(void)
 		time = it->time_since_last_activity_us() / 1000000;
 		if (time > MAX_TIME_CLIENT_S)
 		{
-			std::cout << "\e[31mTimeout for client " << it->getId() 
+			std::cout << "\e[31mTimeout for client " << it->getId()
 			<< ", time = " << time << " it will now be removed\e[0m" << std::endl << std::endl;
 			std::list<Client>::iterator it_tmp = it;
 			--it;
@@ -293,8 +293,8 @@ void	Launcher::print_situation(void)
 {
 	char				str_ip_client[INET_ADDRSTRLEN];
 	struct sockaddr_in  client_addr;
-	
-	//std::cout << std::endl << "--------------------- Servers -----------------" << std::endl; 
+
+	//std::cout << std::endl << "--------------------- Servers -----------------" << std::endl;
 	/*for (std::vector<Server>::iterator it = this->_servers.begin(); it != this->_servers.end(); ++it)
 	{
 		std::cout << "Listen Socket : " << it->getListenSocket() << " | Name : " << it->getServerName()
@@ -303,7 +303,7 @@ void	Launcher::print_situation(void)
 	for (std::list<Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
 	{
 		if (it == this->_clients.begin())
-			std::cout << "--------------------- Clients -----------------" << std::endl; 
+			std::cout << "--------------------- Clients -----------------" << std::endl;
 		client_addr = it->getClient_addr();
 		inet_ntop (AF_INET, &(client_addr.sin_addr), str_ip_client, sizeof (str_ip_client));
 		std::cout << "ID : " << it->getId() << "	|";
@@ -349,8 +349,8 @@ void	Launcher::print_situation(void)
 void Launcher::test_folder_tmp(void) const
 {
 	std::string body_tmp_folder(BODY_TMP_FOLDER);
-	struct stat stats_dossier; 
-	
+	struct stat stats_dossier;
+
 	if (stat(body_tmp_folder.c_str(), &stats_dossier) != 0
 	|| access(body_tmp_folder.c_str(), W_OK | R_OK) != 0
 	|| !S_ISDIR(stats_dossier.st_mode))
