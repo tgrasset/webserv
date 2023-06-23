@@ -301,7 +301,8 @@ std::string autoindexHTML(std::string dirPath, std::string requestUri) {
 		if (!S_ISDIR(test.st_mode))
 			s << sizeToString(test.st_size);
 		s << "</td>\n</tr>";
-	}	
+	}
+	closedir(dir);
 	s << "</table><hr></body>\n</html>\n";
 	return (s.str());
 }

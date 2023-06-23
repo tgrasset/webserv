@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/22 17:18:48 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/23 11:32:51 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -432,30 +432,44 @@ r_type HttpRes::checkResourceType() {
 
 int	HttpRes::checkUri(std::string uri) {
 	
-	size_t questionMark = uri.find('?');
+	size_t separator = uri.find('?');
 	size_t end = uri.rfind('#');
 	std::string tempPath;
+	std::string locPath;
+	Location *tempLoc = NULL;
 
-	if (questionMark == std::string::npos)
+	if (separator == std::string::npos)
 		tempPath = uri;
 	else
 	{
-		tempPath = uri.substr(0, questionMark);
-		if (uri[questionMark + 1] != '\0' && end == std::string::npos)
-			_uriQuery = uri.substr(questionMark + 1, uri.length() - (questionMark + 1));
-		else if (uri[questionMark + 1] != '\0')
-			_uriQuery = uri.substr(questionMark + 1, end - (questionMark + 1));
+		tempPath = uri.substr(0, separator);
+		if (uri[separator + 1] != '\0' && end == std::string::npos)
+			_uriQuery = uri.substr(separator + 1, uri.length() - (separator + 1));
+		else if (uri[separator + 1] != '\0')
+			_uriQuery = uri.substr(separator + 1, end - (separator + 1));
 	}
+	end = 0;
 	std::vector<Location> locs = _server->getLocations();
 	for (std::vector<Location>::iterator it = locs.begin(); it != locs.end(); it++)
 	{
-		end = (*it).getPath().length();
-		if (tempPath.length() >= end && tempPath.substr(0, end) == (*it).getPath() && (tempPath[end] == '\0' || tempPath[end] == '/'))
+		locPath = (*it).getPath();
+		if (tempLoc == NULL && locPath == "/")
 		{
-			_location = new Location(*it);
-			break;
+			tempLoc = &(*it);
+			continue;
+		}
+		for (end = 0; tempPath[end] != '\0' && locPath[end] != '\0' && tempPath[end] == locPath[end]; end++)
+		{
+			;
+		}
+		if (locPath[end] == '\0' && (tempPath[end] == '\0' || tempPath[end] == '/'))
+		{
+			if (tempLoc == NULL || (tempLoc != NULL && tempLoc->getPath().length() < (*it).getPath().length()))
+				tempLoc = &(*it);
 		}
 	}
+	if (tempLoc != NULL)
+		_location = new Location(*tempLoc);
 	if (_location != NULL && _location->getRedirectionCode() > 0)
 	{
 		_resourceType = REDIRECTION;
