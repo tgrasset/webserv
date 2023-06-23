@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/23 18:07:11 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/23 19:22:31 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ std::map<std::string, std::string> HttpRes::_mimeTypes;
 /* ************************************************************************** */
 
 HttpRes::HttpRes(HttpReq &request) {
-	
+
 	if (HttpRes::_verbose)
 		std::cout << "HttpRes default constructor called" << std::endl;
 	_httpVersion = "";
@@ -44,14 +44,14 @@ HttpRes::HttpRes(HttpReq &request) {
 }
 
 HttpRes::HttpRes(HttpRes const & copy) {
-	
+
 	*this = copy;
 	if (HttpRes::_verbose)
 		std::cout << "HttpRes copy constructor called" << std::endl;
 }
 
 HttpRes::~HttpRes(void) {
-	
+
 	if (HttpRes::_verbose)
 		std::cout << "HttpRes destructor called" << std::endl;
 	if (_location != NULL)
@@ -91,7 +91,7 @@ HttpRes	& HttpRes::operator=(HttpRes const & httpres)
 /* ************************************************************************** */
 
 std::string HttpRes::getHttpVersion() const {
-	
+
 	return(_httpVersion);
 }
 
@@ -116,7 +116,7 @@ std::map<std::string, std::string> HttpRes::getHeader() const {
 }
 
 std::string	HttpRes::getBody() const {
-	
+
 	return (_body);
 }
 Server	*HttpRes::getServer() const {
@@ -139,6 +139,11 @@ std::string	HttpRes::getUriPath() const {
 	return (_uriPath);
 }
 
+std::string	HttpRes::getUriPathInfo() const {
+
+	return (_uriPathInfo);
+}
+
 std::string HttpRes::getUriQuery() const {
 
 	return (_uriQuery);
@@ -155,12 +160,12 @@ Location	*HttpRes::getLocation() const {
 }
 
 size_t	HttpRes::getContentLength() const {
-	
+
 	return (_contentLength);
 }
 
 int	HttpRes::getCgiPipeFd() const {
-	
+
 	return (_cgiPipeFd);
 }
 
@@ -261,7 +266,7 @@ int	HttpRes::checkHttpVersion(std::string version) {
 int	HttpRes::checkRequestHeader(std::map<std::string, std::string> header) {
 
 	std::map<std::string, std::string>::iterator it2;
-	
+
 	for (std::map<std::string, std::string>::iterator it = header.begin(); it != header.end(); it++)
 	{
 		if (it->first.length() > 70)
@@ -386,14 +391,41 @@ r_type HttpRes::checkResourceType() {
 }
 
 int	HttpRes::checkUri(std::string uri) {
-	
+
 	size_t separator = uri.find('?');
 	size_t end = uri.rfind('#');
 	std::string tempPath;
 	std::string locPath;
 	Location *tempLoc = NULL;
 
-	// Si on trouve ".py" ou ".php" dams uri, split apres ".php" ou ".py" et creer une autre variable _pathInfo dans la classe pour stocker ce qu'il y a apres
+	//stock dans _uriPathInfo le PATH_INFO, puis de supprime de uri
+	size_t pos_py = uri.find(".py");
+	size_t pos_php = uri.find(".php");
+	if (pos_py == std::string::npos)
+	{
+		if (pos_php == std::string::npos)
+			_uriPathInfo = "";
+		else
+		{
+			if (separator != std::string::npos)
+				_uriPathInfo = uri.substr(pos_php + 4, separator - pos_php - 4);
+			else
+				_uriPathInfo = uri.substr(pos_php + 4, uri.size());
+			uri = uri.erase(pos_php + 4, _uriPathInfo.size());
+		}
+	}
+	else
+	{
+		if (separator != std::string::npos)
+			_uriPathInfo = uri.substr(pos_py + 3, separator - pos_py - 3);
+		else
+			_uriPathInfo = uri.substr(pos_py + 3, uri.size());
+		uri = uri.erase(pos_py + 3, _uriPathInfo.size());
+	}
+
+	// parsing de l'_uriQuerry et de l'_uriPath
+	separator = uri.find('?');
+	end = uri.rfind('#');
 	if (separator == std::string::npos)
 		tempPath = uri;
 	else
@@ -433,7 +465,7 @@ int	HttpRes::checkUri(std::string uri) {
 	}
 	if (_location == NULL || _location->getRoot() == _server->getRoot())
 		_uriPath = _server->getRoot() + "/" + tempPath;
-	else 
+	else
 	{
 		std::string tempPath2 = tempPath.substr(_location->getPath().length(), tempPath.length() - _location->getPath().length());
 		_uriPath = _location->getRoot() + "/" + tempPath2;
@@ -482,7 +514,7 @@ void	HttpRes::bodyBuild(std::string requestUri) {
 }
 
 void	HttpRes::headerBuild() {
-	
+
 	_header["Date:"] = timeStamp();
 	_header["Server:"] = "Webserv/1.0";
 	_header["Content-Length:"] = sizeToString(_contentLength);
@@ -534,7 +566,7 @@ bool	HttpRes::methodIsAllowed(std::string method) {
 }
 
 void	HttpRes::uploadFileToServer(std::string tempFile, std::string boundary) {
-	
+
 	if (_location == NULL || _location->getUploadDir() == "")
 	{
 			_statusCode = 403;
@@ -549,7 +581,7 @@ void	HttpRes::uploadFileToServer(std::string tempFile, std::string boundary) {
 			_statusCode = 403;
 			return ;
 		}
-		// ici, il faudra modifier le fichier tempFile en se servant de la string boundary 
+		// ici, il faudra modifier le fichier tempFile en se servant de la string boundary
 		// qui fait office de delimiteur, recuperer "filename=" (pour mettre a la place de "/lol")
 		// et tout bien recouper pour qu'il ne reste que ce qu'on veut dans le fichier
 		// et enfin le deplacer a sa destination finale avec rename() (potentiellement deja existant? A verifier...)
@@ -564,9 +596,9 @@ void	HttpRes::uploadFileToServer(std::string tempFile, std::string boundary) {
 }
 
 void	HttpRes::handleRequest(HttpReq &request) {
-	
+
 	_statusCode = checkHttpVersion(request.getHttpVersion());
-	if (_statusCode == 200 && request.body_is_too_big() == true)        
+	if (_statusCode == 200 && request.body_is_too_big() == true)
 		_statusCode = 413;
 	if (_statusCode == 200)
 		_statusCode = checkRequestHeader(request.getHeader());
