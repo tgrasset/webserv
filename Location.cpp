@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/12 15:27:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/22 18:02:45 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/23 15:34:01 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -255,7 +255,7 @@ void	Location::checkConfig(std::string serverRoot) {
 	{
 		struct stat test;
 		std::string dirPath = _root + "/" + _uploadDir;
-		if (stat(dirPath.c_str(), &test) != 0 || !S_ISDIR(test.st_mode))
+		if (stat(dirPath.c_str(), &test) != 0 || !S_ISDIR(test.st_mode) || access(dirPath.c_str(), R_OK | W_OK) != 0)
 			throw LocationException("Invalid upload directory path at the end of 'upload_dir' line");
 	}
 }
