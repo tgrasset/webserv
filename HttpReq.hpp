@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpReq.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/06/23 12:43:45 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/23 15:31:57 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ private:
 	std::string							_host;
 	std::vector<std::string>			_accept;
 	std::string							_contentType;
-	int									_contentLength;
+	unsigned int						_contentLength;
 	bool								_keepAlive;
 	std::string							_body_tmp_path;
 	std::ofstream 						_body_file;
@@ -59,13 +59,15 @@ public:
 	std::string		getHost() const;
 	std::vector<std::string>	getAccept() const;
 	std::string		getContentType() const;
-	int				getContentLength() const;
+	unsigned int	getContentLength() const;
 	bool			getKeepAlive() const;
 	std::string		getBodyTmpFile() const;
 	Server 			*getServer() const;
 	void			add_to_body_file(const char *str);
 	void			close_body_file(void);
 	void			setServer(std::vector<Server *> servers);
+	bool			ok_to_save_body(void) const;
+	bool			body_is_too_big(void) const;
 	
 
 	class HttpReqException : public std::exception {

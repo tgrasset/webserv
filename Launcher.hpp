@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:33 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/22 12:30:10 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/23 14:42:05 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,8 @@ public:
 	void							initiate_servers_listening(void);
 	void							check_timeout_clients(void);
 	void							remove_client(std::list<Client>::iterator client);
-
+	void							test_folder_tmp(void) const;
+	
 	class LauncherException : public std::exception {
 	public :
 		LauncherException(std::string errMessage) throw() {

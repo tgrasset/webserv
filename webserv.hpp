@@ -31,6 +31,7 @@
 # define MAX_EVENTS 100
 # define BUFFER_SIZE 4092
 # define MAX_TIME_CLIENT_S 10
+# define BODY_TMP_FOLDER "tmp_body/"
 
 std::vector<std::string>    cpp_split(std::string str, char const *charset);
 int							stringToInt(std::string str);

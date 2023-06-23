@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/22 16:38:57 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/23 15:11:42 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -209,6 +209,11 @@ void	Launcher::process_writing_to_client(int i)
 		std::cout << "Process finished for client " << client->getId() << ", it will now be removed" << std::endl << std::endl;
 		this->remove_client(client);
 	}
+	else if (client->getStatus() == ERROR_WHILE_SENDING)
+	{
+		std::cout << "An error happend while sending the response  to client " << client->getId() << ". The client will now be removed" << std::endl << std::endl;
+		this->remove_client(client);
+	}
 }
 
 std::vector<Server>::iterator 	Launcher::getServerWithSameHostPort(std::vector<Server>::iterator it_find)
@@ -340,4 +345,15 @@ void	Launcher::print_situation(void)
 		}
 		std::cout << std::endl << std::endl;
 	}
+}
+void Launcher::test_folder_tmp(void) const
+{
+	std::string body_tmp_folder(BODY_TMP_FOLDER);
+	struct stat stats_dossier; 
+	
+	if (stat(body_tmp_folder.c_str(), &stats_dossier) != 0
+	|| access(body_tmp_folder.c_str(), W_OK | R_OK) != 0
+	|| !S_ISDIR(stats_dossier.st_mode))
+		throw LauncherException("Temp body folder does not exist");
+
 }

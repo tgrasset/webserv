@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/23 12:41:18 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/23 15:32:00 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -176,7 +176,7 @@ int	Client::receive_request_header(void)
 			this->_req = new HttpReq(this->_req_header, this->_server_ptr);
 			if (this->_req == NULL)
 				throw ClientException("New didn't work for _req !");
-			if (this->_req->getContentLength() == 0 || this->_req->getMethod() != "POST")
+			if (this->_req->ok_to_save_body() == false)
 				this->_status = WAITING_FOR_RES;
 			else
 			{

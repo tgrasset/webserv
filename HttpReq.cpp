@@ -3,17 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   HttpReq.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/06/23 12:44:24 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/23 15:33:32 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 #include "HttpReq.hpp"
 
-std::string		HttpReq::_body_tmp_folder = "tmp_body/";
+std::string		HttpReq::_body_tmp_folder(BODY_TMP_FOLDER);
 unsigned int	HttpReq::_count = 0;
 
 /* ************************************************************************** */
@@ -195,7 +195,7 @@ std::string		HttpReq::getContentType() const {
 	return (_contentType);
 }
 
-int	HttpReq::getContentLength() const {
+unsigned int	HttpReq::getContentLength() const {
 
 	return (_contentLength);
 }
@@ -232,7 +232,25 @@ void		HttpReq::add_to_body_file(const char *str)
 	this->_body_file << str;
 }
 
-void		HttpReq::close_body_file()
+void	HttpReq::close_body_file()
 {
 	this->_body_file.close();
+}
+
+bool	HttpReq::body_is_too_big() const
+{
+	if (this->getContentLength() > this->_server->getClientMaxBodySize())
+		return (true);
+	else
+		return (false);
+}
+
+bool	HttpReq::ok_to_save_body() const
+{
+	
+	if (this->getContentLength() == 0 || this->getMethod() != "POST" 
+	|| body_is_too_big())
+		return (false);
+	else
+		return (true);
 }
