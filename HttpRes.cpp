@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/23 15:33:10 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/23 16:40:49 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -552,22 +552,23 @@ void	HttpRes::handleRequest(HttpReq &request) {
 		else
 			_statusCode = 204;
 	}
+	else if (_statusCode == 200 && (_resourceType == PHP || _resourceType == PYTHON))
+	{
+		// C'est la que ca se passe pour les CGI, qui doivent etre lances ici avec pipe, fork, dup. Il faut remplir _cgiPid avec le pid du process
+		// et _cgiPipeFd avec le fd de sortie du pipe dans lequel il va ecrire, pour que la classe client puisse faire son taf.
+		// La reponse pourra ensuite etre creee grace a la methode buildCgiResponse ci-dessous depuis le client.
+		return ;
+	}
 	else if (_statusCode == 200 && _method == "POST")
 	{
-		if (_resourceType == PHP || _resourceType == PYTHON)
-		{
-			// C'est la que ca se passe pour les CGI, qui doivent etre lances ici avec pipe, fork, dup. Il faut remplir _cgiPid avec le pid du process
-			// et _cgiPipeFd avec le fd de sortie du pipe dans lequel il va ecrire, pour que la classe client puisse faire son taf.
-			// La reponse pourra ensuite etre creee grace a la methode buildCgiResponse ci-dessous depuis le client.
-			return ;
-		}
-		else if (_location == NULL || _location->getUploadDir() == "")
+	 	if (_location == NULL || _location->getUploadDir() == "")
 			_statusCode = 403;
 		// else
 		// {
 		// 	struct stat test;
 		// 	if (stat(_location.getUploadDir(), &test) TO BE CONTINUED
 		// }
+		return ;
 	}
 	_statusMessage = getStatus(_statusCode);
 	bodyBuild(request.getUri());
