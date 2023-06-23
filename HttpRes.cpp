@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/23 12:45:59 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/23 13:50:58 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -250,47 +250,28 @@ void	HttpRes::fillMimeTypes() {
 	_mimeTypes[".7z"] = "application/x-7z-compressed";
 }
 
-int	HttpRes::checkHttpVersion(std::string version, bool &error) {
+int	HttpRes::checkHttpVersion(std::string version) {
 
 	if (version != "HTTP/1.0" && version != "HTTP/1.1" && version != "HTTP/0.9")
-	{
-		error = true;
 		return (505);
-	}
 	_httpVersion = "HTTP/1.1";
 	return (200);
 }
 
-int	HttpRes::checkRequestBodySize(int maxSize, int bodySize, bool &error) {
-
-	if (bodySize > maxSize)
-	{
-		error = true;
-		return (413);
-	}
-	return (200);
-}
-
-int	HttpRes::checkRequestHeader(std::map<std::string, std::string> header, bool &error) {
+int	HttpRes::checkRequestHeader(std::map<std::string, std::string> header) {
 
 	std::map<std::string, std::string>::iterator it2;
 	
 	for (std::map<std::string, std::string>::iterator it = header.begin(); it != header.end(); it++)
 	{
 		if (it->first.length() > 70)
-		{
-			error = true;
 			return (431);
-		}
 		it2 = it;
 		it2++;
 		for (; it2 != header.end(); it2++)
 		{
 			if (it2->first == it->first)
-			{
-				error = true;
 				return (400);
-			}
 		}
 	}
 	return (200);
@@ -553,14 +534,12 @@ bool	HttpRes::methodIsAllowed(std::string method) {
 
 void	HttpRes::handleRequest(HttpReq &request) {
 	
-	bool	error = false;
-	
-	_statusCode = checkHttpVersion(request.getHttpVersion(), error);
-	// if (error == false && _server->getClientMaxBodySize() != 0)
-	// 	_statusCode = checkRequestBodySize(_server->getClientMaxBodySize(), request.getBody().size(), error);
-	if (error == false)
-		_statusCode = checkRequestHeader(request.getHeader(), error);
-	if (error == false)
+	_statusCode = checkHttpVersion(request.getHttpVersion());
+	// if (_statusCode == 200 && request.getTooBigBool() == true)        
+	// 	_statusCode = 413;
+	if (_statusCode == 200)
+		_statusCode = checkRequestHeader(request.getHeader());
+	if (_statusCode == 200)
 		_statusCode = checkUri(request.getUri());
 	if (_statusCode == 200 && methodIsAllowed(request.getMethod()) == false)
 		_statusCode = 405;

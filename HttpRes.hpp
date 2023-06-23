@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/23 12:39:00 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/23 13:50:43 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,11 +56,10 @@ class HttpRes
 		pid_t								getCgiPid() const;
 
 		void	handleRequest(HttpReq &request);
-		int		checkHttpVersion(std::string version, bool &error);
+		int		checkHttpVersion(std::string version);
 		int		checkUri(std::string uri);
 		r_type	checkResourceType();
-		int		checkRequestBodySize(int maxSize, int bodySize, bool &error);
-		int		checkRequestHeader(std::map<std::string, std::string> header, bool &error);
+		int		checkRequestHeader(std::map<std::string, std::string> header);
 		void	bodyBuild(std::string requestUri);
 		void	headerBuild();
 		void	formatHeader();
