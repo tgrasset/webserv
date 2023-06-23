@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/23 17:29:05 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/23 18:07:11 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -533,7 +533,7 @@ bool	HttpRes::methodIsAllowed(std::string method) {
 	return (false);
 }
 
-void	HttpRes::uploadFileToServer(std::string tempFile) {
+void	HttpRes::uploadFileToServer(std::string tempFile, std::string boundary) {
 	
 	if (_location == NULL || _location->getUploadDir() == "")
 	{
@@ -549,6 +549,12 @@ void	HttpRes::uploadFileToServer(std::string tempFile) {
 			_statusCode = 403;
 			return ;
 		}
+		// ici, il faudra modifier le fichier tempFile en se servant de la string boundary 
+		// qui fait office de delimiteur, recuperer "filename=" (pour mettre a la place de "/lol")
+		// et tout bien recouper pour qu'il ne reste que ce qu'on veut dans le fichier
+		// et enfin le deplacer a sa destination finale avec rename() (potentiellement deja existant? A verifier...)
+		// Le tout en gardant en tete que le fichier peut potentiellement etre tres gros...
+		(void)boundary;
 		std::string finalLocation = uploadDir + "/lol";
 		if (rename(tempFile.c_str(), finalLocation.c_str()) != 0)
 			_statusCode = 403;
@@ -585,7 +591,7 @@ void	HttpRes::handleRequest(HttpReq &request) {
 		return ;
 	}
 	else if (_statusCode == 200 && _method == "POST")
-		uploadFileToServer(request.getBodyTmpFile());
+		uploadFileToServer(request.getBodyTmpFile(), request.getBoundary());
 	_statusMessage = getStatus(_statusCode);
 	bodyBuild(request.getUri());
 	if (request.getKeepAlive() == false)

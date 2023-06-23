@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/23 17:09:46 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/23 17:54:25 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ class HttpRes
 		void	fillMimeTypes();
 		void	checkIfAcceptable(std::vector<std::string> acceptable);
 		bool	methodIsAllowed(std::string method);
-		void	uploadFileToServer(std::string tempFile);
+		void	uploadFileToServer(std::string tempFile, std::string boundary);
 		
 
 	private:

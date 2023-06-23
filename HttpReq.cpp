@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpReq.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/06/23 15:33:32 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/23 17:55:45 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ HttpReq::HttpReq(std::string &content, std::vector<Server *> servers)
 	_contentLength = 0;
 	_keepAlive = true;
 	_body_tmp_path = "";
+	_boundary = "";
 	HttpReq::parse(content, servers);
 }
 
@@ -68,6 +69,7 @@ HttpReq	& HttpReq::operator=(HttpReq const & httpreq)
 		_body_tmp_path = httpreq._body_tmp_path;
 		_id = httpreq._id;
 		_server = httpreq._server;
+		_boundary = httpreq._boundary;
 	}
 	return (*this);
 }
@@ -135,6 +137,15 @@ void	HttpReq::parse(std::string &content, std::vector<Server *> servers)
 	std::cout << _contentLength;
 	std::cout << _contentType << std::endl; */
 	setServer(servers);
+	if (_contentType != "")
+	{
+		size_t bound = _contentType.find("boundary=");
+		if (bound != std::string::npos)
+		{
+			bound += 9;
+			_boundary = _contentType.substr(bound, _contentType.length() - bound);
+		}
+	}
 }
 
 void	HttpReq::setServer(std::vector<Server *> servers) {
@@ -213,6 +224,11 @@ std::string		HttpReq::getBodyTmpFile() const {
 Server *HttpReq::getServer() const {
 
 	return (_server);
+}
+
+std::string	HttpReq::getBoundary() const {
+
+	return (_boundary);
 }
 
 void		HttpReq::add_to_body_file(const char *str)

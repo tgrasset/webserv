@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpReq.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/06/23 15:31:57 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/23 17:47:20 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ private:
 	std::ofstream 						_body_file;
 	unsigned int						_id;
 	Server								*_server;
+	std::string							_boundary;
 
 	static std::string					_body_tmp_folder;
 	static unsigned int					_count;
@@ -63,6 +64,7 @@ public:
 	bool			getKeepAlive() const;
 	std::string		getBodyTmpFile() const;
 	Server 			*getServer() const;
+	std::string		getBoundary() const;
 	void			add_to_body_file(const char *str);
 	void			close_body_file(void);
 	void			setServer(std::vector<Server *> servers);
