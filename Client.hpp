@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/22 18:04:00 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/23 15:40:08 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,12 +47,12 @@ private:
 	std::string				_req_header;
 	std::string				_req_body;
 	unsigned int			_id;
-	int						_byte_sent_header;
-	int						_byte_sent_body;
-	int						_byte_recived_req_body;
+	unsigned int			_byte_sent_header;
+	unsigned int			_byte_sent_body;
+	unsigned int			_byte_recived_req_body;
 	struct timeval			_last_activity;
 	std::ifstream 			_file_to_send;
-	int						_file_to_send_size;
+	unsigned int			_file_to_send_size;
 	
 	
 	static bool				_verbose;

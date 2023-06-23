@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/23 15:32:00 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/23 15:39:47 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -268,7 +268,7 @@ void	Client::send_response_header(void)
 		this->_status = SENDING_RES_HEADER;
 		this->_byte_sent_header += byte_sent;
 	}
-	if (this->_byte_sent_header == static_cast<int>(res_header_full.size()))
+	if (this->_byte_sent_header == static_cast<unsigned int>(res_header_full.size()))
 	{
 		this->_status = SENDING_RES_BODY;
 		std::cout << "\e[33m" << getTimestamp() <<  "	I have sent the following response header to client " << this->_id << " : \e[32m " << std::endl;
@@ -312,7 +312,7 @@ void	Client::send_response_body_error(void)
 		this->_byte_sent_body += byte_sent;
 		std::cout << "	body : " << this->_byte_sent_body << "/" << res_body_remain.size() << " sent" << std::endl;
 	}
-	if (this->_byte_sent_body == static_cast<int>(res_body.size()))
+	if (this->_byte_sent_body == static_cast<unsigned int>(res_body.size()))
 	{
 		this->_status = RES_SENT;
 		std::cout << "\e[33m" <<  getTimestamp() << "	I have sent the following response body to client " << this->_id << " : \e[32m " << std::endl;
