@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/22 18:25:11 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/23 12:04:49 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,6 +144,7 @@ void	Client::set_byte_sent_header(int byte)
 
 int	Client::receive_request(void)
 {
+	this->reset_last_activity();
 	if (this->_status == WANT_TO_SEND_REQ || this->_status == RECIVING_REQ_HEADER)
 		return (this->receive_request_header());
 	if (this->_status == RECIVING_REQ_BODY)
@@ -163,7 +164,7 @@ int	Client::receive_request_header(void)
 		std::cout << "Client " << this->_id << " has close connexion" << std::endl;
 		return (1);
 	}
-	std::cout << "I just got from my client " << byte_recv << " bytes for the request" << std::endl;
+	std::cout << "Client " << this->_id << " just recieved " << byte_recv << " bytes for the request header" << std::endl;
 	if (byte_recv > 0)
 	{
 		this->_status = RECIVING_REQ_HEADER;
@@ -182,7 +183,7 @@ int	Client::receive_request_header(void)
 				this->_status = RECIVING_REQ_BODY;
 				if (this->_req_recived.size() > pos_end_header + 4)
 				{
-					std::string to_add_body = this->_req_recived.substr(pos_end_header + 4, this->_req_recived.size() - pos_end_header - 4);
+					std::string to_add_body = this->_req_recived.substr(pos_end_header + 4, this->_req_recived.size() - pos_end_header - 4);			
 					this->_req->add_to_body_file(to_add_body.c_str());
 					this->_byte_recived_req_body += to_add_body.size();
 					if (this->_byte_recived_req_body == this->_req->getContentLength())
@@ -196,7 +197,7 @@ int	Client::receive_request_header(void)
 	}
 	if (this->_status == WAITING_FOR_RES)
 	{
-		std::cout << std::endl << "\e[33m" << getTimestamp() << "	I recieved the following client request from client " << this->_id << ":\e[32m" << std::endl;
+		std::cout << std::endl << "\e[33m" << getTimestamp() << "	Client " << this->_id << " just recieved the following request:\e[32m" << std::endl;
 		std::cout << this->_req_recived << std::endl;
 		std::cout << "\e[0m";
 	}
@@ -214,7 +215,7 @@ int	Client::receive_request_body(void)
 		std::cout << "Client " << this->_id << " has close connexion" << std::endl;
 		return (1);
 	}
-	std::cout << "I just got from my client " << byte_recv << " bytes for the request" << std::endl;
+	std::cout << "Client " << this->_id << " just recieved " << byte_recv << " bytes for the request body" << std::endl;
 	if (byte_recv > 0)
 	{
 		this->_byte_recived_req_body += byte_recv;
@@ -230,6 +231,7 @@ int	Client::receive_request_body(void)
 
 void	Client::send_response(void)
 {
+	this->reset_last_activity();
 	if (this->_status == WAITING_FOR_RES)
 	{
 		if (this->_res != NULL)

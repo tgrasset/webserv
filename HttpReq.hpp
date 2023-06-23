@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/06/22 18:22:10 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/23 12:25:01 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,6 @@ private:
 	std::string							_contentType;
 	int									_contentLength;
 	bool								_keepAlive;
-	std::string							_body;
 	std::string							_body_tmp_path;
 	std::ofstream 						_body_file;
 	unsigned int						_id;
@@ -58,8 +57,7 @@ public:
 	std::string		getContentType() const;
 	int				getContentLength() const;
 	bool			getKeepAlive() const;
-	std::string		getBody() const;
-	void			setBody(std::string &body);
+	std::string		getBodyTmpFile() const;
 	void			add_to_body_file(const char *str);
 	void			close_body_file(void);
 

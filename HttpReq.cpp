@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/06/22 18:29:36 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/23 12:25:11 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,6 @@ HttpReq::HttpReq(std::string &content)
 	_contentType = "";
 	_contentLength = 0;
 	_keepAlive = true;
-	_body = "";
 	_body_tmp_path = "";
 	HttpReq::parse(content);
 }
@@ -44,8 +43,8 @@ HttpReq::HttpReq(HttpReq const & copy)
 
 HttpReq::~HttpReq(void)
 {
-	/*if (access(_body_tmp_path.c_str(), F_OK) == 0 && std::remove(_body_tmp_path.c_str()))
-		std::cout << "I could not delete the file of client " << this->_id << std::endl;*/
+	if (access(_body_tmp_path.c_str(), F_OK) == 0 && std::remove(_body_tmp_path.c_str()))
+		std::cout << "I could not delete the file of client " << this->_id << std::endl;
 }
 
 /* ************************************************************************** */
@@ -64,7 +63,6 @@ HttpReq	& HttpReq::operator=(HttpReq const & httpreq)
 		_contentType = httpreq.getContentType();
 		_contentLength = httpreq.getContentLength();
 		_keepAlive = httpreq.getKeepAlive();
-		_body = httpreq.getBody();
 		_body_tmp_path = httpreq._body_tmp_path;
 		_id = httpreq._id;
 	}
@@ -180,14 +178,9 @@ bool	HttpReq::getKeepAlive() const {
 	return (_keepAlive);
 }
 
-std::string		HttpReq::getBody() const {
+std::string		HttpReq::getBodyTmpFile() const {
 
-	return (_body);
-}
-
-void		HttpReq::setBody(std::string &body) {
-
-	this->_body = body;
+	return (_body_tmp_path);
 }
 
 void		HttpReq::add_to_body_file(const char *str)
@@ -199,7 +192,9 @@ void		HttpReq::add_to_body_file(const char *str)
 		this->_body_tmp_path = file_path.str();
 	}
 	if (!this->_body_file.is_open())
+	{
 		this->_body_file.open(this->_body_tmp_path.c_str());
+	}
 	if (this->_body_file.fail())
 		throw HttpReqException("Error opening the body file");
 	this->_body_file << str;
