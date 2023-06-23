@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/21 15:08:28 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/23 12:39:00 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ class HttpRes
 {	
 	public:
 
-		HttpRes(HttpReq &request, std::vector<Server *> servers);
+		HttpRes(HttpReq &request);
 		HttpRes(HttpRes const & copy);
 		~HttpRes(void);
 
@@ -55,8 +55,7 @@ class HttpRes
 		int									getCgiPipeFd() const;
 		pid_t								getCgiPid() const;
 
-		void	handleRequest(HttpReq &request, std::vector<Server *> servers);
-		void	setServer(std::string reqHost, std::vector<Server *> servers);
+		void	handleRequest(HttpReq &request);
 		int		checkHttpVersion(std::string version, bool &error);
 		int		checkUri(std::string uri);
 		r_type	checkResourceType();
