@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/29 18:56:33 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/06/29 19:23:36 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -593,31 +593,25 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 				std::cerr << "Failed to dup" << std::endl;
 				//throw exeption
 			}
+			CGI cgi(request, *this);
+			//setup the env
+			cgi.setUpEnv();
+
+			//setup the execve
+			std::vector<std::string> cmd;
+			cmd.insert(cmd.begin(), _uriPath);
 			if (_resourceType == PYTHON)
-			{
-				//setup the env
+				cmd.insert(cmd.begin(), "python3");
+			if (_resourceType == PHP)
+				cmd.insert(cmd.begin(), "php");
+			cmd.push_back(NULL);
+			char **command = reinterpret_cast<char**>(&cmd[0]);
+			std::string	pathToPython = this->_location->getCgiExtensionAndPath()[".py"];
 
-
-				//setup the execve
-				std::vector<std::string> cmd;
-				if (request.getMethod() == "GET")
-					cmd = cpp_split(_uriQuery, "&");// in URL, "+" should be replaced by " "
-				if (request.getMethod() == "POST")
-					cmd = cpp_split(_body, "&");
-				cmd.insert(cmd.begin(), _uriPath);
-				if (_resourceType == PYTHON)
-					cmd.insert(cmd.begin(), "python3");
-				if (_resourceType == PHP)
-					cmd.insert(cmd.begin(), "php");
-				cmd.push_back(NULL);
-				char **command = reinterpret_cast<char**>(&cmd[0]);
-				std::string	pathToPython = this->_location->getCgiExtensionAndPath()[".py"];
-
-				//execve
-				if (execve(pathToPython.c_str(), command, environ) == -1)
-					std::cerr << "execve failed" << std::endl;
-					//throw execption
-			}
+			//execve
+			if (execve(pathToPython.c_str(), command, environ) == -1)
+				std::cerr << "execve failed" << std::endl;
+				//throw execption
 		}
 		return ;
 	}

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/20 16:48:33 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/29 19:13:09 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 # include "webserv.hpp"
 # include "HttpReq.hpp"
 # include "Server.hpp"
+# include "CGI.hpp"
 
 typedef enum e_type_c {
 	NORMALFILE,
@@ -29,7 +30,7 @@ typedef enum e_type_c {
 }				r_type;
 
 class HttpRes
-{	
+{
 	public:
 
 		HttpRes(HttpReq &request, std::vector<Server *> servers);
@@ -69,13 +70,13 @@ class HttpRes
 		void	checkIfAcceptable(std::vector<std::string> acceptable);
 		bool	methodIsAllowed(std::string method);
 		void	buildCgiResponse(std::string cgiOutput, bool timeout);
-		
+
 
 	private:
-	
+
 		HttpRes(void);
 		static bool							_verbose;
-		
+
 		std::string							_httpVersion;
 		int									_statusCode;
 		std::string							_method;

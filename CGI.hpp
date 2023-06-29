@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/29 18:53:45 by jlanza            #+#    #+#             */
-/*   Updated: 2023/06/29 19:06:58 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/06/29 19:16:47 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,8 +33,8 @@ public:
 	CGI(CGI const & src);
 	CGI & operator=(CGI const & rhs);
 
-	void	setUpEnv(HttpReq &request);
-	void	vector_to_char(void);
+	void	setUpEnv(void);
+	char	**vector_to_char(std::vector<std::string> vector);
 };
 
 #endif
