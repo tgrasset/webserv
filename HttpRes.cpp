@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/22 17:33:36 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/06/29 18:56:33 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -596,12 +596,7 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 			if (_resourceType == PYTHON)
 			{
 				//setup the env
-				setenv("REQUEST_METHOD", request.getMethod().c_str(), 1);
-				setenv("CONTENT_TYPE", request.getContentType().c_str(), 1);
-				char contentLen[20];
-				sprintf(contentLen, "%d", request.getContentLength());
-				setenv("CONTENT_LENGTH", contentLen, 1);
-				setenv("QUERY_STRING", getUriQuery().c_str(), 1);
+
 
 				//setup the execve
 				std::vector<std::string> cmd;
