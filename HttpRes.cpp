@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/29 19:23:36 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/07/02 21:44:08 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -542,8 +542,6 @@ bool	HttpRes::methodIsAllowed(std::string method) {
 	}
 	return (false);
 }
-
-extern	char** environ;
 
 void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 
