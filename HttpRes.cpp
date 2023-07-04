@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/07/04 14:18:10 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/07/04 15:30:57 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -147,6 +147,11 @@ std::string	HttpRes::getUriPathInfo() const {
 std::string HttpRes::getUriQuery() const {
 
 	return (_uriQuery);
+}
+
+std::string	HttpRes::getScriptName() const {
+
+	return (_script_name);
 }
 
 r_type	HttpRes::getResourceType() const {
@@ -391,7 +396,7 @@ r_type HttpRes::checkResourceType() {
 }
 
 int	HttpRes::checkUri(std::string uri) {
-	
+
 	size_t separator = uri.find('?');
 	size_t end = uri.rfind('#');
 	std::string tempPath;
@@ -436,6 +441,7 @@ int	HttpRes::checkUri(std::string uri) {
 		else if (uri[separator + 1] != '\0')
 			_uriQuery = uri.substr(separator + 1, end - (separator + 1));
 	}
+	_script_name = tempPath;
 	end = 0;
 	std::vector<Location> locs = _server->getLocations();
 	for (std::vector<Location>::iterator it = locs.begin(); it != locs.end(); it++)

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CGI.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/29 18:53:19 by jlanza            #+#    #+#             */
-/*   Updated: 2023/07/04 14:26:18 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/07/04 16:01:35 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,15 +54,20 @@ char	**CGI::setUpEnv(void)
 	vector_env.push_back("GATEWAY_INTERFACE=CGI/1.1");
 
 	vector_env.push_back("SERVER_PROTOCOL=HTTP/1.1");
-	// vector_env.push_back("SERVER_PORT="+_res->getServer()->getPort());
+	std::ostringstream oss1;
+	oss1 << _res->getServer()->getPort();
+	std::string portString = oss1.str();
+	vector_env.push_back("SERVER_PORT="+ portString);
 	vector_env.push_back("REQUEST_METHOD=" + _request->getMethod());
-	vector_env.push_back("PATH_INFO=");// ajouter path info !!!!
-	vector_env.push_back("CONTENT_TYPE="+ _request->getContentType());
-	std::ostringstream oss;
-	oss << _request->getContentLength();
-	std::string contentLen = oss.str();
-	vector_env.push_back("CONTENT_LENGTH="+ contentLen);
+	vector_env.push_back("PATH_INFO="+ _res->getUriPathInfo());
+	vector_env.push_back("PATH_TRANSLATED=" + _res->getUriPath());
+	vector_env.push_back("SCRIPT_NAME="+ _res->getScriptName());
 	vector_env.push_back("QUERY_STRING="+ _res->getUriQuery());
+	vector_env.push_back("CONTENT_TYPE="+ _request->getContentType());
+	std::ostringstream oss2;
+	oss2 << _request->getContentLength();
+	std::string contentLen = oss2.str();
+	vector_env.push_back("CONTENT_LENGTH="+ contentLen);
 	//pour la compil
 	return (NULL);
 }
