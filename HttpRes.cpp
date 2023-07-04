@@ -18,7 +18,7 @@ std::map<std::string, std::string> HttpRes::_mimeTypes;
 /*                     Constructeurs et destructeurs                          */
 /* ************************************************************************** */
 
-HttpRes::HttpRes(HttpReq &request) {
+HttpRes::HttpRes(HttpReq &request, std::vector<Server *> servers) {
 
 	if (HttpRes::_verbose)
 		std::cout << "HttpRes default constructor called" << std::endl;
@@ -620,6 +620,48 @@ void	HttpRes::handleRequest(HttpReq &request) {
 		// C'est la que ca se passe pour les CGI, qui doivent etre lances ici avec pipe, fork, dup. Il faut remplir _cgiPid avec le pid du process
 		// et _cgiPipeFd avec le fd de sortie du pipe dans lequel il va ecrire, pour que la classe client puisse faire son taf.
 		// La reponse pourra ensuite etre creee grace a la methode buildCgiResponse ci-dessous depuis le client.
+
+		int	fd_pipe[2];
+		if (pipe(fd_pipe) == -1)
+		{
+			//throw exeption
+			std::cerr << "Failed to create pipe." << std::endl;
+		}
+		_cgiPipeFd = fd_pipe[0];
+		_cgiPid = fork();
+		if (_cgiPid == -1)
+		{
+			//throw exeption
+			std::cerr << "Failed to fork." << std::endl;
+		}
+		if (_cgiPid == 0)
+		{
+			close(fd_pipe[0]);
+			if (dup2(fd_pipe[1], STDOUT_FILENO) == -1)
+			{
+				std::cerr << "Failed to dup" << std::endl;
+				//throw exeption
+			}
+			CGI cgi(request, *this);
+			//setup the env
+			cgi.setUpEnv();
+
+			//setup the execve
+			std::vector<std::string> cmd;
+			cmd.insert(cmd.begin(), _uriPath);
+			if (_resourceType == PYTHON)
+				cmd.insert(cmd.begin(), "python3");
+			if (_resourceType == PHP)
+				cmd.insert(cmd.begin(), "php");
+			cmd.push_back(NULL);
+			char **command = reinterpret_cast<char**>(&cmd[0]);
+			std::string	pathToPython = this->_location->getCgiExtensionAndPath()[".py"];
+
+			//execve
+			if (execve(pathToPython.c_str(), command, environ) == -1)
+				std::cerr << "execve failed" << std::endl;
+				//throw execption
+		}
 		return ;
 	}
 	else if (_statusCode == 200 && _method == "POST")

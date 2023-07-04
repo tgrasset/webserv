@@ -1,0 +1,19 @@
+ce dont maxence a besoin :
+- l'id du process a kill
+- le fd du pipe de sortie
+
+ce dont le cgi a besoin pour fonctionner :
+	Requested URL (host): Extract the URL from the HTTP request, which typically includes the file path.
+	Parse the URL to obtain the file path, which may include the file name and its extension.
+File Extension: Analyze the file extension in the requested URL to identify the script language.
+	For example, a file with a ".php" extension suggests PHP, while a file with a ".py" extension suggests Python.
+	2e champ: Query Parameters: Analyze query parameters in the URL to extract additional information about the desired script language.
+	For example, a query parameter like "lang=python" or "lang=php" can indicate the scripting language
+	Content-Type Header: The "Content-Type" header may provide information about the file type or script language.
+	For example, a "Content-Type" value of "text/x-python" or "application/x-httpd-php" can indicate Python or PHP, respectively.
+
+
+
+
+
+pour python :

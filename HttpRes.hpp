@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/23 19:21:32 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/06/29 19:13:09 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 # include "webserv.hpp"
 # include "HttpReq.hpp"
 # include "Server.hpp"
+# include "CGI.hpp"
 
 typedef enum e_type_c {
 	NORMALFILE,
