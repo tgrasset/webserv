@@ -257,28 +257,67 @@ std::string redirectionHTML(int code, std::string message, std::string path) {
 
 	std::stringstream s;
 	s << "<!doctype html>\n<html>\n<head>\n<title>" << code << " : " << message << "</title>\n<meta http-equiv=\"refresh\" content=\"3; URL=" << path << "\">\n</head>";
-	s << "<body>\nRedirection dans 3 secondes.\n</body>\n</html>";
+	s << "<body>" << code << " : " << message << "\n<br>\nRedirection to " << path <<  " in 3 seconds.\n</body>\n</html>";
 	return (s.str());
 }
 
-std::string autoindexHTML(std::string path) {
+std::string autoindexHTML(std::string dirPath, std::string requestUri) {
 
+	struct stat test;
+	std::string path;
+	struct dirent *dirStruct;
+	if (requestUri[requestUri.length() - 1] == '/')
+		requestUri = requestUri.substr(0, requestUri.length() - 1);
+	DIR *dir = opendir(dirPath.c_str());
+	if (dir == NULL)
+		return ("<!doctype html>\n<html>\n<head>\n<title>Error 403</title>\n</head>\n<body>\n<p>403 : Forbidden</p>\n</body>\n</html>");
 	std::stringstream s;
-	s << "<!doctype html>\n<html>\n<head>\n<title>Index of " << path << "</title>\n</head>\n<body>\n<p>Ici, y aura bientot un magnifique autoindex =)</p>\n</body>\n</html>";
+	s << "<!doctype html>\n<html>\n<head>\n<title>Index of ";
+	if (requestUri == "")
+		s << "/";
+	else
+		s << requestUri; 
+	s << "</title>\n</head>\n<body>\n<h1>Index of ";
+	if (requestUri == "")
+		s << "/";
+	else
+		s << requestUri;
+	s << "</h1>\n";
+	s << "<table style=\"width:80%; font-size:15pixel\">\n<hr>\n<th style=\"text-align:left\">File name</th>\n<th style=\"text-align:left\">Last modified</th>\n<th style=\"text-align:left\">Size</th>\n";
+	while ((dirStruct = readdir(dir)) != NULL)
+	{
+		if (strcmp(dirStruct->d_name, ".") == 0)
+			continue;
+		path = dirPath + dirStruct->d_name;
+		s << "<tr>\n<td>\n<a href=\"" << requestUri << "/" << dirStruct->d_name;
+		stat(path.c_str(), &test);
+		if (S_ISDIR(test.st_mode))
+			s << "/";
+		s << "\">" << dirStruct->d_name;
+		if (S_ISDIR(test.st_mode))
+			s << "/";
+		s << "</a>\n</td>\n<td>\n" << ctime(&test.st_mtim.tv_sec);
+		s << "</td><td>";
+		if (!S_ISDIR(test.st_mode))
+			s << sizeToString(test.st_size);
+		s << "</td>\n</tr>";
+	}
+	closedir(dir);
+	s << "</table><hr></body>\n</html>\n";
 	return (s.str());
 }
 
 std::string errorHTML(int code, std::string message) {
 
 	std::stringstream s;
-	s << "<!doctype html>\n<html>\n<head>\n<title>Error " << code << "</title>\n</head>\n<body>\n<p>" << message << "</p>\n</body>\n</html>";
+	s << "<!doctype html>\n<html>\n<head>\n<title>" << code << "</title>\n</head>\n<body>\n<p>" << code << " : " << message << "</p>\n</body>\n</html>";
 	return (s.str());
 }
 
 std::string successfulDeleteHTML(std::string path) {
 
 	std::stringstream s;
-	s << "<!doctype html>\n<html>\n<head>\n<title>Delete successful" << "</title>\n</head>\n<body>\n<p>" << path << "was successfully deleted from the server" << "</p>\n</body>\n</html>";
+	s << "<!doctype html>\n<html>\n<head>\n<title>Delete successful" << "</title>\n</head>\n<body>\n<p>" << path << " was successfully deleted from the server" << "</p>\n</body>\n</html>";
 	return (s.str());
 }
 
@@ -290,12 +329,12 @@ std::string getErrorPageContent(std::string path, int code, std::string message)
 	std::stringstream s;
 
     if (ret < 0 || !S_ISREG(buf.st_mode) || access(path.c_str(), R_OK) != 0)
-		s << "<!doctype html>\n<html>\n<head>\n<title>Error " << code << "</title>\n</head>\n<body>\n<p>" << message << "</p>\n</body>\n</html>";
+		s << errorHTML(code, message);
 	else
 	{
     	fileStream.open(path.c_str());
     	if (fileStream.fail())
-        	s << "<!doctype html>\n<html>\n<head>\n<title>Error " << code << "</title>\n</head>\n<body>\n<p>" << message << "</p>\n</body>\n</html>";
+        	s << errorHTML(code, message);
 		else
 		{
     		s << fileStream.rdbuf();
@@ -315,4 +354,3 @@ std::string	getMimeType(std::string path, std::map<std::string, std::string> &ty
 		return (types[ext]);
 	return ("text/plain");
 }
-

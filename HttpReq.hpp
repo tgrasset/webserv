@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpReq.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/06/20 11:32:07 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/23 17:47:20 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,12 +14,14 @@
 #ifndef HTTP_REQ_HPP
 # define HTTP_REQ_HPP
 # include "webserv.hpp"
+# include "Server.hpp"
+
+class Server;
 
 class HttpReq
 {
 private:
 
-	//static bool		_verbose;
 	HttpReq(void);
 
 	std::string							_method;
@@ -29,15 +31,23 @@ private:
 	std::string							_host;
 	std::vector<std::string>			_accept;
 	std::string							_contentType;
-	int									_contentLength;
+	unsigned int						_contentLength;
 	bool								_keepAlive;
-	std::string							_body;
+	std::string							_body_tmp_path;
+	std::ofstream 						_body_file;
+	unsigned int						_id;
+	Server								*_server;
+	std::string							_boundary;
 
-	void	parse(std::string &content);
+	static std::string					_body_tmp_folder;
+	static unsigned int					_count;
+	
+
+	void	parse(std::string &content, std::vector<Server *> servers);
 
 public:
 
-	HttpReq(std::string &content);    // content sera la string a parser
+	HttpReq(std::string &content, std::vector<Server *> servers);
 	HttpReq(HttpReq const & copy);
 	~HttpReq(void);
 
@@ -50,10 +60,30 @@ public:
 	std::string		getHost() const;
 	std::vector<std::string>	getAccept() const;
 	std::string		getContentType() const;
-	int				getContentLength() const;
+	unsigned int	getContentLength() const;
 	bool			getKeepAlive() const;
-	std::string		getBody() const;
-	void			setBody(std::string &body);
+	std::string		getBodyTmpFile() const;
+	Server 			*getServer() const;
+	std::string		getBoundary() const;
+	void			add_to_body_file(const char *str);
+	void			close_body_file(void);
+	void			setServer(std::vector<Server *> servers);
+	bool			ok_to_save_body(void) const;
+	bool			body_is_too_big(void) const;
+	
+
+	class HttpReqException : public std::exception {
+	public :
+		HttpReqException(std::string errMessage) throw() {
+			_errMessage = "HttpReq Error: " + errMessage;
+		}
+		virtual const char* what() const throw() {
+			return (_errMessage.c_str());
+		}
+		~HttpReqException() throw() {}
+	private:
+		std::string _errMessage;
+	};
 
 };
 

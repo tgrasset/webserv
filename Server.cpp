@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/12 15:48:32 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/19 15:16:43 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/22 17:51:03 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ Server::Server(void)
 	_client_max_body_size = 0;
 	_index = "";
 	_error_pages.clear();
+	_listenSocket = 0;
 }
 
 Server::Server(Server const &src) 
@@ -52,6 +53,7 @@ Server &Server::operator=(Server const &rhs)
 	{
 		_port = rhs.getPort();
 		_host = rhs.getHost();
+		_servaddr = rhs.getServerAddr();
 		_server_name = rhs.getServerName();
 		_root = rhs.getRoot();
 		_client_max_body_size = rhs.getClientMaxBodySize();
@@ -109,6 +111,11 @@ std::vector<Location>	Server::getLocations(void) const {
 int	Server::getListenSocket(void) const {
 
 	return (_listenSocket);
+}
+
+struct sockaddr_in	Server::getServerAddr(void) const {
+
+	return (_servaddr);
 }
 
 void	Server::setPort(std::string port) {
@@ -310,6 +317,15 @@ void	Server::setLocation(std::string path, std::vector<std::string> content) {
             }
             if (i == size)
                 throw ServerException("Missing ';' symbol after 'cgi' line \n" + static_cast<std::string>(strerror(errno)));
+		}
+		else if (content[i] == "upload_dir" && i + 1 < size)
+		{
+			if (loc.getUploadDir() != "")
+				throw ServerException("Each 'location' context can't have more than one 'upload_dir' directive");
+			i++;
+			if (isValidConfValue(content[i]) == false)
+				throw ServerException("';' symbol needed after 'upload_dir' line in 'location' context");
+			loc.setUploadDir(content[i]);
 		}
 		else
 			throw ServerException("Unknown or incomplete directive in 'location' context : " + content[i]

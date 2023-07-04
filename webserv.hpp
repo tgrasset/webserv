@@ -12,6 +12,7 @@
 # include <ctime>
 # include <iomanip>
 # include <cstdio>
+# include <list>
 
 # include <sys/types.h>
 # include <sys/stat.h>
@@ -24,11 +25,13 @@
 # include <sys/time.h>
 # include <string.h>
 # include <signal.h>
+# include <dirent.h>
 
 # define MAX_WAIT 15
 # define MAX_EVENTS 100
-# define BUFFER_SIZE 4096
-# define MAX_TIME_CLIENT_MS 10000
+# define BUFFER_SIZE 4092
+# define MAX_TIME_CLIENT_S 10
+# define BODY_TMP_FOLDER "tmp_body/"
 
 std::vector<std::string>    cpp_split(std::string str, char const *charset);
 int							stringToInt(std::string str);
@@ -41,7 +44,7 @@ std::string					sizeToString(size_t n);
 bool						caseInsensitiveCmp(std::string const &a, std::string const &b);
 std::string					toUpperCase(const std::string& str);
 std::string					redirectionHTML(int code, std::string message, std::string path);
-std::string					autoindexHTML(std::string path);
+std::string					autoindexHTML(std::string dirPath, std::string requestUri);
 std::string					errorHTML(int code, std::string message);
 std::string					successfulDeleteHTML(std::string path);
 std::string					getErrorPageContent(std::string path, int code, std::string message);

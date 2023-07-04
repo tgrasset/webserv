@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/07/02 21:44:08 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/06/23 19:22:31 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ HttpRes::HttpRes(HttpReq &request, std::vector<Server *> servers) {
 	_header.clear();
 	_body = "";
 	_formattedHeader = "";
-	_server = NULL;
+	_server = request.getServer();
 	_location = NULL;
 	_keepAlive = true;
 	_uriPath = "";
@@ -40,7 +40,7 @@ HttpRes::HttpRes(HttpReq &request, std::vector<Server *> servers) {
 	_cgiPid = -42;
 	if (_mimeTypes.empty() == true)
 		fillMimeTypes();
-	handleRequest(request, servers);
+	handleRequest(request);
 }
 
 HttpRes::HttpRes(HttpRes const & copy) {
@@ -54,6 +54,8 @@ HttpRes::~HttpRes(void) {
 
 	if (HttpRes::_verbose)
 		std::cout << "HttpRes destructor called" << std::endl;
+	if (_location != NULL)
+		delete _location;
 }
 
 /* ************************************************************************** */
@@ -137,6 +139,11 @@ std::string	HttpRes::getUriPath() const {
 	return (_uriPath);
 }
 
+std::string	HttpRes::getUriPathInfo() const {
+
+	return (_uriPathInfo);
+}
+
 std::string HttpRes::getUriQuery() const {
 
 	return (_uriQuery);
@@ -166,30 +173,6 @@ pid_t	HttpRes::getCgiPid() const {
 
 	return (_cgiPid);
 }
-
-void	HttpRes::setServer(std::string reqHost, std::vector<Server *> servers) {
-
-	if (servers.size() == 1)
-	{
-		_server = servers[0];
-		return ;
-	}
-	std::string hostname;
-	if (reqHost.find(':') != std::string::npos)
-		hostname = reqHost.substr(0, reqHost.length() - reqHost.find(':'));
-	else
-		hostname = reqHost;
-	for (std::vector<Server *>::iterator it = servers.begin(); it != servers.end(); it++)
-	{
-		if ((*it)->getServerName() == reqHost)
-		{
-			_server = *it;
-			return;
-		}
-	}
-	_server = servers[0];
-}
-
 
 void	HttpRes::fillMimeTypes() {
 
@@ -272,54 +255,34 @@ void	HttpRes::fillMimeTypes() {
 	_mimeTypes[".7z"] = "application/x-7z-compressed";
 }
 
-int	HttpRes::checkHttpVersion(std::string version, bool &error) {
+int	HttpRes::checkHttpVersion(std::string version) {
 
 	if (version != "HTTP/1.0" && version != "HTTP/1.1" && version != "HTTP/0.9")
-	{
-		error = true;
 		return (505);
-	}
 	_httpVersion = "HTTP/1.1";
 	return (200);
 }
 
-int	HttpRes::checkRequestBodySize(int maxSize, int bodySize, bool &error) {
-
-	if (bodySize > maxSize)
-	{
-		error = true;
-		return (413);
-	}
-	return (200);
-}
-
-int	HttpRes::checkRequestHeader(std::map<std::string, std::string> header, bool &error) {
+int	HttpRes::checkRequestHeader(std::map<std::string, std::string> header) {
 
 	std::map<std::string, std::string>::iterator it2;
 
 	for (std::map<std::string, std::string>::iterator it = header.begin(); it != header.end(); it++)
 	{
 		if (it->first.length() > 70)
-		{
-			error = true;
 			return (431);
-		}
 		it2 = it;
 		it2++;
 		for (; it2 != header.end(); it2++)
 		{
 			if (it2->first == it->first)
-			{
-				error = true;
 				return (400);
-			}
 		}
 	}
 	return (200);
 }
 
 r_type HttpRes::checkResourceType() {
-
 
 	struct stat test;
 	if (access(_uriPath.c_str(), F_OK) != 0)
@@ -429,29 +392,72 @@ r_type HttpRes::checkResourceType() {
 
 int	HttpRes::checkUri(std::string uri) {
 
-	size_t questionMark = uri.find('?');
+	size_t separator = uri.find('?');
 	size_t end = uri.rfind('#');
 	std::string tempPath;
+	std::string locPath;
+	Location *tempLoc = NULL;
 
-	if (questionMark == std::string::npos)
+	//stock dans _uriPathInfo le PATH_INFO, puis de supprime de uri
+	size_t pos_py = uri.find(".py");
+	size_t pos_php = uri.find(".php");
+	if (pos_py == std::string::npos)
+	{
+		if (pos_php == std::string::npos)
+			_uriPathInfo = "";
+		else
+		{
+			if (separator != std::string::npos)
+				_uriPathInfo = uri.substr(pos_php + 4, separator - pos_php - 4);
+			else
+				_uriPathInfo = uri.substr(pos_php + 4, uri.size());
+			uri = uri.erase(pos_php + 4, _uriPathInfo.size());
+		}
+	}
+	else
+	{
+		if (separator != std::string::npos)
+			_uriPathInfo = uri.substr(pos_py + 3, separator - pos_py - 3);
+		else
+			_uriPathInfo = uri.substr(pos_py + 3, uri.size());
+		uri = uri.erase(pos_py + 3, _uriPathInfo.size());
+	}
+
+	// parsing de l'_uriQuerry et de l'_uriPath
+	separator = uri.find('?');
+	end = uri.rfind('#');
+	if (separator == std::string::npos)
 		tempPath = uri;
 	else
 	{
-		tempPath = uri.substr(0, questionMark);
-		if (uri[questionMark + 1] != '\0' && end == std::string::npos)
-			_uriQuery = uri.substr(questionMark + 1, uri.length() - (questionMark + 1));
-		else if (uri[questionMark + 1] != '\0')
-			_uriQuery = uri.substr(questionMark + 1, end - (questionMark + 1));
+		tempPath = uri.substr(0, separator);
+		if (uri[separator + 1] != '\0' && end == std::string::npos)
+			_uriQuery = uri.substr(separator + 1, uri.length() - (separator + 1));
+		else if (uri[separator + 1] != '\0')
+			_uriQuery = uri.substr(separator + 1, end - (separator + 1));
 	}
+	end = 0;
 	std::vector<Location> locs = _server->getLocations();
 	for (std::vector<Location>::iterator it = locs.begin(); it != locs.end(); it++)
 	{
-		if (tempPath.find((*it).getPath()) == 0)
+		locPath = (*it).getPath();
+		if (tempLoc == NULL && locPath == "/")
 		{
-			_location = &(*it);
-			break;
+			tempLoc = &(*it);
+			continue;
+		}
+		for (end = 0; tempPath[end] != '\0' && locPath[end] != '\0' && tempPath[end] == locPath[end]; end++)
+		{
+			;
+		}
+		if (locPath[end] == '\0' && (tempPath[end] == '\0' || tempPath[end] == '/'))
+		{
+			if (tempLoc == NULL || (tempLoc != NULL && tempLoc->getPath().length() < (*it).getPath().length()))
+				tempLoc = &(*it);
 		}
 	}
+	if (tempLoc != NULL)
+		_location = new Location(*tempLoc);
 	if (_location != NULL && _location->getRedirectionCode() > 0)
 	{
 		_resourceType = REDIRECTION;
@@ -460,7 +466,10 @@ int	HttpRes::checkUri(std::string uri) {
 	if (_location == NULL || _location->getRoot() == _server->getRoot())
 		_uriPath = _server->getRoot() + "/" + tempPath;
 	else
-		_uriPath = _location->getRoot() + "/" + tempPath;
+	{
+		std::string tempPath2 = tempPath.substr(_location->getPath().length(), tempPath.length() - _location->getPath().length());
+		_uriPath = _location->getRoot() + "/" + tempPath2;
+	}
 	_resourceType = checkResourceType();
 	if (_resourceType == NOT_FOUND)
 		return (404);
@@ -472,6 +481,8 @@ int	HttpRes::checkUri(std::string uri) {
 
 void	HttpRes::checkIfAcceptable(std::vector<std::string> acceptable) {
 
+	if (acceptable.empty())
+		return ;
 	for (std::vector<std::string>::iterator it = acceptable.begin(); it != acceptable.end(); it++)
 	{
 		if (getMimeType(_uriPath, _mimeTypes) == *it || (*it).find('*') != std::string::npos)
@@ -481,13 +492,13 @@ void	HttpRes::checkIfAcceptable(std::vector<std::string> acceptable) {
 	_statusCode = 406;
 }
 
-void	HttpRes::bodyBuild() {
+void	HttpRes::bodyBuild(std::string requestUri) {
 
 	if (_resourceType == REDIRECTION)
 		_body = redirectionHTML(_statusCode, _statusMessage, _location->getRedirectionPath());
 	else if (_resourceType == AUTOINDEX)
-		_body = autoindexHTML(_uriPath);
-	else if (_method == "DELETE" && _statusCode == 200)
+		_body = autoindexHTML(_uriPath, requestUri);
+	else if (_method == "DELETE" && _statusCode == 204)
 		_body = successfulDeleteHTML(_uriPath);
 	else if (_statusCode != 200)
 	{
@@ -495,7 +506,7 @@ void	HttpRes::bodyBuild() {
 		if (error_pages.empty() || error_pages.find(_statusCode) == error_pages.end())
 			_body = errorHTML(_statusCode, _statusMessage);
 		else
-			_body = getErrorPageContent(error_pages[_statusCode], _statusCode, _statusMessage);
+			_body = getErrorPageContent(_server->getRoot() + "/" + error_pages[_statusCode], _statusCode, _statusMessage);
 	}
 	if (_body != "")
 		_contentLength = _body.length();
@@ -508,7 +519,10 @@ void	HttpRes::headerBuild() {
 	_header["Server:"] = "Webserv/1.0";
 	_header["Content-Length:"] = sizeToString(_contentLength);
 	if (_keepAlive == true)
+	{
 		_header["Connection:"] = "keep-alive";
+		_header["Keep-Alive:"] = "timeout=" + sizeToString(MAX_TIME_CLIENT_S);
+	}
 	else
 		_header["Connection:"] = "close";
 	if (_resourceType != NORMALFILE)
@@ -531,29 +545,64 @@ bool	HttpRes::methodIsAllowed(std::string method) {
 
 	if (method != "GET" && method != "POST" && method != "DELETE")
 		return (false);
-	if (_location != NULL)
+	if (_location == NULL)
+	{
+		_method = method;
+		return (true);
+	}
+	else
 	{
 		std::vector<std::string> methods = _location->getMethods();
 		for (std::vector<std::string>::iterator it = methods.begin(); it != methods.end(); it++)
 		{
 			if (method == *it)
+			{
+				_method = method;
 				return (true);
+			}
 		}
 	}
 	return (false);
 }
 
-void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
+void	HttpRes::uploadFileToServer(std::string tempFile, std::string boundary) {
 
-	bool	error = false;
+	if (_location == NULL || _location->getUploadDir() == "")
+	{
+			_statusCode = 403;
+			return ;
+	}
+	else
+	{
+		std::string uploadDir = _location->getUploadDir();
+		struct stat test;
+		if (stat(uploadDir.c_str(), &test) != 0 || !S_ISDIR(test.st_mode) || access(uploadDir.c_str(), R_OK | W_OK) != 0)
+		{
+			_statusCode = 403;
+			return ;
+		}
+		// ici, il faudra modifier le fichier tempFile en se servant de la string boundary
+		// qui fait office de delimiteur, recuperer "filename=" (pour mettre a la place de "/lol")
+		// et tout bien recouper pour qu'il ne reste que ce qu'on veut dans le fichier
+		// et enfin le deplacer a sa destination finale avec rename() (potentiellement deja existant? A verifier...)
+		// Le tout en gardant en tete que le fichier peut potentiellement etre tres gros...
+		(void)boundary;
+		std::string finalLocation = uploadDir + "/lol";
+		if (rename(tempFile.c_str(), finalLocation.c_str()) != 0)
+			_statusCode = 403;
+		else
+			_statusCode = 201;
+	}
+}
 
-	setServer(request.getHost(), servers);
-	_statusCode = checkHttpVersion(request.getHttpVersion(), error);
-	if (error == false && _server->getClientMaxBodySize() != 0)
-		_statusCode = checkRequestBodySize(_server->getClientMaxBodySize(), request.getBody().size(), error);
-	if (error == false)
-		_statusCode = checkRequestHeader(request.getHeader(), error);
-	if (error == false)
+void	HttpRes::handleRequest(HttpReq &request) {
+
+	_statusCode = checkHttpVersion(request.getHttpVersion());
+	if (_statusCode == 200 && request.body_is_too_big() == true)
+		_statusCode = 413;
+	if (_statusCode == 200)
+		_statusCode = checkRequestHeader(request.getHeader());
+	if (_statusCode == 200)
 		_statusCode = checkUri(request.getUri());
 	if (_statusCode == 200 && methodIsAllowed(request.getMethod()) == false)
 		_statusCode = 405;
@@ -563,6 +612,8 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 	{
 		if (std::remove(_uriPath.c_str()) != 0)
 			_statusCode = 400;
+		else
+			_statusCode = 204;
 	}
 	else if (_statusCode == 200 && (_resourceType == PHP || _resourceType == PYTHON))
 	{
@@ -613,30 +664,12 @@ void	HttpRes::handleRequest(HttpReq &request, std::vector<Server *> servers) {
 		}
 		return ;
 	}
+	else if (_statusCode == 200 && _method == "POST")
+		uploadFileToServer(request.getBodyTmpFile(), request.getBoundary());
 	_statusMessage = getStatus(_statusCode);
-	bodyBuild();
+	bodyBuild(request.getUri());
 	if (request.getKeepAlive() == false)
 		_keepAlive = false;
-	headerBuild();
-	formatHeader();
-}
-
-void	HttpRes::buildCgiResponse(std::string cgiOutput, bool timeout) {
-
-	if (timeout == true)
-	{
-		_statusCode = 500;
-		_statusMessage = getStatus(500);
-		_body = errorHTML(_statusCode, _statusMessage);
-		_contentLength = _body.length();
-	}
-	else
-	{
-		_statusCode = 200;
-		_statusMessage = getStatus(200);
-		_body = cgiOutput;
-		_contentLength = _body.length();
-	}
 	headerBuild();
 	formatHeader();
 }

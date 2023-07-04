@@ -3,24 +3,26 @@
 /*                                                        :::      ::::::::   */
 /*   HttpReq.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/06/20 11:31:32 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/23 17:55:45 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 #include "HttpReq.hpp"
 
-//bool	HttpReq::_verbose = false;
+std::string		HttpReq::_body_tmp_folder(BODY_TMP_FOLDER);
+unsigned int	HttpReq::_count = 0;
+
 /* ************************************************************************** */
 /*                     Constructeurs et destructeurs                          */
 /* ************************************************************************** */
-HttpReq::HttpReq(std::string &content)
+HttpReq::HttpReq(std::string &content, std::vector<Server *> servers)
 {
-	/*if (HttpReq::_verbose)
-		std::cout << "HttpReq default constructor called" << std::endl;*/
+	HttpReq::_count++;
+	this->_id = HttpReq::_count;
 	_method = "";
 	_uri = "";
 	_httpVersion = "";
@@ -30,11 +32,53 @@ HttpReq::HttpReq(std::string &content)
 	_contentType = "";
 	_contentLength = 0;
 	_keepAlive = true;
-	_body = "";
-	HttpReq::parse(content); // parsing a faire ici, have fun joseph :p  (j'ai void 'content' juste pour que ca compile)
+	_body_tmp_path = "";
+	_boundary = "";
+	HttpReq::parse(content, servers);
 }
 
-void	HttpReq::parse(std::string &content)
+HttpReq::HttpReq(HttpReq const & copy)
+{
+	*this = copy;
+}
+
+HttpReq::~HttpReq(void)
+{
+	if (access(_body_tmp_path.c_str(), F_OK) == 0 && std::remove(_body_tmp_path.c_str()))
+		std::cout << "I could not delete the file of client " << this->_id << std::endl;
+	if (_server != NULL)
+		delete _server;
+}
+
+/* ************************************************************************** */
+/*                     Surcharge d'operateur                                  */
+/* ************************************************************************** */
+HttpReq	& HttpReq::operator=(HttpReq const & httpreq)
+{
+	if (this != &httpreq)
+	{
+		_method = httpreq.getMethod();
+		_uri = httpreq.getUri();
+		_httpVersion = httpreq.getHttpVersion();
+		_header = httpreq.getHeader();
+		_host = httpreq.getHost();
+		_accept = httpreq.getAccept();
+		_contentType = httpreq.getContentType();
+		_contentLength = httpreq.getContentLength();
+		_keepAlive = httpreq.getKeepAlive();
+		_body_tmp_path = httpreq._body_tmp_path;
+		_id = httpreq._id;
+		_server = httpreq._server;
+		_boundary = httpreq._boundary;
+	}
+	return (*this);
+}
+
+/* ************************************************************************** */
+/*                     Methodes                                               */
+/* ************************************************************************** */
+
+void	HttpReq::parse(std::string &content, std::vector<Server *> servers)
 {
 	//delete \r from string
 	std::string::size_type r_pos = content.find('\r');
@@ -92,45 +136,41 @@ void	HttpReq::parse(std::string &content)
 	std::cout << _keepAlive << std::endl;
 	std::cout << _contentLength;
 	std::cout << _contentType << std::endl; */
-}
-
-HttpReq::HttpReq(HttpReq const & copy)
-{
-	*this = copy;
-	/*if (HttpReq::_verbose)
-		std::cout << "HttpReq copy constructor called" << std::endl;*/
-}
-
-HttpReq::~HttpReq(void)
-{
-	/*if (HttpReq::_verbose)
-		std::cout << "HttpReq destructor called" << std::endl;*/
-}
-
-/* ************************************************************************** */
-/*                     Surcharge d'operateur                                  */
-/* ************************************************************************** */
-HttpReq	& HttpReq::operator=(HttpReq const & httpreq)
-{
-	if (this != &httpreq)
+	setServer(servers);
+	if (_contentType != "")
 	{
-		_method = httpreq.getMethod();
-		_uri = httpreq.getUri();
-		_httpVersion = httpreq.getHttpVersion();
-		_header = httpreq.getHeader();
-		_host = httpreq.getHost();
-		_accept = httpreq.getAccept();
-		_contentType = httpreq.getContentType();
-		_contentLength = httpreq.getContentLength();
-		_keepAlive = httpreq.getKeepAlive();
-		_body = httpreq.getBody();
+		size_t bound = _contentType.find("boundary=");
+		if (bound != std::string::npos)
+		{
+			bound += 9;
+			_boundary = _contentType.substr(bound, _contentType.length() - bound);
+		}
 	}
-	return (*this);
 }
 
-/* ************************************************************************** */
-/*                     Methodes                                               */
-/* ************************************************************************** */
+void	HttpReq::setServer(std::vector<Server *> servers) {
+
+	if (servers.size() == 1)
+	{
+		_server = new Server(*servers[0]);
+		return ;
+	}
+	std::string hostname;
+	if (_host.find(':') != std::string::npos)
+		hostname = _host.substr(0, _host.length() - _host.find(':'));
+	else
+		hostname = _host;
+	for (std::vector<Server *>::iterator it = servers.begin(); it != servers.end(); it++)
+	{
+		if ((*it)->getServerName() == _host)
+		{
+			_server = new Server(*(*it));
+			return;
+		}
+	}
+	_server = new Server(*servers[0]);
+}
+
 std::string		HttpReq::getMethod() const {
 
 	return (_method);
@@ -166,7 +206,7 @@ std::string		HttpReq::getContentType() const {
 	return (_contentType);
 }
 
-int	HttpReq::getContentLength() const {
+unsigned int	HttpReq::getContentLength() const {
 
 	return (_contentLength);
 }
@@ -176,12 +216,57 @@ bool	HttpReq::getKeepAlive() const {
 	return (_keepAlive);
 }
 
-std::string		HttpReq::getBody() const {
+std::string		HttpReq::getBodyTmpFile() const {
 
-	return (_body);
+	return (_body_tmp_path);
 }
 
-void		HttpReq::setBody(std::string &body) {
+Server *HttpReq::getServer() const {
 
-	this->_body = body;
+	return (_server);
+}
+
+std::string	HttpReq::getBoundary() const {
+
+	return (_boundary);
+}
+
+void		HttpReq::add_to_body_file(const char *str)
+{
+	if (_body_tmp_path == "")
+	{
+		std::ostringstream	file_path;
+		file_path << HttpReq::_body_tmp_folder << "body_client_" << this->_id;	
+		this->_body_tmp_path = file_path.str();
+	}
+	if (!this->_body_file.is_open())
+	{
+		this->_body_file.open(this->_body_tmp_path.c_str());
+	}
+	if (this->_body_file.fail())
+		throw HttpReqException("Error opening the body file");
+	this->_body_file << str;
+}
+
+void	HttpReq::close_body_file()
+{
+	this->_body_file.close();
+}
+
+bool	HttpReq::body_is_too_big() const
+{
+	if (this->getContentLength() > this->_server->getClientMaxBodySize())
+		return (true);
+	else
+		return (false);
+}
+
+bool	HttpReq::ok_to_save_body() const
+{
+	
+	if (this->getContentLength() == 0 || this->getMethod() != "POST" 
+	|| body_is_too_big())
+		return (false);
+	else
+		return (true);
 }

@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:33 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/19 15:20:57 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/23 14:42:05 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ class Launcher
 {
 private:
 	std::vector<Server> 			_servers;
-	std::vector<Client> 			_clients;
+	std::list<Client> 				_clients;
 	std::string						_path_conf;
 	static bool						_verbose;
 	std::vector<struct epoll_event>	_ep_event;
@@ -48,11 +48,12 @@ public:
 	void							process_reading_existing_client(int i);
 	void							process_writing_to_client(int i);
 	void							print_situation(void);
-	std::vector<Client>::iterator	find_client(int socket);
+	std::list<Client>::iterator		find_client(int socket);
 	void							initiate_servers_listening(void);
 	void							check_timeout_clients(void);
-	void							remove_client(std::vector<Client>::iterator client);
-
+	void							remove_client(std::list<Client>::iterator client);
+	void							test_folder_tmp(void) const;
+	
 	class LauncherException : public std::exception {
 	public :
 		LauncherException(std::string errMessage) throw() {

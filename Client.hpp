@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/20 12:11:35 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/06/23 15:40:08 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,13 +23,14 @@ class Server;
 
 typedef enum e_status_c {
 	WANT_TO_SEND_REQ,
-	SENDING_REQ_HEADER,
-	SENDING_REQ_BODY,
-	REQ_SENT,
+	RECIVING_REQ_HEADER,
+	RECIVING_REQ_BODY,
+	REQ_RECIVED,
 	WAITING_FOR_RES,
-	RECIVING_RES_HEADER,
-	RECIVING_RES_BODY,
-	RES_SENT
+	SENDING_RES_HEADER,
+	SENDING_RES_BODY,
+	RES_SENT, 
+	ERROR_WHILE_SENDING
 }				t_status_c;
 
 class Client
@@ -42,14 +43,20 @@ private:
 	std::string				_incoming_msg;
 	std::vector< Server *> 	_server_ptr;
 	struct sockaddr_in		_client_addr;
-	static bool				_verbose;
 	std::string				_req_recived;
 	std::string				_req_header;
 	std::string				_req_body;
-	int						_id;
-	int						_byte_sent;
+	unsigned int			_id;
+	unsigned int			_byte_sent_header;
+	unsigned int			_byte_sent_body;
+	unsigned int			_byte_recived_req_body;
 	struct timeval			_last_activity;
-	static int				_count;
+	std::ifstream 			_file_to_send;
+	unsigned int			_file_to_send_size;
+	
+	
+	static bool				_verbose;
+	static unsigned int		_count;
 	
 public:
 	Client(void);
@@ -64,15 +71,23 @@ public:
 	void						SetStatus(t_status_c status);
 	t_status_c					getStatus(void) const;
 	struct sockaddr_in		 	getClient_addr(void) const;
-	int							getId(void) const;
+	unsigned int				getId(void) const;
 	void						print_ClientServer(void) const;
-	std::string					get_res_string(void) const;
-	int							get_byte_sent(void) const;
-	void						set_byte_sent(int byte);
+	int							get_byte_sent_header(void) const;
+	void						set_byte_sent_header(int byte);
 	void						send_response(void);
-	void						receive_request(void);
+	void						send_response_header(void);
+	void						send_response_body(void);
+	void						send_response_body_error(void);
+	void						send_response_body_normal_file(void);
+	void						send_response_body_cgi(void);
+	int							receive_request(void);
+	int							receive_request_header(void);
+	int							receive_request_body(void);
 	void						reset_last_activity(void);
-	unsigned long				time_since_last_activity_ms(void) const;
+	unsigned long				time_since_last_activity_us(void) const;
+	void						reset_client(void);
+	bool						getKeepAlive(void) const;
 	
 	class ClientException : public std::exception {
 	public :

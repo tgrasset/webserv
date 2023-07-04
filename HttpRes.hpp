@@ -33,7 +33,7 @@ class HttpRes
 {
 	public:
 
-		HttpRes(HttpReq &request, std::vector<Server *> servers);
+		HttpRes(HttpReq &request);
 		HttpRes(HttpRes const & copy);
 		~HttpRes(void);
 
@@ -49,6 +49,7 @@ class HttpRes
 		std::string							getFormattedHeader() const;
 		bool								getKeepAlive() const;
 		std::string							getUriPath() const;
+		std::string							getUriPathInfo() const;
 		std::string 						getUriQuery() const;
 		r_type								getResourceType() const;
 		Location							*getLocation() const;
@@ -56,20 +57,18 @@ class HttpRes
 		int									getCgiPipeFd() const;
 		pid_t								getCgiPid() const;
 
-		void	handleRequest(HttpReq &request, std::vector<Server *> servers);
-		void	setServer(std::string reqHost, std::vector<Server *> servers);
-		int		checkHttpVersion(std::string version, bool &error);
+		void	handleRequest(HttpReq &request);
+		int		checkHttpVersion(std::string version);
 		int		checkUri(std::string uri);
 		r_type	checkResourceType();
-		int		checkRequestBodySize(int maxSize, int bodySize, bool &error);
-		int		checkRequestHeader(std::map<std::string, std::string> header, bool &error);
-		void	bodyBuild();
+		int		checkRequestHeader(std::map<std::string, std::string> header);
+		void	bodyBuild(std::string requestUri);
 		void	headerBuild();
 		void	formatHeader();
 		void	fillMimeTypes();
 		void	checkIfAcceptable(std::vector<std::string> acceptable);
 		bool	methodIsAllowed(std::string method);
-		void	buildCgiResponse(std::string cgiOutput, bool timeout);
+		void	uploadFileToServer(std::string tempFile, std::string boundary);
 
 
 	private:
@@ -88,6 +87,7 @@ class HttpRes
 		std::string							_formattedHeader;
 		bool								_keepAlive;
 		std::string							_uriPath;
+		std::string							_uriPathInfo;
 		r_type								_resourceType;
 		std::string							_uriQuery;
 		size_t								_contentLength;

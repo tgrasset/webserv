@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/12 15:27:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/15 16:02:37 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/06/23 16:49:05 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ Location::Location(void)
 	_cgiLocation = false;
 	_redirectionCode = 0;
 	_redirection = "";
+	_uploadDir = "";
 }
 
 Location::Location(Location const &src) 
@@ -55,6 +56,11 @@ Location &Location::operator=(Location const &rhs)
 		_index = rhs.getIndex();
 		_autoindex = rhs.getAutoIndex();
 		_methods = rhs.getMethods();
+		_cgiLocation = rhs.getCgiBool();
+		_redirectionCode = rhs.getRedirectionCode();
+		_redirection = rhs.getRedirectionPath();
+		_cgiExtensionAndPath = rhs.getCgiExtensionAndPath();
+		_uploadDir = rhs.getUploadDir();
 	}
     return (*this);
 }
@@ -105,6 +111,11 @@ std::string	Location::getRedirectionPath(void) const {
 std::map<std::string, std::string>	Location::getCgiExtensionAndPath(void) const {
 
 	return (_cgiExtensionAndPath);
+}
+
+std::string	Location::getUploadDir(void) const {
+
+	return (_uploadDir);
 }
 
 void	Location::setPath(std::string path) {
@@ -215,6 +226,11 @@ void	Location::setRedirectionPath(std::string path) {
 	_redirection = path;
 }
 
+void	Location::setUploadDir(std::string dir) {
+
+	_uploadDir = dir;
+}
+
 void	Location::checkConfig(std::string serverRoot) {
 
 	if (_cgiLocation == true && _index == "")
@@ -235,4 +251,12 @@ void	Location::checkConfig(std::string serverRoot) {
 		throw LocationException("Index file in 'location' context doesn't exist or couldn't be read");
 	if (_redirectionCode != 0 && checkFile(_redirection, serverRoot) == false)
 		throw LocationException("Invalid redirection path at the end of 'return' line");
+	if (_uploadDir != "")
+	{
+		struct stat test;
+		std::string dirPath = _root + "/" + _uploadDir;
+		if (stat(dirPath.c_str(), &test) != 0 || !S_ISDIR(test.st_mode) || access(dirPath.c_str(), R_OK | W_OK) != 0)
+			throw LocationException("Invalid upload directory path at the end of 'upload_dir' line");
+		_uploadDir = dirPath;
+	}
 }
