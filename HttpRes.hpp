@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/23 19:21:32 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/07/04 14:11:59 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,11 @@
 # include "webserv.hpp"
 # include "HttpReq.hpp"
 # include "Server.hpp"
+# include "CGI.hpp"
+
+class HttpReq;
+class Server;
+class CGI;
 
 typedef enum e_type_c {
 	NORMALFILE,
