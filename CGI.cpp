@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/29 18:53:19 by jlanza            #+#    #+#             */
-/*   Updated: 2023/07/04 16:34:01 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/07/05 14:54:29 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,18 +36,8 @@ CGI & CGI::operator=(CGI const & rhs)
 
 extern	char** environ;
 
-char	**CGI::setUpEnv(void)
+void	CGI::setUpEnv(void)
 {
-	//1 convertir env en vector
-	std::vector<std::string>	vector_env;
-	int	i = 0;
-	while (environ[i])
-	{
-		vector_env.push_back(environ[i]);
-		i++;
-	}
-
-	//2 ajouter les variables
 
 	setenv("SERVER_SOFTWARE","Webserv/1.0", 1);
 	setenv("SERVER_NAME",this->_res->getServer()->getServerName().c_str(), 1);
@@ -68,12 +58,5 @@ char	**CGI::setUpEnv(void)
 	oss2 << _request->getContentLength();
 	std::string contentLen = oss2.str();
 	setenv("CONTENT_LENGTH", contentLen.c_str(), 1);
-	//pour la compil
-	return (NULL);
-}
 
-char	**CGI::vector_to_char(std::vector<std::string> vector)
-{
-	(void)vector;
-	return (NULL);
 }

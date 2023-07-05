@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CGI.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/29 18:53:45 by jlanza            #+#    #+#             */
-/*   Updated: 2023/07/04 14:19:37 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/07/05 14:54:58 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,8 +36,8 @@ public:
 	CGI(CGI const & src);
 	CGI & operator=(CGI const & rhs);
 
-	char	**setUpEnv(void);
-	char	**vector_to_char(std::vector<std::string> vector);
+	void	setUpEnv(void);
+
 };
 
 #endif
