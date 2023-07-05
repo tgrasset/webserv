@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/07/05 17:04:18 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/07/05 17:13:03 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -673,6 +673,9 @@ void	HttpRes::handleRequest(HttpReq &request) {
 			std::cerr << pathToPython << std::endl << std::endl;
 			std::cerr << cmd[0] << std::endl;
 			std::cerr << cmd[1] << std::endl;
+
+			for (int j = 0; environ[j] != NULL; j++)
+				std::cerr << environ[j] << std::endl;
 			//std::cerr << cmd[2] << std::endl << std::endl;
 			if (execve(pathToPython.c_str(), cmd, environ) == -1)
 				std::cerr << "execve failed" << std::endl;
