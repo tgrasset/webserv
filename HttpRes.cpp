@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/07/05 12:50:47 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/07/05 14:30:14 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -601,10 +601,7 @@ void	HttpRes::uploadFileToServer(std::string tempFile, std::string boundary) {
 			if (line.find(boundary) != std::string::npos)
 				header = true;
 			else if (header == true && line == "\r")
-			{
-				std::cout << "Debug\n\n" << std::endl;
 				header = false;
-			}
 			else if (header == true)
 			{
 				pos = line.find("filename=");
