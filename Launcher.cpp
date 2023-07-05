@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/23 18:22:09 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/07/05 16:00:45 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -300,6 +300,7 @@ void	Launcher::print_situation(void)
 		std::cout << "Listen Socket : " << it->getListenSocket() << " | Name : " << it->getServerName()
 		<< " | Host : " << it->getHost() << " | Port : " << ntohs(it->getPort()) << std::endl << std::endl;
 	}*/
+	return;
 	for (std::list<Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
 	{
 		if (it == this->_clients.begin())
