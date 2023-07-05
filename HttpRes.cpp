@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/07/04 14:18:10 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/07/05 12:50:47 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -581,17 +581,70 @@ void	HttpRes::uploadFileToServer(std::string tempFile, std::string boundary) {
 			_statusCode = 403;
 			return ;
 		}
-		// ici, il faudra modifier le fichier tempFile en se servant de la string boundary
-		// qui fait office de delimiteur, recuperer "filename=" (pour mettre a la place de "/lol")
-		// et tout bien recouper pour qu'il ne reste que ce qu'on veut dans le fichier
-		// et enfin le deplacer a sa destination finale avec rename() (potentiellement deja existant? A verifier...)
-		// Le tout en gardant en tete que le fichier peut potentiellement etre tres gros...
-		(void)boundary;
-		std::string finalLocation = uploadDir + "/lol";
-		if (rename(tempFile.c_str(), finalLocation.c_str()) != 0)
+		std::ifstream tmpFile;
+		std::ofstream output;
+		std::string line;
+		std::string fileName = "";
+		std::string tempName = "";
+		std::string finalDest = "";
+		bool	header = false;
+		size_t	pos;
+		size_t	pos2;
+		tmpFile.open(tempFile.c_str());
+		if (tmpFile.fail())
+		{
 			_statusCode = 403;
-		else
-			_statusCode = 201;
+			return ;
+		}
+		while (getline(tmpFile, line))
+		{
+			if (line.find(boundary) != std::string::npos)
+				header = true;
+			else if (header == true && line == "\r")
+			{
+				std::cout << "Debug\n\n" << std::endl;
+				header = false;
+			}
+			else if (header == true)
+			{
+				pos = line.find("filename=");
+				if (pos != std::string::npos)
+				{
+					pos += 10;
+					for (pos2 = pos; line[pos2] != '"'; pos2++)
+						;
+					tempName = line.substr(pos, pos2 - pos);
+					if (fileName == "" | tempName != fileName)
+					{
+						if (fileName != "")
+							output.close();
+						fileName = tempName;
+						finalDest = uploadDir + "/" + fileName;
+						output.open(finalDest.c_str());
+						if (output.fail())
+						{
+							_statusCode = 403;
+							tmpFile.close();
+							return ;
+						}
+					}
+					else
+						continue;
+				}
+				else
+					continue;
+			}
+			else
+			{
+				if (fileName != "" && line != "\r")
+					output << line << std::endl;
+			}
+		}
+		if (fileName != "")
+			output.close();
+		tmpFile.close();
+		_statusCode = 201;
+		std::remove(tempFile.c_str());
 	}
 }
 
@@ -617,10 +670,6 @@ void	HttpRes::handleRequest(HttpReq &request) {
 	}
 	else if (_statusCode == 200 && (_resourceType == PHP || _resourceType == PYTHON))
 	{
-		// C'est la que ca se passe pour les CGI, qui doivent etre lances ici avec pipe, fork, dup. Il faut remplir _cgiPid avec le pid du process
-		// et _cgiPipeFd avec le fd de sortie du pipe dans lequel il va ecrire, pour que la classe client puisse faire son taf.
-		// La reponse pourra ensuite etre creee grace a la methode buildCgiResponse ci-dessous depuis le client.
-
 		int	fd_pipe[2];
 		if (pipe(fd_pipe) == -1)
 		{

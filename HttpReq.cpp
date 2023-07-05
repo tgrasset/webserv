@@ -137,7 +137,7 @@ void	HttpReq::parse(std::string &content, std::vector<Server *> servers)
 	std::cout << _contentLength;
 	std::cout << _contentType << std::endl; */
 	setServer(servers);
-	if (_contentType != "")
+	if (_contentType.find("multipart") != std::string::npos)
 	{
 		size_t bound = _contentType.find("boundary=");
 		if (bound != std::string::npos)
