@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/07/04 14:11:59 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/07/04 15:30:52 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,8 @@ class HttpRes
 		bool								getKeepAlive() const;
 		std::string							getUriPath() const;
 		std::string							getUriPathInfo() const;
-		std::string 						getUriQuery() const;
+		std::string							getScriptName() const;
+		std::string							getUriQuery() const;
 		r_type								getResourceType() const;
 		Location							*getLocation() const;
 		size_t								getContentLength() const;
@@ -92,6 +93,7 @@ class HttpRes
 		bool								_keepAlive;
 		std::string							_uriPath;
 		std::string							_uriPathInfo;
+		std::string							_script_name;
 		r_type								_resourceType;
 		std::string							_uriQuery;
 		size_t								_contentLength;

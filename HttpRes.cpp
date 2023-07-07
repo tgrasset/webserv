@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/07/05 14:30:14 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/07/07 13:48:07 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,7 @@ HttpRes	& HttpRes::operator=(HttpRes const & httpres)
 		_server = httpres.getServer();
 		_keepAlive = httpres.getKeepAlive();
 		_uriPath = httpres.getUriPath();
+		_uriPathInfo = httpres.getUriPathInfo();
 		_uriQuery = httpres.getUriQuery();
 		_resourceType = httpres.getResourceType();
 		_location = httpres.getLocation();
@@ -147,6 +148,11 @@ std::string	HttpRes::getUriPathInfo() const {
 std::string HttpRes::getUriQuery() const {
 
 	return (_uriQuery);
+}
+
+std::string	HttpRes::getScriptName() const {
+
+	return (_script_name);
 }
 
 r_type	HttpRes::getResourceType() const {
@@ -391,7 +397,7 @@ r_type HttpRes::checkResourceType() {
 }
 
 int	HttpRes::checkUri(std::string uri) {
-	
+
 	size_t separator = uri.find('?');
 	size_t end = uri.rfind('#');
 	std::string tempPath;
@@ -436,6 +442,7 @@ int	HttpRes::checkUri(std::string uri) {
 		else if (uri[separator + 1] != '\0')
 			_uriQuery = uri.substr(separator + 1, end - (separator + 1));
 	}
+	_script_name = tempPath;
 	end = 0;
 	std::vector<Location> locs = _server->getLocations();
 	for (std::vector<Location>::iterator it = locs.begin(); it != locs.end(); it++)
@@ -468,8 +475,9 @@ int	HttpRes::checkUri(std::string uri) {
 	else
 	{
 		std::string tempPath2 = tempPath.substr(_location->getPath().length(), tempPath.length() - _location->getPath().length());
-		_uriPath = _location->getRoot() + "/" + tempPath2;
+		_uriPath = _location->getRoot() + "" + tempPath2;
 	}
+	std::cerr << _uriPathInfo << std::endl;
 	_resourceType = checkResourceType();
 	if (_resourceType == NOT_FOUND)
 		return (404);
@@ -693,18 +701,29 @@ void	HttpRes::handleRequest(HttpReq &request) {
 			cgi.setUpEnv();
 
 			//setup the execve
-			std::vector<std::string> cmd;
-			cmd.insert(cmd.begin(), _uriPath);
+			char *cmd[3];
+
+			std::string cmd0;
 			if (_resourceType == PYTHON)
-				cmd.insert(cmd.begin(), "python3");
+				cmd0 = "python3";
 			if (_resourceType == PHP)
-				cmd.insert(cmd.begin(), "php");
-			cmd.push_back(NULL);
-			char **command = reinterpret_cast<char**>(&cmd[0]);
+				cmd0 = "php";
+			cmd[0] = const_cast<char *>(cmd0.c_str());
+			std::string cmd1 = ("./" + _uriPath);
+			cmd[1] = const_cast<char *>(cmd1.c_str());
+			cmd[2] = NULL;
+			//char **command = reinterpret_cast<char**>(&cmd[0]);
 			std::string	pathToPython = this->_location->getCgiExtensionAndPath()[".py"];
 
 			//execve
-			if (execve(pathToPython.c_str(), command, environ) == -1)
+			std::cerr << pathToPython << std::endl << std::endl;
+			std::cerr << cmd[0] << std::endl;
+			std::cerr << cmd[1] << std::endl;
+
+			for (int j = 0; environ[j] != NULL; j++)
+				std::cerr << environ[j] << std::endl;
+			//std::cerr << cmd[2] << std::endl << std::endl;
+			if (execve(pathToPython.c_str(), cmd, environ) == -1)
 				std::cerr << "execve failed" << std::endl;
 				//throw execption
 		}
