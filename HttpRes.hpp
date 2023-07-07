@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/07/04 15:30:52 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/07/07 16:01:54 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,10 @@ class HttpRes
 		size_t								getContentLength() const;
 		int									getCgiPipeFd() const;
 		pid_t								getCgiPid() const;
+
+		void								setStatusCode(int statusCode);
+		void								setCgiPipeFd(int cgiPipeFd);
+		void								setCgiPid(int cgiPid);
 
 		void	handleRequest(HttpReq &request);
 		int		checkHttpVersion(std::string version);

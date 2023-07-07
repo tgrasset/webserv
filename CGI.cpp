@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/29 18:53:19 by jlanza            #+#    #+#             */
-/*   Updated: 2023/07/07 13:42:04 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/07/07 16:05:34 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,4 +59,72 @@ void	CGI::setUpEnv(void)
 	std::string contentLen = oss2.str();
 	setenv("CONTENT_LENGTH", contentLen.c_str(), 1);
 
+}
+
+void	CGI::execCGI(void)
+{
+	int	fd_pipe[2];
+	if (pipe(fd_pipe) == -1)
+	{
+		std::cerr << "Failed to create pipe." << std::endl;
+		_res->setStatusCode(500);
+		return ;
+	}
+
+	_res->setCgiPid(fd_pipe[0]);
+	_res->setCgiPid(fork());
+	if (_res->getCgiPid() == -1)
+	{
+		std::cerr << "Failed to fork." << std::endl;
+		_res->setStatusCode(500);
+		return ;
+	}
+
+	if (_res->getCgiPid() == 0)
+	{
+		close(fd_pipe[0]);
+		if (dup2(fd_pipe[1], STDOUT_FILENO) == -1)
+		{
+			std::cerr << "Failed to dup" << std::endl;
+			killMe();
+		}
+		//setup the env
+		this->setUpEnv();
+
+		//setup the execve
+		char *cmd[3];
+
+		std::string cmd0;
+		if (_res->getResourceType() == PYTHON)
+			cmd0 = "python3";
+		else if (_res->getResourceType() == PHP)
+			cmd0 = "php";
+		cmd[0] = const_cast<char *>(cmd0.c_str());
+		std::string cmd1 = ("./" + _res->getUriPath());
+		cmd[1] = const_cast<char *>(cmd1.c_str());
+		cmd[2] = NULL;
+		//char **command = reinterpret_cast<char**>(&cmd[0]);
+		std::string	pathToPython = _res->getLocation()->getCgiExtensionAndPath()[".py"];
+
+		//execve
+		std::cerr << pathToPython << std::endl << std::endl;
+		std::cerr << cmd[0] << std::endl;
+		std::cerr << cmd[1] << std::endl;
+
+		for (int j = 0; environ[j] != NULL; j++)
+			std::cerr << environ[j] << std::endl;
+
+		if (execve(pathToPython.c_str(), cmd, environ) == -1)
+		{
+			std::cerr << "execve failed" << std::endl;
+			killMe();
+		}
+	}
+
+}
+
+void	CGI::killMe(void)
+{
+	while (42)
+		;
 }

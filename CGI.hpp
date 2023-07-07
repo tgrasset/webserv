@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/29 18:53:45 by jlanza            #+#    #+#             */
-/*   Updated: 2023/07/05 14:54:58 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/07/07 14:13:24 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,8 @@ public:
 	CGI & operator=(CGI const & rhs);
 
 	void	setUpEnv(void);
+	void	execCGI(void);
+	void	killMe(void);
 
 };
 
