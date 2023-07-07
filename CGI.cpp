@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/29 18:53:19 by jlanza            #+#    #+#             */
-/*   Updated: 2023/07/05 14:54:29 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/07/07 13:42:04 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ void	CGI::setUpEnv(void)
 	setenv("GATEWAY_INTERFACE","CGI/1.1", 1);
 
 	setenv("SERVER_PROTOCOL","HTTP/1.1", 1);
-	std::ostringstream oss1;
+	std::ostringstream oss1; //verifier ca
 	oss1 << _res->getServer()->getPort();
 	std::string portString = oss1.str();
 	setenv("SERVER_PORT", portString.c_str(), 1);
