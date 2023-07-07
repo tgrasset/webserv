@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/07/07 13:48:07 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/07/07 13:56:30 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -678,54 +678,62 @@ void	HttpRes::handleRequest(HttpReq &request) {
 		int	fd_pipe[2];
 		if (pipe(fd_pipe) == -1)
 		{
-			//throw exeption
 			std::cerr << "Failed to create pipe." << std::endl;
+			_statusCode = 500;
 		}
-		_cgiPipeFd = fd_pipe[0];
-		_cgiPid = fork();
-		if (_cgiPid == -1)
+		else
 		{
-			//throw exeption
-			std::cerr << "Failed to fork." << std::endl;
-		}
-		if (_cgiPid == 0)
-		{
-			close(fd_pipe[0]);
-			if (dup2(fd_pipe[1], STDOUT_FILENO) == -1)
+			_cgiPipeFd = fd_pipe[0];
+			_cgiPid = fork();
+			if (_cgiPid == -1)
 			{
-				std::cerr << "Failed to dup" << std::endl;
-				//throw exeption
+				std::cerr << "Failed to fork." << std::endl;
+				_statusCode = 500;
 			}
-			CGI cgi(request, *this);
-			//setup the env
-			cgi.setUpEnv();
+			else
+			{
+				if (_cgiPid == 0)
+				{
+					close(fd_pipe[0]);
+					if (dup2(fd_pipe[1], STDOUT_FILENO) == -1)
+					{
+						std::cerr << "Failed to dup" << std::endl;
+						while (42)
+							;
+					}
+					CGI cgi(request, *this);
+					//setup the env
+					cgi.setUpEnv();
 
-			//setup the execve
-			char *cmd[3];
+					//setup the execve
+					char *cmd[3];
 
-			std::string cmd0;
-			if (_resourceType == PYTHON)
-				cmd0 = "python3";
-			if (_resourceType == PHP)
-				cmd0 = "php";
-			cmd[0] = const_cast<char *>(cmd0.c_str());
-			std::string cmd1 = ("./" + _uriPath);
-			cmd[1] = const_cast<char *>(cmd1.c_str());
-			cmd[2] = NULL;
-			//char **command = reinterpret_cast<char**>(&cmd[0]);
-			std::string	pathToPython = this->_location->getCgiExtensionAndPath()[".py"];
+					std::string cmd0;
+					if (_resourceType == PYTHON)
+						cmd0 = "python3";
+					if (_resourceType == PHP)
+						cmd0 = "php";
+					cmd[0] = const_cast<char *>(cmd0.c_str());
+					std::string cmd1 = ("./" + _uriPath);
+					cmd[1] = const_cast<char *>(cmd1.c_str());
+					cmd[2] = NULL;
+					//char **command = reinterpret_cast<char**>(&cmd[0]);
+					std::string	pathToPython = this->_location->getCgiExtensionAndPath()[".py"];
 
-			//execve
-			std::cerr << pathToPython << std::endl << std::endl;
-			std::cerr << cmd[0] << std::endl;
-			std::cerr << cmd[1] << std::endl;
+					//execve
+					std::cerr << pathToPython << std::endl << std::endl;
+					std::cerr << cmd[0] << std::endl;
+					std::cerr << cmd[1] << std::endl;
 
-			for (int j = 0; environ[j] != NULL; j++)
-				std::cerr << environ[j] << std::endl;
-			//std::cerr << cmd[2] << std::endl << std::endl;
-			if (execve(pathToPython.c_str(), cmd, environ) == -1)
-				std::cerr << "execve failed" << std::endl;
-				//throw execption
+					for (int j = 0; environ[j] != NULL; j++)
+						std::cerr << environ[j] << std::endl;
+					//std::cerr << cmd[2] << std::endl << std::endl;
+					if (execve(pathToPython.c_str(), cmd, environ) == -1)
+						std::cerr << "execve failed" << std::endl;
+						//throw execption
+			}
+		}
+
 		}
 		return ;
 	}
