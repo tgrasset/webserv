@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 20:36:38 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/23 14:41:36 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/07/07 18:25:19 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,10 @@ int main(int ac, char **av)
 	}
 	catch (Launcher::SigException &e) {
 		std::cerr << std::endl << "See you soon!" << std::endl;
+		return (EXIT_SUCCESS);
+	}
+	catch (CGI::CGIexception &e)
+	{
 		return (EXIT_SUCCESS);
 	}
 	catch (std::exception &e) {

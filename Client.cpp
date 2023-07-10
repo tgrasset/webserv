@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/23 15:39:47 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/07/07 20:51:16 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,7 +154,7 @@ int	Client::receive_request(void)
 
 int	Client::receive_request_header(void)
 {
-	
+
 	int byte_recv = 0;
 	char recvline[BUFFER_SIZE + 1];
 	memset(recvline, 0, BUFFER_SIZE + 1);
@@ -183,7 +183,7 @@ int	Client::receive_request_header(void)
 				this->_status = RECIVING_REQ_BODY;
 				if (this->_req_recived.size() > pos_end_header + 4)
 				{
-					std::string to_add_body = this->_req_recived.substr(pos_end_header + 4, this->_req_recived.size() - pos_end_header - 4);			
+					std::string to_add_body = this->_req_recived.substr(pos_end_header + 4, this->_req_recived.size() - pos_end_header - 4);
 					this->_req->add_to_body_file(to_add_body.c_str());
 					this->_byte_recived_req_body += to_add_body.size();
 					if (this->_byte_recived_req_body == this->_req->getContentLength())
@@ -279,7 +279,7 @@ void	Client::send_response_header(void)
 void	Client::send_response_body(void)
 {
 	std::string	res_body = this->_res->getBody();
-	
+
 	if (res_body.size() != 0)
 		this->send_response_body_error();
 	else if (this->_res && this->_res->getResourceType() == NORMALFILE)
@@ -292,7 +292,7 @@ void	Client::send_response_body_error(void)
 {
 	int	byte_sent = 0;
 	std::string	res_body = this->_res->getBody();
-	
+
 	std::string res_body_remain = res_body.substr(this->_byte_sent_body, res_body.size() - this->_byte_sent_body);
 	std::string	to_send_body;
 	if (res_body_remain.size() <= BUFFER_SIZE)
@@ -324,7 +324,7 @@ void	Client::send_response_body_normal_file(void)
 {
 	int byte_read_file = 0;
 	int	byte_sent = 0;
-		
+
 	if (!this->_file_to_send.is_open())
 	{
 		this->_file_to_send.open(this->_res->getUriPath().c_str(), std::ifstream::binary);
@@ -332,7 +332,7 @@ void	Client::send_response_body_normal_file(void)
 		this->_file_to_send_size = this->_file_to_send.tellg();
 		this->_file_to_send.seekg (0, _file_to_send.beg);
 	}
-		
+
 	if (this->_file_to_send.fail())
 		throw ClientException(strerror(errno));
 	char * buffer = new char [BUFFER_SIZE];
@@ -367,7 +367,7 @@ void	Client::send_response_body_normal_file(void)
 
 void	Client::send_response_body_cgi(void)
 {
-	
+
 }
 
 void	Client::reset_last_activity(void)

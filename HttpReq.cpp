@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpReq.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/06/23 17:55:45 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/07/07 20:51:21 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -236,7 +236,7 @@ void		HttpReq::add_to_body_file(const char *str)
 	if (_body_tmp_path == "")
 	{
 		std::ostringstream	file_path;
-		file_path << HttpReq::_body_tmp_folder << "body_client_" << this->_id;	
+		file_path << HttpReq::_body_tmp_folder << "body_client_" << this->_id;
 		this->_body_tmp_path = file_path.str();
 	}
 	if (!this->_body_file.is_open())
@@ -263,8 +263,8 @@ bool	HttpReq::body_is_too_big() const
 
 bool	HttpReq::ok_to_save_body() const
 {
-	
-	if (this->getContentLength() == 0 || this->getMethod() != "POST" 
+
+	if (this->getContentLength() == 0 || this->getMethod() != "POST"
 	|| body_is_too_big())
 		return (false);
 	else
