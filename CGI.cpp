@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/29 18:53:19 by jlanza            #+#    #+#             */
-/*   Updated: 2023/07/11 16:37:26 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/07/11 17:20:15 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,14 +125,12 @@ void	CGI::execCGI(void)
 		else if (_res->getResourceType() == PHP)
 		{
 			pathToExec = _res->getLocation()->getCgiExtensionAndPath()[".php"];
-			//setenv("SCRIPT_FILENAME", pathToExec.c_str(), 1);
 			setenv("REDIRECT_STATUS", "200", 1);
 		}
 
 		//EXECUTION
 		if (execve(pathToExec.c_str(), cmd, environ) == -1)
 		{
-			std::cerr << "execve failed" << std::endl;
 			if (_res->getMethod() == "POST")
 				close(file_fd);
 			killMe();
