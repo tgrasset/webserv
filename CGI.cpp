@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/29 18:53:19 by jlanza            #+#    #+#             */
-/*   Updated: 2023/07/10 19:20:38 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/07/11 16:37:26 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,7 +113,7 @@ void	CGI::execCGI(void)
 		if (_res->getResourceType() == PYTHON)
 			cmd0 = "python3";
 		else if (_res->getResourceType() == PHP)
-			cmd0 = "php";
+			cmd0 = "php-cgi";
 		cmd[0] = const_cast<char *>(cmd0.c_str());
 		std::string cmd1 = ("./" + _res->getUriPath());
 		cmd[1] = const_cast<char *>(cmd1.c_str());
@@ -125,7 +125,8 @@ void	CGI::execCGI(void)
 		else if (_res->getResourceType() == PHP)
 		{
 			pathToExec = _res->getLocation()->getCgiExtensionAndPath()[".php"];
-			setenv("SCRIPT_FILENAME", pathToExec.c_str(), 1);
+			//setenv("SCRIPT_FILENAME", pathToExec.c_str(), 1);
+			setenv("REDIRECT_STATUS", "200", 1);
 		}
 
 		//EXECUTION

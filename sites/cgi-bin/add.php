@@ -1,10 +1,7 @@
 <?php
 
-// Get the query string from the URL
-$queryString = $_SERVER['QUERY_STRING'];
-
 // Parse the query string
-parse_str($queryString, $requestData);
+parse_str($requestData);
 
 // Get data from the parsed request
 $a = isset($requestData['a']) ? $requestData['a'] : null;
