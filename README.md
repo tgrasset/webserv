@@ -1,3 +1,15 @@
+# Code review retour de vacances 20/07
+- Gestion des fichiers temporaires : 
+	- Il faut ameliorer la suppression des fichiers temps avec le body des requetes clients. Verifier que le fichier est bien supprimeau destructeur de la requete, et que cette destruction se fait bien quand il faut. 
+- Creation fichier temporaire de body de response CGI. **=> JOSEPH PREND L'ACTION**
+	- Ce fichier permet de faire un header avec le content lenght comme pour les fichiers statique. il permet de gerer l'envoie de la meme maniere que les fichiers classique. 
+	- Une fois l'envoie a ete fait, il supprime le fichier.
+
+- ATTENTION le sujet dit **Interdit de write dans n'importe quel fd sans utiliser le pool** => comment on fait si on a un gros fichier qui prend 1000 ans a se faire ? 
+	- Ah mais on est sur un process qui a fork, dond on peut faire l'ecriture en //. il faut juste regader si la creation du fichier est termine. 
+
+
+
 # Fonctions deja connues 
 - execve 
 - dup
@@ -119,3 +131,4 @@ https://youtu.be/tAGF0T2cXRA
 	**Attention** si deux serveurs declares ont le meme port et meme host, il faut qu'on utilise le socket deja en place. (on listen sur le meme socket, mais en fonction de la requette on utilisera les param d'un serveur ou d'un autre.)
 
 - Josef prend en charge la creation de la classe requete HTTP qui parse une string comme il faut.
+
