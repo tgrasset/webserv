@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/07/07 20:51:16 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/08/04 15:57:11 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ Client::Client(struct sockaddr_in client_addr, int com_socket)
 	this->_id = Client::_count;
 	this->_com_socket = com_socket;
 	this->_client_addr = client_addr;
-	this->_status = WANT_TO_SEND_REQ;
+	this->_status = WANT_TO_RECIVE_REQ;
 	this->_byte_sent_header = 0;
 	this->_byte_sent_body = 0;
 	this->_byte_recived_req_body = 0;
@@ -145,7 +145,7 @@ void	Client::set_byte_sent_header(int byte)
 int	Client::receive_request(void)
 {
 	this->reset_last_activity();
-	if (this->_status == WANT_TO_SEND_REQ || this->_status == RECIVING_REQ_HEADER)
+	if (this->_status == WANT_TO_RECIVE_REQ || this->_status == RECIVING_REQ_HEADER)
 		return (this->receive_request_header());
 	if (this->_status == RECIVING_REQ_BODY)
 		return (this->receive_request_body());
@@ -388,7 +388,7 @@ unsigned long	Client::time_since_last_activity_us(void) const
 void	Client::reset_client(void)
 {
 	this->reset_last_activity();
-	this->_status = WANT_TO_SEND_REQ;
+	this->_status = WANT_TO_RECIVE_REQ;
 	if (this->_req)
 	{
 		delete this->_req;

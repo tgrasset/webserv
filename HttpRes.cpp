@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/07/20 12:59:11 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/04 14:47:06 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -634,7 +634,7 @@ void	HttpRes::uploadFileToServer(std::string tempFile, std::string boundary) {
 					for (pos2 = pos; line[pos2] != '"'; pos2++)
 						;
 					tempName = line.substr(pos, pos2 - pos);
-					if (fileName == "" | tempName != fileName)
+					if (fileName == "" || tempName != fileName)
 					{
 						if (fileName != "")
 							output.close();

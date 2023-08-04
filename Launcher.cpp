@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/07/20 11:58:30 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/04 15:57:11 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -317,7 +317,7 @@ void	Launcher::print_situation(void)
 		switch (it->getStatus())
 		{
 		case 0:
-			std::cout << "WANT_TO_SEND_REQ";
+			std::cout << "WANT_TO_RECIVE_REQ";
 			break;
 		case 1:
 			std::cout << "RECIVING_REQ_HEADER";

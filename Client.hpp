@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/07/04 14:08:23 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/08/04 15:57:11 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ class HttpReq;
 class Server;
 
 typedef enum e_status_c {
-	WANT_TO_SEND_REQ,
+	WANT_TO_RECIVE_REQ,
 	RECIVING_REQ_HEADER,
 	RECIVING_REQ_BODY,
 	REQ_RECIVED,

@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+         #
+#    By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/12/06 10:48:53 by mbocquel          #+#    #+#              #
-#    Updated: 2023/07/04 14:05:42 by tgrasset         ###   ########.fr        #
+#    Updated: 2023/08/04 15:40:48 by mbocquel         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -42,12 +42,20 @@ CLIB =
 
 all: $(NAME)
 
+create_repository:
+		@if [ ! -d "tmp_body" ]; \
+		then \
+			mkdir tmp_body; \
+		else \
+			echo "Tmp body repositorie already exists ";\
+		fi; \
+
 $(BUILD_DIR)%.o: $(SOURCES_DIR)%.cpp
 	@mkdir -p $(dir $@)
 	@$(CC) $(CFLAGS) -c $< -o $@
 	@echo "\e[32mCompiling \e[0m" $<
 
-$(NAME):	$(OBJECTS)
+$(NAME):	$(OBJECTS) create_repository
 			@echo
 			@$(CC) $(CFLAGS) $(OBJECTS) $(CLIB) -o $(NAME)
 			@echo "\nCreating ./"$(NAME)
