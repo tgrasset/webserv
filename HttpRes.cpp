@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/04 14:47:06 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/04 19:28:31 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -536,6 +536,8 @@ void	HttpRes::bodyBuild(std::string requestUri) {
 	// autrement, _body reste vide, puisque le fichier est de taille imprevisible et potentiellement tres gros, ou bien c'est un CGI
 }
 
+/* Dans le cas d'un fichier normal a envoyer, le content length est calcule dans le fonction checkURI. 
+A modifier pour les fichiers generes par les CGI.*/
 void	HttpRes::headerBuild() {
 
 	_header["Date:"] = timeStamp();

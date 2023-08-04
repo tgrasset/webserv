@@ -1,4 +1,8 @@
-# Code review retour de vacances 20/07
+# Note pour l'equipe
+## 04/08/2023
+- Je pense qu'il faut modifier la fonction HttpRes::handleRequest(HttpReq &request) pour que je CGI puisse aussi etre appelle par les methodes GET. (maxence)
+
+## Code review retour de vacances 20/07
 - Gestion des fichiers temporaires : 
 	- Il faut ameliorer la suppression des fichiers temps avec le body des requetes clients. Verifier que le fichier est bien supprimeau destructeur de la requete, et que cette destruction se fait bien quand il faut. 
 - Creation fichier temporaire de body de response CGI. **=> JOSEPH PREND L'ACTION**
@@ -122,13 +126,4 @@ https://en.wikipedia.org/wiki/Web_server
 https://youtu.be/tAGF0T2cXRA
 
 
-# TO DO dans le code
-- On cree une classe "Server_manager" qui va etre en charge de lancer la boucle while principale. avec du multiplexing. 
-	- Contient vecteur de serveur (du main curent). Chaqun des serveurs a un listen FD. 
-	- Elle a aussi un vecteur de Client. Chaque client a son fd de com (un status du genre, je veux parler, j'attend une reponse etc. ), son socket, sa requette HTTP, sa reponse HTTP. ==> **Besoin d'une classe requette et reponse HTTP.** 
-
-	*Voir comment faire pour que un FD deja utilise puisse etre remis dans la pool de connexion*
-	**Attention** si deux serveurs declares ont le meme port et meme host, il faut qu'on utilise le socket deja en place. (on listen sur le meme socket, mais en fonction de la requette on utilisera les param d'un serveur ou d'un autre.)
-
-- Josef prend en charge la creation de la classe requete HTTP qui parse une string comme il faut.
 
