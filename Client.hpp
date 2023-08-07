@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/04 15:57:11 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/07 19:10:12 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,16 @@ typedef enum e_status_c {
 	RES_SENT, 
 	ERROR_WHILE_SENDING
 }				t_status_c;
+
+typedef enum e_type_fd {
+	COM_SOCKET,
+	CGI_R_PIPE,
+	CGI_W_PIPE,
+	RES_FILE_FD,
+	REQ_FILE_R_FD,
+	REQ_FILE_W_FD,
+	NOT_MINE
+}				t_fd;
 
 class Client
 {
@@ -88,6 +98,7 @@ public:
 	unsigned long				time_since_last_activity_us(void) const;
 	void						reset_client(void);
 	bool						getKeepAlive(void) const;
+	t_fd						getSocketType(int fd) const;
 	
 	class ClientException : public std::exception {
 	public :

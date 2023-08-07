@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:33 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/23 14:42:05 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/07 19:02:13 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,16 @@
 class Server;
 class Client;
 class ConfParser;
+
+
+typedef enum e_type_fd {
+	COM_SOCKET,
+	CGI_R_PIPE,
+	CGI_W_PIPE,
+	FILE_R,
+	FILE_W, 
+	NOT_MINE
+}				t_fd;
 
 class Launcher
 {
@@ -53,6 +63,7 @@ public:
 	void							check_timeout_clients(void);
 	void							remove_client(std::list<Client>::iterator client);
 	void							test_folder_tmp(void) const;
+	
 	
 	class LauncherException : public std::exception {
 	public :

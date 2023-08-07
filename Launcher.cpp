@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/04 15:57:11 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/07 19:07:43 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -242,7 +242,7 @@ std::list<Client>::iterator	Launcher::find_client(int socket)
 		throw LauncherException("Error: Client not found !");
 	return (it);
 }
-
+	
 bool	Launcher::check_if_listen_socket(int socket)
 {
 	for (std::vector<Server>::iterator it = this->_servers.begin();

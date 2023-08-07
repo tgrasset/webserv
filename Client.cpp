@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/04 15:57:11 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/07 19:10:52 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -140,6 +140,20 @@ int	Client::get_byte_sent_header(void) const
 void	Client::set_byte_sent_header(int byte)
 {
 	this->_byte_sent_header = byte;
+}
+
+t_fd	Client::getSocketType(int fd) const
+{
+	if (fd == this->_com_socket)
+		return (COM_SOCKET);
+	else if (this->_res != NULL && this->_res->getCgiPipeFd()[0] == fd)
+		return (CGI_R_PIPE);
+	else if (this->_res != NULL && this->_res->getCgiPipeFd()[1] == fd)
+		return (CGI_W_PIPE);
+	else if (this->_res != NULL && this->_res->getFileToSendFd() == fd)
+		return (RES_FILE_FD);
+	else
+		return (NOT_MINE);
 }
 
 int	Client::receive_request(void)
@@ -325,9 +339,9 @@ void	Client::send_response_body_normal_file(void)
 	int byte_read_file = 0;
 	int	byte_sent = 0;
 
-	if (!this->_file_to_send.is_open())
+	if (!this->_res->getFileToSend().is_open())
 	{
-		this->_file_to_send.open(this->_res->getUriPath().c_str(), std::ifstream::binary);
+		this->_res->getFileToSend().open(this->_res->getUriPath().c_str(), std::ifstream::binary);
 		this->_file_to_send.seekg (0, _file_to_send.end);
 		this->_file_to_send_size = this->_file_to_send.tellg();
 		this->_file_to_send.seekg (0, _file_to_send.beg);

@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/04 19:28:31 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/07 19:07:32 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,8 +36,12 @@ HttpRes::HttpRes(HttpReq &request) {
 	_uriQuery = "";
 	_resourceType = NORMALFILE;
 	_contentLength = 0;
-	_cgiPipeFd = -1;
+	_cgiFilePath = "";
+	_cgiPipeFd = new int[2];
+	_cgiPipeFd[0] = -1;
+	_cgiPipeFd[1] = -1;
 	_cgiPid = -42;
+	
 	if (_mimeTypes.empty() == true)
 		fillMimeTypes();
 	handleRequest(request);
@@ -56,6 +60,7 @@ HttpRes::~HttpRes(void) {
 		std::cout << "HttpRes destructor called" << std::endl;
 	if (_location != NULL)
 		delete _location;
+	delete[] _cgiPipeFd;
 }
 
 /* ************************************************************************** */
@@ -81,8 +86,10 @@ HttpRes	& HttpRes::operator=(HttpRes const & httpres)
 		_resourceType = httpres.getResourceType();
 		_location = httpres.getLocation();
 		_contentLength = httpres.getContentLength();
-		_cgiPipeFd = httpres.getCgiPipeFd();
-		_cgiPid = httpres.getCgiPid();
+		_cgiFilePath = httpres._cgiFilePath;
+		_cgiPipeFd[0] = httpres._cgiPipeFd[0];
+		_cgiPipeFd[1] = httpres._cgiPipeFd[1];
+		_cgiPid = httpres._cgiPid;
 	}
 	return (*this);
 }
@@ -170,9 +177,29 @@ size_t	HttpRes::getContentLength() const {
 	return (_contentLength);
 }
 
-int	HttpRes::getCgiPipeFd() const {
+std::string	HttpRes::getCgiFilePath() const {
+	
+	return (_cgiFilePath);
+}
 
-	return (_cgiPipeFd);
+std::ifstream	HttpRes::getFileToSend() const {
+	
+	return (_fileToSend);
+}
+
+int		HttpRes::getFileToSendFd() const
+{
+	return (this->_fileToSendFd);
+}
+
+size_t	HttpRes::getFileToSendSize() const {
+
+	return (_fileToSendSize);
+}
+
+int		*HttpRes::getCgiPipeFd() const {
+
+	return (this->_cgiPipeFd);
 }
 
 pid_t	HttpRes::getCgiPid() const {
@@ -185,7 +212,12 @@ void	HttpRes::setStatusCode(int statusCode)
 	this->_statusCode = statusCode;
 }
 
-void	HttpRes::setCgiPipeFd(int cgiPipeFd)
+void	HttpRes::setFileToSend(std::ifstream filestream)
+{
+	this->_fileToSend = filestream;
+}
+
+/*void	HttpRes::setCgiPipeFd(int cgiPipeFd)
 {
 	this->_cgiPipeFd = cgiPipeFd;
 }
@@ -193,7 +225,7 @@ void	HttpRes::setCgiPipeFd(int cgiPipeFd)
 void	HttpRes::setCgiPid(int cgiPid)
 {
 	this->_cgiPid = cgiPid;
-}
+}*/
 
 void	HttpRes::fillMimeTypes() {
 

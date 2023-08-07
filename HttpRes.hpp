@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/07/07 16:01:54 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/08/07 19:06:45 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,11 +59,17 @@ class HttpRes
 		r_type								getResourceType() const;
 		Location							*getLocation() const;
 		size_t								getContentLength() const;
-		int									getCgiPipeFd() const;
+		std::string							getCgiFilePath() const;
+		std::ifstream						getFileToSend() const;
+		int									getFileToSendFd() const;
+		size_t								getFileToSendSize() const;
+		
+		int									*getCgiPipeFd() const;
 		pid_t								getCgiPid() const;
 
 		void								setStatusCode(int statusCode);
-		void								setCgiPipeFd(int cgiPipeFd);
+		void								setFileToSend(std::ifstream filestream);
+		void								setCgiPipeFd(int cgiPipeFd[2]);
 		void								setCgiPid(int cgiPid);
 
 		void	handleRequest(HttpReq &request);
@@ -85,25 +91,29 @@ class HttpRes
 		HttpRes(void);
 		static bool							_verbose;
 
-		std::string							_httpVersion;
-		int									_statusCode;
-		std::string							_method;
-		std::string							_statusMessage;
-		std::map<std::string, std::string>	_header;
-		std::string							_body;
-		Server								*_server;
-		Location							*_location;
-		std::string							_formattedHeader;
-		bool								_keepAlive;
-		std::string							_uriPath;
-		std::string							_uriPathInfo;
-		std::string							_script_name;
-		r_type								_resourceType;
-		std::string							_uriQuery;
-		size_t								_contentLength;
-		static std::map<std::string, std::string> _mimeTypes;
-		int									_cgiPipeFd;
-		pid_t								_cgiPid;
+		std::string									_httpVersion;
+		int											_statusCode;
+		std::string									_method;
+		std::string									_statusMessage;
+		std::map<std::string, std::string>			_header;
+		std::string									_body;
+		Server										*_server;
+		Location									*_location;
+		std::string									_formattedHeader;
+		bool										_keepAlive;
+		std::string									_uriPath;
+		std::string									_uriPathInfo;
+		int											_fileToSendFd;
+		std::ifstream 								_fileToSend;
+		size_t										_fileToSendSize;
+		std::string									_script_name;
+		r_type										_resourceType;
+		std::string									_uriQuery;
+		size_t										_contentLength;
+		static std::map<std::string, std::string>	_mimeTypes;
+		std::string									_cgiFilePath;
+		int											*_cgiPipeFd;
+		pid_t										_cgiPid;
 };
 
 #endif

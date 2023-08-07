@@ -1,6 +1,13 @@
 # Note pour l'equipe
+
+## 05/08
+- Je modifie le code pour prendre en compte la regle de ne jamais rien lire ou ecrire sans passer par le epoll. 
+- Il va falloir modifier la requete aussi pour que l'ecriture dans le fichier du body de la requete se fasse via le epoll. 
+- De meme il va falloir modifier la fonction cgi pour que la lecture de ce body se fasse aussi via epoll.  
 ## 04/08/2023
 - Je pense qu'il faut modifier la fonction HttpRes::handleRequest(HttpReq &request) pour que je CGI puisse aussi etre appelle par les methodes GET. (maxence)
+
+
 
 ## Code review retour de vacances 20/07
 - Gestion des fichiers temporaires : 
