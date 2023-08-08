@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CGI.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/29 18:53:19 by jlanza            #+#    #+#             */
-/*   Updated: 2023/07/11 17:20:15 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/08/08 09:49:30 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,7 +88,7 @@ void	CGI::execCGI(void)
 		int	file_fd;
 		if (_res->getMethod() == "POST")
 		{
-			file_fd = open(_request->getBodyTmpFile().c_str(), O_RDONLY);
+			file_fd = open(_request->getBodyTmpFilePath().c_str(), O_RDONLY);
 			if (file_fd == -1)
 				killMe();
 			if (dup2(file_fd, 0) == -1)

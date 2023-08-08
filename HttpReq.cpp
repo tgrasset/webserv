@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/08/04 17:09:34 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/08 16:27:21 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,9 +18,11 @@ unsigned int	HttpReq::_count = 0;
 /* ************************************************************************** */
 /*                     Constructeurs et destructeurs                          */
 /* ************************************************************************** */
-HttpReq::HttpReq(std::string &content, std::vector<Server *> servers)
+HttpReq::HttpReq(Client *client, std::string &content, std::vector<Server *> servers)
 {
 	HttpReq::_count++;
+	_client = client;
+	_status_req = WAITING_TO_FILL_BODY_FILE;
 	this->_id = HttpReq::_count;
 	_method = "";
 	_uri = "";
@@ -30,10 +32,17 @@ HttpReq::HttpReq(std::string &content, std::vector<Server *> servers)
 	_accept.clear();
 	_contentType = "";
 	_contentLength = 0;
+	_to_add_body_file = "";
 	_keepAlive = true;
 	_body_tmp_path = "";
 	_boundary = "";
+	_byte_recived_req_body = 0;
+	_byte_wrote_tmp_body_file = 0;
 	HttpReq::parse(content, servers);
+	if (_contentLength == 0 || _method != "POST" || _contentLength > this->_server->getClientMaxBodySize())
+		_status_req = COMPLETED;
+	else
+		_status_req = WAITING_TO_FILL_BODY_FILE;
 }
 
 HttpReq::HttpReq(HttpReq const & copy)
@@ -43,8 +52,9 @@ HttpReq::HttpReq(HttpReq const & copy)
 
 HttpReq::~HttpReq(void)
 {
-	if (access(_body_tmp_path.c_str(), F_OK) == 0 && std::remove(_body_tmp_path.c_str()))
+	/*if (access(_body_tmp_path.c_str(), F_OK) == 0 && std::remove(_body_tmp_path.c_str()))
 		std::cout << "I could not delete the file of client " << this->_id << std::endl;
+	*/
 	if (_server != NULL)
 		delete _server;
 }
@@ -69,6 +79,11 @@ HttpReq	& HttpReq::operator=(HttpReq const & httpreq)
 		_id = httpreq._id;
 		_server = httpreq._server;
 		_boundary = httpreq._boundary;
+		_to_add_body_file = httpreq._to_add_body_file;
+		_status_req = httpreq._status_req;
+		_byte_recived_req_body = httpreq._byte_recived_req_body;
+		_byte_wrote_tmp_body_file = httpreq._byte_wrote_tmp_body_file;
+		_client = httpreq._client;
 	}
 	return (*this);
 }
@@ -215,9 +230,14 @@ bool	HttpReq::getKeepAlive() const {
 	return (_keepAlive);
 }
 
-std::string		HttpReq::getBodyTmpFile() const {
+std::string		HttpReq::getBodyTmpFilePath() const {
 
 	return (_body_tmp_path);
+}
+
+int		HttpReq::getBodyTmpFileFd() const
+{
+	return (_bodyTmpFileFd);
 }
 
 Server *HttpReq::getServer() const {
@@ -230,6 +250,48 @@ std::string	HttpReq::getBoundary() const {
 	return (_boundary);
 }
 
+status_req		HttpReq::getStatusReq(void) const
+{
+	return (_status_req);
+}
+
+void		HttpReq::add_to_body_file_buff(const char *str)
+{
+	this->_to_add_body_file += str;
+	if (this->_bodyTmpFileFd == -1) //Besoin ouvrir le fichier
+	{
+		std::ostringstream	file_path;
+		file_path << HttpReq::_body_tmp_folder << "body_client_" << this->_id;
+		this->_body_tmp_path = file_path.str();
+		_bodyTmpFileFd = open(this->_body_tmp_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		this->_client->add_fd_to_epoll_in(_bodyTmpFileFd);
+		if (_bodyTmpFileFd == -1)
+			throw HttpReqException("Http Req: Error opening the body file");
+	}
+}
+
+void	HttpReq::writeOnReqBodyFile(void)
+{
+	unsigned int	byte_wrote;
+	if (this->_bodyTmpFileFd == -1)
+		return ;
+	if (this->_to_add_body_file.size() != 0)
+	{
+		byte_wrote = send(_bodyTmpFileFd, _to_add_body_file.c_str(), _to_add_body_file.size(), 0);
+		if (byte_wrote == -1)
+			throw HttpReqException("Http Req: Error writing on the body file");
+		_byte_wrote_tmp_body_file += byte_wrote;
+		_to_add_body_file.clear();
+		if (_contentLength == _byte_recived_req_body && _contentLength == _byte_wrote_tmp_body_file)
+		{
+			_status_req = COMPLETED;
+			this->_client->remove_fd_from_epoll(_bodyTmpFileFd);
+			if (close(_bodyTmpFileFd) == -1)
+				throw HttpReqException("Http Req: Error closing tmp body file");
+		}
+	}
+}
+/*
 void		HttpReq::add_to_body_file(const char *str)
 {
 	if (_body_tmp_path == "")
@@ -245,7 +307,7 @@ void		HttpReq::add_to_body_file(const char *str)
 	if (this->_body_file.fail())
 		throw HttpReqException("Error opening the body file");
 	this->_body_file << str;
-}
+}*/
 
 void	HttpReq::close_body_file()
 {

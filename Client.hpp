@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/07 19:10:12 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/08 15:01:56 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,10 +16,12 @@
 # include "HttpReq.hpp"
 # include "Server.hpp"
 # include "webserv.hpp"
+# include "Launcher.hpp"
 
 class HttpRes;
 class HttpReq;
 class Server;
+class Launcher;
 
 typedef enum e_status_c {
 	WANT_TO_RECIVE_REQ,
@@ -38,8 +40,7 @@ typedef enum e_type_fd {
 	CGI_R_PIPE,
 	CGI_W_PIPE,
 	RES_FILE_FD,
-	REQ_FILE_R_FD,
-	REQ_FILE_W_FD,
+	REQ_FILE_FD,
 	NOT_MINE
 }				t_fd;
 
@@ -55,7 +56,7 @@ private:
 	struct sockaddr_in		_client_addr;
 	std::string				_req_recived;
 	std::string				_req_header;
-	std::string				_req_body;
+	//std::string			_req_body;
 	unsigned int			_id;
 	unsigned int			_byte_sent_header;
 	unsigned int			_byte_sent_body;
@@ -63,6 +64,7 @@ private:
 	struct timeval			_last_activity;
 	std::ifstream 			_file_to_send;
 	unsigned int			_file_to_send_size;
+	Launcher				*_launcher;
 	
 	
 	static bool				_verbose;
@@ -70,7 +72,7 @@ private:
 	
 public:
 	Client(void);
-	Client(struct sockaddr_in _client_addr, int com_socket);
+	Client(Launcher	*launcher, struct sockaddr_in _client_addr, int com_socket);
 	Client(Client const & copy);
 	~Client(void);
 
@@ -99,7 +101,11 @@ public:
 	void						reset_client(void);
 	bool						getKeepAlive(void) const;
 	t_fd						getSocketType(int fd) const;
-	
+	void						remove_fd_from_epoll(int fd);
+	void						add_fd_to_epoll_in(int fd);
+	void						add_fd_to_epoll_out(int fd);	
+	void						writeReqBodyFile(void);
+
 	class ClientException : public std::exception {
 	public :
 		ClientException(std::string errMessage) throw() {

@@ -26,6 +26,7 @@
 # include <string.h>
 # include <signal.h>
 # include <dirent.h>
+# include <fcntl.h>
 
 # define MAX_WAIT 15
 # define MAX_EVENTS 100

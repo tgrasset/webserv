@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/07 19:10:52 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/08 15:02:27 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ Client::Client(void)
 		std::cout << "Client default constructor called" << std::endl;
 }
 
-Client::Client(struct sockaddr_in client_addr, int com_socket)
+Client::Client(Launcher	*launcher, struct sockaddr_in client_addr, int com_socket)
 {
 	Client::_count++;
 	this->_id = Client::_count;
@@ -43,6 +43,7 @@ Client::Client(struct sockaddr_in client_addr, int com_socket)
 	this->_byte_recived_req_body = 0;
 	this->_req = NULL;
 	this->_res = NULL;
+	this->_launcher = launcher;
 	gettimeofday(&(this->_last_activity), NULL);
 	if (Client::_verbose)
 		std::cout << "Client constructor called" << std::endl;
@@ -82,11 +83,12 @@ Client	& Client::operator=(Client const & client)
 		this->_client_addr = client._client_addr;
 		this->_req_recived = client._req_recived;
 		this->_req_header = client._req_header;
-		this->_req_body = client._req_body;
+		//this->_req_body = client._req_body;
 		this->_byte_sent_header = client._byte_sent_header;
 		this->_byte_sent_body = client._byte_sent_body;
 		this->_last_activity = client._last_activity;
 		this->_byte_recived_req_body = client._byte_recived_req_body;
+		this->_launcher = client._launcher;
 	}
 	return (*this);
 }
@@ -152,6 +154,8 @@ t_fd	Client::getSocketType(int fd) const
 		return (CGI_W_PIPE);
 	else if (this->_res != NULL && this->_res->getFileToSendFd() == fd)
 		return (RES_FILE_FD);
+	else if (this->_req != NULL && this->_req->getBodyTmpFileFd() == fd)
+		return (REQ_FILE_FD);
 	else
 		return (NOT_MINE);
 }
@@ -187,10 +191,10 @@ int	Client::receive_request_header(void)
 		if (pos_end_header != std::string::npos)
 		{
 			this->_req_header = this->_req_recived.substr(0, pos_end_header);
-			this->_req = new HttpReq(this->_req_header, this->_server_ptr);
+			this->_req = new HttpReq(this, this->_req_header, this->_server_ptr);
 			if (this->_req == NULL)
 				throw ClientException("New didn't work for _req !");
-			if (this->_req->ok_to_save_body() == false)
+			if (this->_req->getStatusReq() == COMPLETED)
 				this->_status = WAITING_FOR_RES;
 			else
 			{
@@ -198,13 +202,13 @@ int	Client::receive_request_header(void)
 				if (this->_req_recived.size() > pos_end_header + 4)
 				{
 					std::string to_add_body = this->_req_recived.substr(pos_end_header + 4, this->_req_recived.size() - pos_end_header - 4);
-					this->_req->add_to_body_file(to_add_body.c_str());
-					this->_byte_recived_req_body += to_add_body.size();
+					this->_req->add_to_body_file_buff(to_add_body.c_str());
+					/*this->_byte_recived_req_body += to_add_body.size();
 					if (this->_byte_recived_req_body == this->_req->getContentLength())
 					{
 						this->_req->close_body_file();
 						this->_status = WAITING_FOR_RES;
-					}
+					}*/
 				}
 			}
 		}
@@ -220,6 +224,8 @@ int	Client::receive_request_header(void)
 
 int	Client::receive_request_body(void)
 {
+	if (this->_req->getStatusReq() == COMPLETED)
+		return (0);
 	int byte_recv = 0;
 	char recvline[BUFFER_SIZE + 1];
 	memset(recvline, 0, BUFFER_SIZE + 1);
@@ -232,13 +238,13 @@ int	Client::receive_request_body(void)
 	std::cout << "Client " << this->_id << " just recieved " << byte_recv << " bytes for the request body" << std::endl;
 	if (byte_recv > 0)
 	{
-		this->_byte_recived_req_body += byte_recv;
-		this->_req->add_to_body_file(recvline);
+		this->_req->add_to_body_file_buff(recvline);
+		/*this->_byte_recived_req_body += byte_recv;
 		if (this->_byte_recived_req_body == this->_req->getContentLength())
 		{
 			this->_req->close_body_file();
 			this->_status = WAITING_FOR_RES;
-		}
+		}*/
 	}
 	return (0);
 }
@@ -416,7 +422,7 @@ void	Client::reset_client(void)
 	this->_incoming_msg = "";
 	this->_req_recived = "";
 	this->_req_header = "";
-	this->_req_body = "";
+	//this->_req_body = "";
 	this->_byte_sent_header = 0;
 	this->_byte_sent_body = 0;
 	this->_file_to_send_size = 0;
@@ -427,4 +433,25 @@ bool Client::getKeepAlive(void) const
 	if (this->_res)
 		return (this->_res->getKeepAlive());
 	return (false);
+}
+
+
+void	Client::remove_fd_from_epoll(int fd)
+{
+	this->_launcher->remove_fd_from_epoll(fd);
+}
+
+void	Client::add_fd_to_epoll_in(int fd)
+{
+	this->_launcher->add_fd_to_epoll_in(fd);
+}
+
+void	Client::add_fd_to_epoll_out(int fd)
+{
+	this->_launcher->add_fd_to_epoll_out(fd);
+}
+
+void	Client::writeReqBodyFile(void)
+{
+	this->_req->writeOnReqBodyFile();
 }

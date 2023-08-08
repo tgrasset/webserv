@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/07 19:07:32 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/08 09:49:40 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -729,7 +729,7 @@ void	HttpRes::handleRequest(HttpReq &request) {
 		return ;
 	}
 	else if (_statusCode == 200 && _method == "POST")
-		uploadFileToServer(request.getBodyTmpFile(), request.getBoundary());
+		uploadFileToServer(request.getBodyTmpFilePath(), request.getBoundary());
 	_statusMessage = getStatus(_statusCode);
 	bodyBuild(request.getUri());
 	if (request.getKeepAlive() == false)
