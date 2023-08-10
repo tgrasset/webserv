@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/08 15:01:56 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/10 19:33:28 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,8 @@ private:
 	std::string				_incoming_msg;
 	std::vector< Server *> 	_server_ptr;
 	struct sockaddr_in		_client_addr;
-	std::string				_req_recived;
+	std::vector<char>		_req_recived;
+	//std::string			_req_recived;
 	std::string				_req_header;
 	//std::string			_req_body;
 	unsigned int			_id;
@@ -103,7 +104,8 @@ public:
 	t_fd						getSocketType(int fd) const;
 	void						remove_fd_from_epoll(int fd);
 	void						add_fd_to_epoll_in(int fd);
-	void						add_fd_to_epoll_out(int fd);	
+	void						add_fd_to_epoll_out(int fd);
+	void						addBodyFileToBuff(void);
 	void						writeReqBodyFile(void);
 
 	class ClientException : public std::exception {

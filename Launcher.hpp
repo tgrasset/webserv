@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:33 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/08 10:36:16 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/10 11:53:30 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ class Server;
 class Client;
 class ConfParser;
 
-
+/*
 typedef enum e_type_fd {
 	COM_SOCKET,
 	CGI_R_PIPE,
@@ -30,7 +30,7 @@ typedef enum e_type_fd {
 	FILE_W, 
 	NOT_MINE
 }				t_fd;
-
+*/
 class Launcher
 {
 private:

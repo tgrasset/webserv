@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/08 15:02:27 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/10 19:33:59 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,6 @@ Client	& Client::operator=(Client const & client)
 		this->_client_addr = client._client_addr;
 		this->_req_recived = client._req_recived;
 		this->_req_header = client._req_header;
-		//this->_req_body = client._req_body;
 		this->_byte_sent_header = client._byte_sent_header;
 		this->_byte_sent_body = client._byte_sent_body;
 		this->_last_activity = client._last_activity;
@@ -186,11 +185,12 @@ int	Client::receive_request_header(void)
 	if (byte_recv > 0)
 	{
 		this->_status = RECIVING_REQ_HEADER;
-		this->_req_recived += recvline;
-		std::size_t pos_end_header = this->_req_recived.find("\r\n\r\n");
+		this->_req_recived.insert(this->_req_recived.end(), recvline, recvline + byte_recv);
+		std::string req_recived_string(static_cast<char *>(this->_req_recived.data()));
+		std::size_t pos_end_header = req_recived_string.find("\r\n\r\n");
 		if (pos_end_header != std::string::npos)
 		{
-			this->_req_header = this->_req_recived.substr(0, pos_end_header);
+			this->_req_header = req_recived_string.substr(0, pos_end_header);
 			this->_req = new HttpReq(this, this->_req_header, this->_server_ptr);
 			if (this->_req == NULL)
 				throw ClientException("New didn't work for _req !");
@@ -201,14 +201,9 @@ int	Client::receive_request_header(void)
 				this->_status = RECIVING_REQ_BODY;
 				if (this->_req_recived.size() > pos_end_header + 4)
 				{
-					std::string to_add_body = this->_req_recived.substr(pos_end_header + 4, this->_req_recived.size() - pos_end_header - 4);
-					this->_req->add_to_body_file_buff(to_add_body.c_str());
-					/*this->_byte_recived_req_body += to_add_body.size();
-					if (this->_byte_recived_req_body == this->_req->getContentLength())
-					{
-						this->_req->close_body_file();
-						this->_status = WAITING_FOR_RES;
-					}*/
+					std::vector<char> to_add_body;
+					to_add_body.insert(to_add_body.end(), this->_req_recived.begin() + pos_end_header + 4, this->_req_recived.end());
+					this->_req->add_to_body_file_buff(to_add_body);
 				}
 			}
 		}
@@ -216,7 +211,7 @@ int	Client::receive_request_header(void)
 	if (this->_status == WAITING_FOR_RES)
 	{
 		std::cout << std::endl << "\e[33m" << getTimestamp() << "	Client " << this->_id << " just recieved the following request:\e[32m" << std::endl;
-		std::cout << this->_req_recived << std::endl;
+		std::cout << this->_req_recived.data() << std::endl;
 		std::cout << "\e[0m";
 	}
 	return (0);
@@ -238,13 +233,9 @@ int	Client::receive_request_body(void)
 	std::cout << "Client " << this->_id << " just recieved " << byte_recv << " bytes for the request body" << std::endl;
 	if (byte_recv > 0)
 	{
-		this->_req->add_to_body_file_buff(recvline);
-		/*this->_byte_recived_req_body += byte_recv;
-		if (this->_byte_recived_req_body == this->_req->getContentLength())
-		{
-			this->_req->close_body_file();
-			this->_status = WAITING_FOR_RES;
-		}*/
+		std::vector<char> to_add_body;
+		to_add_body.insert(to_add_body.end(), recvline, recvline + byte_recv);
+		this->_req->add_to_body_file_buff(to_add_body);
 	}
 	return (0);
 }
@@ -256,7 +247,7 @@ void	Client::send_response(void)
 	{
 		if (this->_res != NULL)
 			delete this->_res;
-		this->_res = new HttpRes(*(this->_req));
+		this->_res = new HttpRes(this, *(this->_req));
 		if (this->_res == NULL)
 			throw ClientException("New didn't work for _res !");
 	}
@@ -298,13 +289,14 @@ void	Client::send_response_header(void)
 
 void	Client::send_response_body(void)
 {
-	std::string	res_body = this->_res->getBody();
-
+	if (this->_res == NULL)
+		return ;
+	std::string	res_body = this->_res->getBody(); //empty string in case of a file to send
 	if (res_body.size() != 0)
 		this->send_response_body_error();
-	else if (this->_res && this->_res->getResourceType() == NORMALFILE)
+	else if (this->_res->getResourceType() == NORMALFILE)
 		this->send_response_body_normal_file();
-	else if (this->_res && (this->_res->getResourceType() == PYTHON || this->_res->getResourceType() == PHP))
+	else if (this->_res->getResourceType() == PYTHON || this->_res->getResourceType() == PHP)
 		this->send_response_body_cgi();
 }
 
@@ -312,7 +304,6 @@ void	Client::send_response_body_error(void)
 {
 	int	byte_sent = 0;
 	std::string	res_body = this->_res->getBody();
-
 	std::string res_body_remain = res_body.substr(this->_byte_sent_body, res_body.size() - this->_byte_sent_body);
 	std::string	to_send_body;
 	if (res_body_remain.size() <= BUFFER_SIZE)
@@ -342,9 +333,39 @@ void	Client::send_response_body_error(void)
 
 void	Client::send_response_body_normal_file(void)
 {
+	std::vector<char>	to_send;
+	int byte_sent = 0;
+	if (this->_res->getFileToSendFd() == -1)
+		this->_res->openBodyFile();
+	else
+	{
+		to_send = this->_res->getFileToSendBuff();
+		if (to_send.size() != 0)
+		{
+			byte_sent = send(this->_com_socket, to_send.data(), to_send.size(), 0);
+			if (byte_sent == -1)
+			{
+				this->_status = ERROR_WHILE_SENDING;
+				std::cout << "\e[33m" << getTimestamp() <<  "	I had an error sending file to client " << this->_id << "\e[0m" << std::endl;
+				return ;
+			}
+			this->_byte_sent_body += byte_sent;
+			this->_status = SENDING_RES_BODY;
+			this->_res->clearFileToSendBuff();
+			if (this->_byte_sent_body == this->_res->getFileToSendSize())
+				this->_status = RES_SENT;
+		}
+	}
+		
+	
+
+	/*
 	int byte_read_file = 0;
 	int	byte_sent = 0;
 
+	if (this->_res->getFileToSendFd() == -1) //besoin de ouvrir le fichier et ajouter le fd dans epoll
+	//open file to send
+	//read and store from file to send. 
 	if (!this->_res->getFileToSend().is_open())
 	{
 		this->_res->getFileToSend().open(this->_res->getUriPath().c_str(), std::ifstream::binary);
@@ -383,6 +404,7 @@ void	Client::send_response_body_normal_file(void)
 		this->_file_to_send.close();
 	}
 	delete[] buffer;
+	*/
 }
 
 void	Client::send_response_body_cgi(void)
@@ -420,7 +442,7 @@ void	Client::reset_client(void)
 		this->_res = NULL;
 	}
 	this->_incoming_msg = "";
-	this->_req_recived = "";
+	this->_req_recived.clear();
 	this->_req_header = "";
 	//this->_req_body = "";
 	this->_byte_sent_header = 0;
@@ -454,4 +476,9 @@ void	Client::add_fd_to_epoll_out(int fd)
 void	Client::writeReqBodyFile(void)
 {
 	this->_req->writeOnReqBodyFile();
+}
+
+void	Client::addBodyFileToBuff(void)
+{
+	this->_res->addBodyFileToBuff();
 }

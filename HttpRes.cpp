@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/08 09:49:40 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/10 19:37:34 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,10 +18,11 @@ std::map<std::string, std::string> HttpRes::_mimeTypes;
 /*                     Constructeurs et destructeurs                          */
 /* ************************************************************************** */
 
-HttpRes::HttpRes(HttpReq &request) {
+HttpRes::HttpRes(Client * client, HttpReq &request) {
 
 	if (HttpRes::_verbose)
 		std::cout << "HttpRes default constructor called" << std::endl;
+	_client = client;
 	_httpVersion = "";
 	_statusCode = -1;
 	_method = "";
@@ -41,6 +42,9 @@ HttpRes::HttpRes(HttpReq &request) {
 	_cgiPipeFd[0] = -1;
 	_cgiPipeFd[1] = -1;
 	_cgiPid = -42;
+	_fileToSendFd = -1;
+	_fileToSendBuff.clear();
+	_statusFileToSend = CLOSE;
 	
 	if (_mimeTypes.empty() == true)
 		fillMimeTypes();
@@ -90,6 +94,10 @@ HttpRes	& HttpRes::operator=(HttpRes const & httpres)
 		_cgiPipeFd[0] = httpres._cgiPipeFd[0];
 		_cgiPipeFd[1] = httpres._cgiPipeFd[1];
 		_cgiPid = httpres._cgiPid;
+		_fileToSendFd = httpres._fileToSendFd;
+		_fileToSendBuff = httpres._fileToSendBuff;
+		_client = httpres._client;
+		_statusFileToSend = httpres._statusFileToSend;
 	}
 	return (*this);
 }
@@ -181,20 +189,30 @@ std::string	HttpRes::getCgiFilePath() const {
 	
 	return (_cgiFilePath);
 }
-
+/*
 std::ifstream	HttpRes::getFileToSend() const {
 	
 	return (_fileToSend);
 }
-
+*/
 int		HttpRes::getFileToSendFd() const
 {
 	return (this->_fileToSendFd);
 }
 
+std::vector<char>	HttpRes::getFileToSendBuff() const
+{
+	return (_fileToSendBuff);
+}
+
 size_t	HttpRes::getFileToSendSize() const {
 
 	return (_fileToSendSize);
+}
+
+s_file	HttpRes::getStatusFileToSend() const
+{
+	return (this->_statusFileToSend);
 }
 
 int		*HttpRes::getCgiPipeFd() const {
@@ -211,11 +229,11 @@ void	HttpRes::setStatusCode(int statusCode)
 {
 	this->_statusCode = statusCode;
 }
-
+/*
 void	HttpRes::setFileToSend(std::ifstream filestream)
 {
 	this->_fileToSend = filestream;
-}
+}*/
 
 /*void	HttpRes::setCgiPipeFd(int cgiPipeFd)
 {
@@ -736,4 +754,51 @@ void	HttpRes::handleRequest(HttpReq &request) {
 		_keepAlive = false;
 	headerBuild();
 	formatHeader();
+}
+
+void	HttpRes::openBodyFile(void)
+{
+	if (this->_fileToSendFd != -1 || this->_statusFileToSend == ERROR)
+		return ;
+	struct stat buf;
+	stat(this->_uriPath.c_str(), &buf);
+	this->_fileToSendSize = buf.st_size;
+	this->_fileToSendFd = open(this->_uriPath.c_str(), O_RDONLY);
+	if (this->_fileToSendFd == -1)
+	{
+		this->_statusFileToSend = ERROR;
+		return ; 
+	}
+	this->_statusFileToSend = OPEN;
+	this->_client->add_fd_to_epoll_in(this->_fileToSendFd);
+}
+
+void	HttpRes::clearFileToSendBuff(void)
+{
+	this->_fileToSendBuff.clear();
+}
+
+void	HttpRes::closeBodyFile(void)
+{
+	if (this->_fileToSendFd == -1 || this->_statusFileToSend == ERROR)
+		return;
+	this->_client->remove_fd_from_epoll(this->_fileToSendFd);
+	if (close(this->_fileToSendFd) == -1)
+		this->_statusFileToSend = ERROR;
+	this->_statusFileToSend = CLOSE;
+	this->_fileToSendFd = -1;
+}
+
+void	HttpRes::addBodyFileToBuff(void)
+{
+	if (this->_statusFileToSend != OPEN)
+		return ;
+	int byte_read = 0;
+	char readline[BUFFER_SIZE + 1];
+	memset(readline, 0, BUFFER_SIZE + 1);
+	byte_read = read(this->_fileToSendFd, readline, BUFFER_SIZE);
+	if (byte_read <= 0)
+		this->closeBodyFile();
+	else
+		this->_fileToSendBuff.insert(this->_fileToSendBuff.end(), readline, readline + byte_read);
 }

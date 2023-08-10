@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/08 16:34:02 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/10 19:34:04 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -187,12 +187,11 @@ void	Launcher::process_reading_fd(int i)
 	case CGI_R_PIPE:
 		/* code */
 		break;
-	case CGI_W_PIPE:
+	case RES_FILE_FD:
+		client->addBodyFileToBuff();
 		break;
 	case REQ_FILE_FD:
-		break;
-	case RES_FILE_FD:
-		/* Ici il faut que je recupere un buffer du fichier pour le stocker puis l'envoyer au client */
+		/**/
 		break;
 	default:
 		throw LauncherException("Problem with epoll_ctl !");
@@ -211,14 +210,7 @@ void	Launcher::process_writing_fd(int i)
 			std::cout << "Finish writing to " << client->getId() << ", I add him to listen socket" << std::endl << std::endl;
 			client->reset_client();
 			remove_fd_from_epoll(_ep_event[i].data.fd);
-			struct epoll_event	ev;
-			int fd = _ep_event[i].data.fd;
-			ev.events = EPOLLIN;
-			ev.data.fd = fd;
-			if (epoll_ctl(_efd, EPOLL_CTL_DEL, _ep_event[i].data.fd, NULL) == -1)
-				throw LauncherException("Error: epoll_ctl DEL!");
-			if (epoll_ctl(_efd, EPOLL_CTL_ADD, fd, &ev) == -1)
-				throw LauncherException("Problem with epoll_ctl !");
+			add_fd_to_epoll_in(_ep_event[i].data.fd);
 		}
 		else if (client->getStatus() == RES_SENT)
 		{
@@ -230,10 +222,6 @@ void	Launcher::process_writing_fd(int i)
 			std::cout << "An error happend while sending the response  to client " << client->getId() << ". The client will now be removed" << std::endl << std::endl;
 			this->remove_client(client);
 		}
-		break;
-	case CGI_W_PIPE:
-		break;
-	case RES_FILE_FD:
 		break;
 	case REQ_FILE_FD:
 		client->writeReqBodyFile();
@@ -313,8 +301,7 @@ void	Launcher::check_timeout_clients(void)
 
 void	Launcher::remove_client(std::list<Client>::iterator client)
 {
-	if (epoll_ctl(_efd, EPOLL_CTL_DEL, client->getCom_socket(), NULL) == -1)
-		throw LauncherException("Error: epoll_ctl DEL!");
+	remove_fd_from_epoll(client->getCom_socket());
 	close(client->getCom_socket());
 	this->_clients.erase(client);
 }

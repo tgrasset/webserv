@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/08/08 14:30:09 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/10 11:12:56 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,8 +43,8 @@ private:
 	unsigned int						_contentLength;
 	bool								_keepAlive;
 	std::string							_body_tmp_path;
-	std::string							_to_add_body_file;
-	//std::vector<char>					_to_add_body_file;
+	//std::string						_to_add_body_file;
+	std::vector<char>					_to_add_body_file;
 	unsigned int						_byte_recived_req_body;
 	unsigned int						_byte_wrote_tmp_body_file;
 	int									_bodyTmpFileFd;
@@ -80,7 +80,7 @@ public:
 	int				getBodyTmpFileFd() const;
 	Server 			*getServer() const;
 	std::string		getBoundary() const;
-	void			add_to_body_file_buff(const char *str);
+	void			add_to_body_file_buff(std::vector<char> str);
 	void			close_body_file(void);
 	void			setServer(std::vector<Server *> servers);
 	bool			ok_to_save_body(void) const;

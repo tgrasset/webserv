@@ -6,13 +6,14 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/21 11:59:37 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/21 17:23:20 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/10 19:00:17 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>

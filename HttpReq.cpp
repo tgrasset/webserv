@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/08/08 16:27:21 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/10 19:36:17 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ HttpReq::HttpReq(Client *client, std::string &content, std::vector<Server *> ser
 	_accept.clear();
 	_contentType = "";
 	_contentLength = 0;
-	_to_add_body_file = "";
+	_to_add_body_file.clear();
 	_keepAlive = true;
 	_body_tmp_path = "";
 	_boundary = "";
@@ -255,16 +255,17 @@ status_req		HttpReq::getStatusReq(void) const
 	return (_status_req);
 }
 
-void		HttpReq::add_to_body_file_buff(const char *str)
+void		HttpReq::add_to_body_file_buff(std::vector<char> str)
 {
-	this->_to_add_body_file += str;
+	
+	this->_to_add_body_file.insert(_to_add_body_file.end(), str.begin(), str.end());
 	if (this->_bodyTmpFileFd == -1) //Besoin ouvrir le fichier
 	{
 		std::ostringstream	file_path;
 		file_path << HttpReq::_body_tmp_folder << "body_client_" << this->_id;
 		this->_body_tmp_path = file_path.str();
 		_bodyTmpFileFd = open(this->_body_tmp_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-		this->_client->add_fd_to_epoll_in(_bodyTmpFileFd);
+		this->_client->add_fd_to_epoll_out(_bodyTmpFileFd);
 		if (_bodyTmpFileFd == -1)
 			throw HttpReqException("Http Req: Error opening the body file");
 	}
@@ -272,12 +273,10 @@ void		HttpReq::add_to_body_file_buff(const char *str)
 
 void	HttpReq::writeOnReqBodyFile(void)
 {
-	unsigned int	byte_wrote;
-	if (this->_bodyTmpFileFd == -1)
-		return ;
-	if (this->_to_add_body_file.size() != 0)
+	int	byte_wrote;
+	if (this->_bodyTmpFileFd != -1 && this->_to_add_body_file.size() != 0)
 	{
-		byte_wrote = send(_bodyTmpFileFd, _to_add_body_file.c_str(), _to_add_body_file.size(), 0);
+		byte_wrote = send(_bodyTmpFileFd, _to_add_body_file.data(), _to_add_body_file.size(), 0);
 		if (byte_wrote == -1)
 			throw HttpReqException("Http Req: Error writing on the body file");
 		_byte_wrote_tmp_body_file += byte_wrote;

@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/07 19:06:45 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/10 19:35:22 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,9 @@
 # include "HttpReq.hpp"
 # include "Server.hpp"
 # include "CGI.hpp"
+# include "Client.hpp"
 
+class Client;
 class HttpReq;
 class Server;
 class CGI;
@@ -33,11 +35,17 @@ typedef enum e_type_c {
 	AUTOINDEX
 }				r_type;
 
+typedef enum eStatusFileToSend {
+	CLOSE,
+	OPEN,
+	ERROR
+}	s_file;
+
 class HttpRes
 {
 	public:
 
-		HttpRes(HttpReq &request);
+		HttpRes(Client *client, HttpReq &request);
 		HttpRes(HttpRes const & copy);
 		~HttpRes(void);
 
@@ -63,6 +71,13 @@ class HttpRes
 		std::ifstream						getFileToSend() const;
 		int									getFileToSendFd() const;
 		size_t								getFileToSendSize() const;
+		std::vector<char>					getFileToSendBuff() const;
+		s_file								getStatusFileToSend() const;
+		void								openBodyFile();
+		void								closeBodyFile();
+		void								clearFileToSendBuff();
+		void								addBodyFileToBuff(void);
+
 		
 		int									*getCgiPipeFd() const;
 		pid_t								getCgiPid() const;
@@ -91,6 +106,7 @@ class HttpRes
 		HttpRes(void);
 		static bool							_verbose;
 
+		Client										*_client;
 		std::string									_httpVersion;
 		int											_statusCode;
 		std::string									_method;
@@ -106,6 +122,8 @@ class HttpRes
 		int											_fileToSendFd;
 		std::ifstream 								_fileToSend;
 		size_t										_fileToSendSize;
+		std::vector<char>							_fileToSendBuff;
+		s_file										_statusFileToSend;
 		std::string									_script_name;
 		r_type										_resourceType;
 		std::string									_uriQuery;
