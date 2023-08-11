@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/08/11 16:30:04 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/11 19:21:33 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 # include "Server.hpp"
 # include "Client.hpp"
 
-typedef enum e_status_req {
+typedef enum e_statusReq {
 	COMPLETED,
 	WAITING_TO_FILL_BODY_FILE
 }				status_req;
@@ -29,7 +29,7 @@ class HttpReq
 {
 private:
 	Client								*_client;
-	status_req							_status_req;
+	status_req							_statusReq;
 	std::string							_method;
 	std::string							_uri;
 	std::string							_httpVersion;
@@ -45,7 +45,6 @@ private:
 	unsigned int						_byteRecivedReqBody;
 	unsigned int						_byteWroteTmpBodyFile;
 	int									_bodyTmpFileFd;
-	std::ofstream 						_bodyFile;
 	unsigned int						_id;
 	Server								*_server;
 	std::string							_boundary;
@@ -78,7 +77,6 @@ public:
 	Server 								*getServer() const;
 	std::string							getBoundary() const;
 	void								addToBodyFileBuff(std::vector<char> str);
-	void								closeBodyFile(void);
 	void								setServer(std::vector<Server *> servers);
 	bool								bodyIsTooBig(void) const;
 	status_req							getStatusReq(void) const;

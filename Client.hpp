@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/11 16:34:42 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/11 19:22:55 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,8 +37,7 @@ typedef enum e_status_c {
 
 typedef enum e_type_fd {
 	COM_SOCKET,
-	CGI_R_PIPE,
-	CGI_W_PIPE,
+	CGI_PIPE,
 	RES_FILE_FD,
 	REQ_FILE_FD,
 	NOT_MINE
@@ -106,6 +105,7 @@ public:
 	void						addFdToPollIn(int fd);
 	void						addFdToPollOut(int fd);
 	void						addBodyFileToBuff(void);
+	void						addCgiToBuff(void);
 	void						writeReqBodyFile(void);
 
 	class ClientException : public std::exception {

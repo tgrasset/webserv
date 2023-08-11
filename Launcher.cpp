@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/11 16:34:42 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/11 19:22:08 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -178,9 +178,9 @@ void	Launcher::processReadingFd(int fd)
 			addFdToPollOut(fd);
 		}
 		break;
-	case CGI_R_PIPE:
-		std::cout << std::endl << "I have a reading CGI_R_PIPE event from client " << client->getId() << std::endl;
-		/* code */
+	case CGI_PIPE:
+		std::cout << std::endl << "I have a reading CGI_PIPE event from client " << client->getId() << std::endl;
+		client->addCgiToBuff();/* code */
 		break;
 	case RES_FILE_FD:
 		std::cout<< std::endl << "I have a reading RES_FILE_FD event from client " << client->getId() << std::endl;

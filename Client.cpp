@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/11 16:34:42 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/11 19:28:49 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -147,10 +147,8 @@ t_fd	Client::getSocketType(int fd) const
 {
 	if (fd == this->_com_socket)
 		return (COM_SOCKET);
-	else if (this->_res != NULL && this->_res->getCgiPipeFd()[0] == fd)
-		return (CGI_R_PIPE);
-	else if (this->_res != NULL && this->_res->getCgiPipeFd()[1] == fd)
-		return (CGI_W_PIPE);
+	else if (this->_res != NULL && this->_res->getCgiPipeFd() == fd)
+		return (CGI_PIPE);
 	else if (this->_res != NULL && this->_res->getFileToSendFd() == fd)
 		return (RES_FILE_FD);
 	else if (this->_req != NULL && this->_req->getBodyTmpFileFd() == fd)
@@ -258,6 +256,7 @@ void	Client::sendResponse(void)
 		this->sendResponseBody();
 }
 
+/*Attention dans le cas ou l'on est sur un CGI il faut ajouter la ligne en plus sur le header avec le transfert protocole, et retirer le content length. */
 void	Client::sendResponseHeader(void)
 {
 	std::cout << "Client " << _id << " entering sendResponseHeader" << std::endl;
@@ -372,7 +371,7 @@ void	Client::sendResponseBodyNormalFile(void)
 
 void	Client::sendResponseBodyCgi(void)
 {
-
+	/* A FAIRE EN S'INSPIRANT DES FICHIER. ATTENTION UTILISER PLUTOT ENVOIE EN CHUNCK. */
 }
 
 void	Client::resetLastActivity(void)
@@ -442,4 +441,9 @@ void	Client::writeReqBodyFile(void)
 void	Client::addBodyFileToBuff(void)
 {
 	this->_res->addBodyFileToBuff();
+}
+
+void Client::addCgiToBuff(void)
+{
+	this->_res->addCgiToBuff();
 }

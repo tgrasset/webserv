@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/11 16:27:00 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/11 19:26:48 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,9 +38,7 @@ HttpRes::HttpRes(Client * client, HttpReq &request) {
 	_resourceType = NORMALFILE;
 	_contentLength = 0;
 	_cgiFilePath = "";
-	_cgiPipeFd = new int[2];
-	_cgiPipeFd[0] = -1;
-	_cgiPipeFd[1] = -1;
+	_cgiPipeFd = -1;
 	_cgiPid = -42;
 	_fileToSendFd = -1;
 	_fileToSendBuff.clear();
@@ -64,7 +62,6 @@ HttpRes::~HttpRes(void) {
 		std::cout << "HttpRes destructor called" << std::endl;
 	if (_location != NULL)
 		delete _location;
-	delete[] _cgiPipeFd;
 }
 
 /* ************************************************************************** */
@@ -91,8 +88,7 @@ HttpRes	& HttpRes::operator=(HttpRes const & httpres)
 		_location = httpres.getLocation();
 		_contentLength = httpres.getContentLength();
 		_cgiFilePath = httpres._cgiFilePath;
-		_cgiPipeFd[0] = httpres._cgiPipeFd[0];
-		_cgiPipeFd[1] = httpres._cgiPipeFd[1];
+		_cgiPipeFd = httpres._cgiPipeFd;
 		_cgiPid = httpres._cgiPid;
 		_fileToSendFd = httpres._fileToSendFd;
 		_fileToSendBuff = httpres._fileToSendBuff;
@@ -210,7 +206,7 @@ s_file	HttpRes::getStatusFileToSend() const
 	return (this->_statusFileToSend);
 }
 
-int		*HttpRes::getCgiPipeFd() const {
+int		HttpRes::getCgiPipeFd() const {
 
 	return (this->_cgiPipeFd);
 }
@@ -225,11 +221,11 @@ void	HttpRes::setStatusCode(int statusCode)
 	this->_statusCode = statusCode;
 }
 
-/*void	HttpRes::setCgiPipeFd(int cgiPipeFd)
+void	HttpRes::setCgiPipeFd(int cgiPipeFd)
 {
 	this->_cgiPipeFd = cgiPipeFd;
 }
-*/
+
 void	HttpRes::setCgiPid(int cgiPid)
 {
 	this->_cgiPid = cgiPid;
@@ -745,6 +741,7 @@ void	HttpRes::openBodyFile(void)
 	if (this->_fileToSendFd == -1)
 	{
 		this->_statusFileToSend = ERROR;
+		this->setStatusCode(500);
 		return ; 
 	}
 	std::cout << "I got a FD " << this->_fileToSendFd  << std::endl;
@@ -781,3 +778,19 @@ void	HttpRes::addBodyFileToBuff(void)
 	else
 		this->_fileToSendBuff.insert(this->_fileToSendBuff.end(), readline, readline + byte_read);
 }
+
+void	HttpRes::addCgiToBuff(void)
+{
+	/*A Faire. il faut faire comme  pour le fichier */
+}
+
+void	HttpRes::removeFdFromPoll(int fd)
+{
+	this->_client->removeFdFromPoll(fd);
+}
+
+void	HttpRes::addFdToPollIn(int fd)
+{
+	this->_client->addFdToPollIn(fd);
+}
+

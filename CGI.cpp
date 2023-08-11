@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/29 18:53:19 by jlanza            #+#    #+#             */
-/*   Updated: 2023/08/08 09:49:30 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/11 19:13:59 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,14 +65,15 @@ void	CGI::setUpEnv(void)
 void	CGI::execCGI(void)
 {
 	// CREATE PIPE FOR OUTPUT
-	// int	fd_pipe[2];
-	// if (pipe(fd_pipe) == -1)
-	// {
-	// 	std::cerr << "Failed to create pipe." << std::endl;
-	// 	_res->setStatusCode(500);
-	// 	return ;
-	// }
-	//_res->setCgiPipeFd(fd_pipe[0]);
+	int	fd_pipe[2];
+	if (pipe(fd_pipe) == -1)
+	{
+		std::cerr << "Failed to create pipe." << std::endl;
+		_res->setStatusCode(500);
+		return ;
+	}
+	_res->setCgiPipeFd(fd_pipe[0]);
+	_res->addFdToPollIn(fd_pipe[0]);
 
 	// FORK
 	_res->setCgiPid(fork());
@@ -96,12 +97,12 @@ void	CGI::execCGI(void)
 		}
 
 		// DUP FOR OUTPUT
-		// close(fd_pipe[0]);
-		// if (dup2(fd_pipe[1], STDOUT_FILENO) == -1)
-		// {
-		// 	std::cerr << "Failed to dup" << std::endl;
-		// 	killMe();
-		// }
+		 close(fd_pipe[0]);
+		 if (dup2(fd_pipe[1], STDOUT_FILENO) == -1)
+		{
+		 	std::cerr << "Failed to dup" << std::endl;
+		 	killMe();
+		}
 
 		//SETUP ENV
 		this->setUpEnv();
@@ -139,7 +140,7 @@ void	CGI::execCGI(void)
 	else
 	{
 		//close(fd_pipe[0]);
-		//close(fd_pipe[1]);
+		close(fd_pipe[1]);
 		//waitpid(_res->getCgiPid(), NULL, 0);
 	}
 }

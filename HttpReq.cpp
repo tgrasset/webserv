@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/08/11 16:30:04 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/11 19:21:13 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ HttpReq::HttpReq(Client *client, std::string &content, std::vector<Server *> ser
 {
 	HttpReq::_count++;
 	_client = client;
-	_status_req = WAITING_TO_FILL_BODY_FILE;
+	_statusReq = WAITING_TO_FILL_BODY_FILE;
 	this->_id = HttpReq::_count;
 	_method = "";
 	_uri = "";
@@ -40,9 +40,9 @@ HttpReq::HttpReq(Client *client, std::string &content, std::vector<Server *> ser
 	_byteWroteTmpBodyFile = 0;
 	HttpReq::parse(content, servers);
 	if (_contentLength == 0 || _method != "POST" || _contentLength > this->_server->getClientMaxBodySize())
-		_status_req = COMPLETED;
+		_statusReq = COMPLETED;
 	else
-		_status_req = WAITING_TO_FILL_BODY_FILE;
+		_statusReq = WAITING_TO_FILL_BODY_FILE;
 }
 
 HttpReq::HttpReq(HttpReq const & copy)
@@ -79,7 +79,7 @@ HttpReq	& HttpReq::operator=(HttpReq const & httpreq)
 		_server = httpreq._server;
 		_boundary = httpreq._boundary;
 		_toAddBodyFile = httpreq._toAddBodyFile;
-		_status_req = httpreq._status_req;
+		_statusReq = httpreq._statusReq;
 		_byteRecivedReqBody = httpreq._byteRecivedReqBody;
 		_byteWroteTmpBodyFile = httpreq._byteWroteTmpBodyFile;
 		_client = httpreq._client;
@@ -240,7 +240,7 @@ std::string	HttpReq::getBoundary() const {
 
 status_req		HttpReq::getStatusReq(void) const
 {
-	return (_status_req);
+	return (_statusReq);
 }
 
 void		HttpReq::addToBodyFileBuff(std::vector<char> str)
@@ -253,16 +253,17 @@ void		HttpReq::addToBodyFileBuff(std::vector<char> str)
 		file_path << HttpReq::_bodyTmpFolder << "body_client_" << this->_id;
 		this->_bodyTmpPath = file_path.str();
 		_bodyTmpFileFd = open(this->_bodyTmpPath.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-		this->_client->addFdToPollOut(_bodyTmpFileFd);
 		if (_bodyTmpFileFd == -1)
 			throw HttpReqException("Opening the body file");
+		_statusBodyFile = OPEN;
+		this->_client->addFdToPollOut(_bodyTmpFileFd);
 	}
 }
 
 void	HttpReq::writeOnReqBodyFile(void)
 {
 	int	byte_wrote;
-	if (this->_bodyTmpFileFd != -1 && this->_toAddBodyFile.size() != 0)
+	if (this->_bodyTmpFileFd != -1 && this->_toAddBodyFile.size() != 0 && _statusBodyFile == OPEN)
 	{
 		byte_wrote = send(_bodyTmpFileFd, _toAddBodyFile.data(), _toAddBodyFile.size(), 0);
 		if (byte_wrote == -1)
@@ -271,17 +272,13 @@ void	HttpReq::writeOnReqBodyFile(void)
 		_toAddBodyFile.clear();
 		if (_contentLength == _byteRecivedReqBody && _contentLength == _byteWroteTmpBodyFile)
 		{
-			_status_req = COMPLETED;
+			_statusReq = COMPLETED;
 			this->_client->removeFdFromPoll(_bodyTmpFileFd);
 			if (close(_bodyTmpFileFd) == -1)
 				throw HttpReqException("Closing tmp body file");
+			_statusBodyFile = CLOSE;
 		}
 	}
-}
-
-void	HttpReq::closeBodyFile()
-{
-	this->_bodyFile.close();
 }
 
 bool	HttpReq::bodyIsTooBig() const
