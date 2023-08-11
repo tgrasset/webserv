@@ -1,4 +1,10 @@
 # Note pour l'equipe
+## 11/08/09
+- Code modifie pour monitorer les fd des ouvertures des fichiers normaux comme demande par le sujet.
+- Du coup epoll et fonction associees remplacees par poll. 
+- Il reste encore a ajouter la partie CGI dans les fd a monitorer. 
+- curl -i http://localhost:5403 pour tester en voyant aussi le header. 
+- Nomemclature uniformise pour l'ensemble du code avec le fomat ceciEstUneVariableOuUneFonction. 
 
 ## 05/08
 - Je modifie le code pour prendre en compte la regle de ne jamais rien lire ou ecrire sans passer par le epoll. 

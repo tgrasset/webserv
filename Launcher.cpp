@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/10 19:34:04 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/11 16:34:42 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,9 @@ Launcher::Launcher(std::string path)
 {
 	if (Launcher::_verbose)
 		std::cout << "Launcher path constructor called" << std::endl;
-	this->_path_conf = path;
+	this->_pathConf = path;
+	_breakPollLoop = false;
+	_pollEvent.clear();
 	return ;
 }
 
@@ -33,11 +35,9 @@ Launcher::Launcher(Launcher const & copy)
 
 Launcher::~Launcher(void)
 {
-	// Closing all socket
-	close(_efd);
 	for (std::list<Client>::iterator it = this->_clients.begin();
 		it != this->_clients.end(); ++it)
-		close(it->getCom_socket());
+		close(it->getComSocket());
 	for (std::vector<Server>::iterator it = this->_servers.begin();
 		it != this->_servers.end(); ++it)
 		close(it->getListenSocket());
@@ -52,8 +52,11 @@ Launcher & Launcher::operator=(Launcher const & launcher)
 {
 	if (this != &launcher)
 	{
-		this->_servers = launcher._servers;
-		this->_clients = launcher._clients;
+		_servers = launcher._servers;
+		_clients = launcher._clients;
+		_pathConf = launcher._pathConf;
+		_pollEvent = launcher._pollEvent;
+		_breakPollLoop = launcher._breakPollLoop;
 	}
 	return (*this);
 }
@@ -64,52 +67,53 @@ Launcher & Launcher::operator=(Launcher const & launcher)
 
 void	Launcher::parse(void)
 {
-	ConfParser conf_parser(this->_path_conf);
+	ConfParser conf_parser(this->_pathConf);
 	conf_parser.parse();
 	this->_servers = conf_parser.getServers();
 }
 
-void	Launcher::launch_servers(void)
+void	Launcher::launchServers(void)
 {
-	_ep_event.reserve(this->_servers.size() * MAX_EVENTS);
+	_pollEvent.reserve(this->_servers.size() * MAX_EVENTS);
 	int nfds = 0;
-
-	_efd = epoll_create1 (0);
-	if (_efd == -1)
-		throw LauncherException("Probleme epoll_create !");
-	this->initiate_servers_listening();
+	this->initiateServersListening();
 	/* Global loop for the Webserv */
 	while (1)
 	{
-		this->print_situation();
-		this->check_timeout_clients();
-		if ((nfds = epoll_wait(_efd, static_cast< struct epoll_event * >(_ep_event.data()), this->_servers.size() * MAX_EVENTS, -1)) == -1)
-			throw LauncherException("Problem with epoll_wait !");
-        for (int i = 0; i < nfds; i++)
+		_breakPollLoop = false;
+		this->checkTimeoutClients();
+		if ((nfds = poll(_pollEvent.data(), _pollEvent.size() , -1)) == -1)
+			throw LauncherException("Problem with poll !");
+		if (nfds > 0)
 		{
-			if ((_ep_event[i].events & EPOLLIN) == EPOLLIN) //Read.
-			{
-				if (check_if_listen_socket(_ep_event[i].data.fd)) //New connexion
-					this->process_new_client(i);
-				else
-					this->process_reading_fd(i);
-			}
-			else if ((_ep_event[i].events & EPOLLOUT) == EPOLLOUT) //Write
-				this->process_writing_fd(i);
-			else if ((_ep_event[i].events & EPOLLRDHUP) == EPOLLRDHUP) //Peer closed connection.
-			{
-				std::list<Client>::iterator client_it = this->find_client(_ep_event[i].data.fd);
-				std::cout << "Client " << client_it->getId() << " has close connexion" << std::endl;
-				this->remove_client(client_it);
+			for (std::vector< struct pollfd >::iterator it = _pollEvent.begin(); it != _pollEvent.end(); ++it)
+			{	
+				if (it->revents & POLLIN) //Read.
+				{
+					if (checkIfListenSocket(it->fd)) //New connexion
+						this->processNewClient(it->fd);
+					else
+						this->processReadingFd(it->fd);
+				}
+				else if (it->revents & POLLOUT) //Write
+				{
+					this->processWritingFd(it->fd);
+				}
+				else if ((it->revents & POLLERR) || (it->revents & POLLHUP))
+				{
+					std::list<Client>::iterator client_it = this->findClient(it->fd);
+					std::cout << "Client " << client_it->getId() << " has close connexion" << std::endl;
+					this->removeClient(client_it);
+				}
+				if (_breakPollLoop)
+					break;
 			}
 		}
 	}
 }
 
-void	Launcher::initiate_servers_listening(void)
+void	Launcher::initiateServersListening(void)
 {
-	struct epoll_event	ev;
-
 	for (std::vector<Server>::iterator it = this->_servers.begin();
 	it != this->_servers.end(); ++it)
 	{
@@ -127,38 +131,27 @@ void	Launcher::initiate_servers_listening(void)
 			it->setServaddr();
 			it->bind_server();
 			if (listen(it->getListenSocket(), MAX_WAIT) < 0)
-				throw LauncherException("Impossible de listen !");
+				throw LauncherException("Impossible to listen !");
 		}
-		ev.events = EPOLLIN;
-		ev.data.fd = it->getListenSocket();
-		if (epoll_ctl(_efd, EPOLL_CTL_ADD, it->getListenSocket(), &ev) == -1)
-			throw LauncherException("\e[31mProblem with epoll_ctl ! 1\e[0m");
+		addFdToPollIn(it->getListenSocket());
 	}
 }
 
-/*
-- Get fd_new from accept
-- Add fd_new to epoll
-- Add a new client in the client vector
-*/
-void	Launcher::process_new_client(int i)
+
+void	Launcher::processNewClient(int fd)
 {
+	int 				fd_new;
 	socklen_t 			addrlen;
-	struct epoll_event	ev;
 	struct sockaddr_in  client_addr;
 	char				str_ip_client[INET_ADDRSTRLEN];
 
 	addrlen = sizeof (struct sockaddr_in);
-	int fd_new;
-	fd_new = accept(_ep_event[i].data.fd, (struct sockaddr *) &client_addr, &addrlen);
+	fd_new = accept(fd, (struct sockaddr *) &client_addr, &addrlen);
 	if (fd_new == -1)
 		throw LauncherException("Problem with accept !");
-	ev.events = EPOLLIN;
-	ev.data.fd = fd_new;
-	if (epoll_ctl(_efd, EPOLL_CTL_ADD, fd_new, &ev) == -1)
-		throw LauncherException("Problem with epoll_ctl !");
+	addFdToPollIn(fd_new);
 	Client	new_client(this, client_addr, fd_new);
-	this->add_server_of_client(_ep_event[i].data.fd, &new_client);
+	addServerOfClient(fd, &new_client);
 	_clients.push_back(new_client);
 	inet_ntop (AF_INET, &(client_addr.sin_addr), str_ip_client, sizeof (str_ip_client));
 	std::cout << getTimestamp() << "\e[33m	I just accepted a new connexion from " << str_ip_client << "\e[0m" << std::endl;
@@ -169,75 +162,77 @@ void	Launcher::process_new_client(int i)
 - If the client is done sending request, move if to the EPOLLOUT list
 */
 
-void	Launcher::process_reading_fd(int i)
+void	Launcher::processReadingFd(int fd)
 {
-	std::list<Client>::iterator client = this->find_client(_ep_event[i].data.fd);
-	switch (client->getSocketType(_ep_event[i].data.fd))
+	std::list<Client>::iterator client = this->findClient(fd);
+	switch (client->getSocketType(fd))
 	{
 	case COM_SOCKET:
-		if (client->receive_request())
-			this->remove_client(client);
+		std::cout << std::endl << "I have a reading COM_SOCKET event from client " << client->getId() << std::endl;
+		if (client->receiveRequest())
+			this->removeClient(client);
 		else if (client->getStatus() == WAITING_FOR_RES)
 		{
-			client->reset_last_activity();
-			remove_fd_from_epoll(_ep_event[i].data.fd);
-			add_fd_to_epoll_out(_ep_event[i].data.fd);
+			client->resetLastActivity();
+			removeFdFromPoll(fd);
+			addFdToPollOut(fd);
 		}
 		break;
 	case CGI_R_PIPE:
+		std::cout << std::endl << "I have a reading CGI_R_PIPE event from client " << client->getId() << std::endl;
 		/* code */
 		break;
 	case RES_FILE_FD:
+		std::cout<< std::endl << "I have a reading RES_FILE_FD event from client " << client->getId() << std::endl;
 		client->addBodyFileToBuff();
 		break;
 	case REQ_FILE_FD:
+		std::cout << std::endl << "I have a reading REQ_FILE_FD event from client " << client->getId() << std::endl;
 		/**/
 		break;
 	default:
-		throw LauncherException("Problem with epoll_ctl !");
+		throw LauncherException("The Reading FD is not in possible category");
 	}
 }
 
-void	Launcher::process_writing_fd(int i)
+void	Launcher::processWritingFd(int fd)
 {
-	std::list<Client>::iterator client = this->find_client(_ep_event[i].data.fd);
-	switch (client->getSocketType(_ep_event[i].data.fd))
+	std::list<Client>::iterator client = this->findClient(fd);
+	switch (client->getSocketType(fd))
 	{
 	case COM_SOCKET:
-		client->send_response();
+		std::cout << std::endl << "I have a writing COM_SOCKET event from client " << client->getId() << std::endl;
+		client->sendResponse();
 		if (client->getStatus() == RES_SENT && client->getKeepAlive())
 		{
-			std::cout << "Finish writing to " << client->getId() << ", I add him to listen socket" << std::endl << std::endl;
-			client->reset_client();
-			remove_fd_from_epoll(_ep_event[i].data.fd);
-			add_fd_to_epoll_in(_ep_event[i].data.fd);
+			std::cout << "Finish writing to " << client->getId() << ", I add him to listen socket" << std::endl;
+			client->resetClient();
+			removeFdFromPoll(fd);
+			addFdToPollIn(fd);
 		}
 		else if (client->getStatus() == RES_SENT)
 		{
-			std::cout << "Process finished for client " << client->getId() << ", it will now be removed" << std::endl << std::endl;
-			this->remove_client(client);
+			std::cout << "Process finished for client " << client->getId() << ", it will now be removed" << std::endl;
+			this->removeClient(client);
 		}
 		else if (client->getStatus() == ERROR_WHILE_SENDING)
 		{
 			std::cout << "An error happend while sending the response  to client " << client->getId() << ". The client will now be removed" << std::endl << std::endl;
-			this->remove_client(client);
+			this->removeClient(client);
 		}
 		break;
 	case REQ_FILE_FD:
+		std::cout << std::endl << "I have a writing REQ_FILE_FD event from client " << client->getId() << std::endl;
 		client->writeReqBodyFile();
 		break;
 	default:
-		throw LauncherException("Problem with epoll_ctl !");
+		throw LauncherException("Problem writing fd is not a correct category");
 	}
-		
-	
-	
 }
 
 std::vector<Server>::iterator 	Launcher::getServerWithSameHostPort(std::vector<Server>::iterator it_find)
 {
-	for (std::vector<Server>::iterator it = this->_servers.begin(); it != this->_servers.end();
-	++it)
+	for (std::vector<Server>::iterator it = this->_servers.begin(); it != this->_servers.end();	++it)
 	{
 		if (it == it_find)
 			return (this->_servers.end());
@@ -247,7 +242,7 @@ std::vector<Server>::iterator 	Launcher::getServerWithSameHostPort(std::vector<S
 	return (this->_servers.end());
 }
 
-std::list<Client>::iterator	Launcher::find_client(int socket)
+std::list<Client>::iterator	Launcher::findClient(int socket)
 {
 	std::list<Client>::iterator it = this->_clients.begin();
 	while (it != this->_clients.end())
@@ -257,11 +252,13 @@ std::list<Client>::iterator	Launcher::find_client(int socket)
 		++it;
 	}
 	if (it == this->_clients.end())
-		throw LauncherException("Error: Client not found !");
+	{
+		throw LauncherException("Client not found !");
+	}
 	return (it);
 }
 	
-bool	Launcher::check_if_listen_socket(int socket)
+bool	Launcher::checkIfListenSocket(int socket)
 {
 	for (std::vector<Server>::iterator it = this->_servers.begin();
 	it != this->_servers.end(); ++it)
@@ -272,7 +269,7 @@ bool	Launcher::check_if_listen_socket(int socket)
 	return (false);
 }
 
-void 	Launcher::add_server_of_client(int listen_sock, Client *client)
+void 	Launcher::addServerOfClient(int listen_sock, Client *client)
 {
 	for (std::vector<Server>::iterator it = this->_servers.begin();
 	it != this->_servers.end(); ++it)
@@ -282,42 +279,35 @@ void 	Launcher::add_server_of_client(int listen_sock, Client *client)
 	}
 }
 
-void	Launcher::check_timeout_clients(void)
+void	Launcher::checkTimeoutClients(void)
 {
 	unsigned long time = 0;
 	for(std::list<Client>::iterator it = this->_clients.begin(); it != this->_clients.end();++it)
 	{
-		time = it->time_since_last_activity_us() / 1000000;
+		time = it->timeSinceLastActivityUs() / 1000000;
 		if (time > MAX_TIME_CLIENT_S)
 		{
 			std::cout << "\e[31mTimeout for client " << it->getId()
 			<< ", time = " << time << " it will now be removed\e[0m" << std::endl << std::endl;
 			std::list<Client>::iterator it_tmp = it;
 			--it;
-			this->remove_client(it_tmp);
+			this->removeClient(it_tmp);
 		}
 	}
 }
 
-void	Launcher::remove_client(std::list<Client>::iterator client)
+void	Launcher::removeClient(std::list<Client>::iterator client)
 {
-	remove_fd_from_epoll(client->getCom_socket());
-	close(client->getCom_socket());
+	removeFdFromPoll(client->getComSocket());
+	close(client->getComSocket());
 	this->_clients.erase(client);
 }
 
-void	Launcher::print_situation(void)
+void	Launcher::printSituation(void)
 {
 	char				str_ip_client[INET_ADDRSTRLEN];
 	struct sockaddr_in  client_addr;
 
-	//std::cout << std::endl << "--------------------- Servers -----------------" << std::endl;
-	/*for (std::vector<Server>::iterator it = this->_servers.begin(); it != this->_servers.end(); ++it)
-	{
-		std::cout << "Listen Socket : " << it->getListenSocket() << " | Name : " << it->getServerName()
-		<< " | Host : " << it->getHost() << " | Port : " << ntohs(it->getPort()) << std::endl << std::endl;
-	}*/
-	return ;
 	for (std::list<Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
 	{
 		if (it == this->_clients.begin())
@@ -325,10 +315,10 @@ void	Launcher::print_situation(void)
 		client_addr = it->getClient_addr();
 		inet_ntop (AF_INET, &(client_addr.sin_addr), str_ip_client, sizeof (str_ip_client));
 		std::cout << "ID : " << it->getId() << "	|";
-		std::cout << " Com Socket : " << it->getCom_socket() << "	|";
+		std::cout << " Com Socket : " << it->getComSocket() << "	|";
 		std::cout << " Addresse : " << str_ip_client << "	|";
 		std::cout << " Server :";
-		it->print_ClientServer();
+		it->printClientServer();
 		std::cout << "	|";
 		std::cout << " Status : ";
 		switch (it->getStatus())
@@ -364,7 +354,7 @@ void	Launcher::print_situation(void)
 		std::cout << std::endl << std::endl;
 	}
 }
-void Launcher::test_folder_tmp(void) const
+void Launcher::testFolderTmp(void) const
 {
 	std::string body_tmp_folder(BODY_TMP_FOLDER);
 	struct stat stats_dossier;
@@ -376,26 +366,41 @@ void Launcher::test_folder_tmp(void) const
 
 }
 
-void	Launcher::remove_fd_from_epoll(int fd)
+void	Launcher::removeFdFromPoll(int fd)
 {
-	if (epoll_ctl(_efd, EPOLL_CTL_DEL, fd, NULL) == -1)
-		throw LauncherException("Error: epoll_ctl DEL!");
+	std::vector <struct pollfd >::iterator it = _pollEvent.begin();
+	while (it != _pollEvent.end())
+	{
+		if (it->fd == fd)
+			break;
+		++it;
+	}
+	_pollEvent.erase(it);
+	_breakPollLoop = true;
 }
 
-void	Launcher::add_fd_to_epoll_in(int fd)
+void	Launcher::printPollEvent(void) const
 {
-	struct epoll_event	ev;
-	ev.events = EPOLLIN;
-	ev.data.fd = fd;
-	if (epoll_ctl(_efd, EPOLL_CTL_ADD, fd, &ev) == -1)
-		throw LauncherException("Problem with epoll_ctl !");
+	for(std::vector < struct pollfd >::const_iterator it = this->_pollEvent.begin(); it != _pollEvent.end(); ++it)
+	{
+		std::cout << "	FD: " << it->fd << " | event: " << it->events << " | revent: " << it->revents << std::endl;
+	}
 }
 
-void	Launcher::add_fd_to_epoll_out(int fd)
+void	Launcher::addFdToPollIn(int fd)
 {
-	struct epoll_event	ev;
-	ev.events = EPOLLOUT;
-	ev.data.fd = fd;
-	if (epoll_ctl(_efd, EPOLL_CTL_ADD, fd, &ev) == -1)
-		throw LauncherException("Problem with epoll_ctl !");
+	struct pollfd poll_struct;
+	poll_struct.fd = fd;
+	poll_struct.events = POLLIN | POLLHUP | POLLERR;
+	_pollEvent.push_back(poll_struct);
+	_breakPollLoop = true;
+}
+
+void	Launcher::addFdToPollOut(int fd)
+{
+	struct pollfd poll_struct;
+	poll_struct.fd = fd;
+	poll_struct.events = POLLOUT | POLLERR;
+	_pollEvent.push_back(poll_struct);
+	_breakPollLoop = true;
 }

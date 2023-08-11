@@ -60,11 +60,11 @@ class Server {
         in_port_t						_port;
 		in_addr_t						_host;
 		struct sockaddr_in 				_servaddr;
-		std::string						_server_name;
+		std::string						_serverName;
 		std::string						_root;
-		unsigned int					_client_max_body_size;
+		unsigned int					_clientMaxBodySize;
 		std::string						_index;
-		std::map<int, std::string>      _error_pages;
+		std::map<int, std::string>      _errorPages;
 		std::vector<Location> 			_locations;
 		int								_listenSocket;
 		static bool						_verbose;

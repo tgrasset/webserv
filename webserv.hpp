@@ -22,6 +22,7 @@
 # include <unistd.h>
 # include <netdb.h>
 # include <sys/epoll.h>
+# include <poll.h>
 # include <sys/time.h>
 # include <string.h>
 # include <signal.h>
@@ -33,6 +34,12 @@
 # define BUFFER_SIZE 4092
 # define MAX_TIME_CLIENT_S 10
 # define BODY_TMP_FOLDER "tmp_body/"
+
+typedef enum eStatus {
+	CLOSE,
+	OPEN,
+	ERROR
+}	s_file;
 
 std::vector<std::string>    cpp_split(std::string str, char const *charset);
 int							stringToInt(std::string str);

@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/10 19:37:34 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/11 16:27:00 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -167,7 +167,7 @@ std::string HttpRes::getUriQuery() const {
 
 std::string	HttpRes::getScriptName() const {
 
-	return (_script_name);
+	return (_scriptName);
 }
 
 r_type	HttpRes::getResourceType() const {
@@ -189,12 +189,7 @@ std::string	HttpRes::getCgiFilePath() const {
 	
 	return (_cgiFilePath);
 }
-/*
-std::ifstream	HttpRes::getFileToSend() const {
-	
-	return (_fileToSend);
-}
-*/
+
 int		HttpRes::getFileToSendFd() const
 {
 	return (this->_fileToSendFd);
@@ -229,21 +224,16 @@ void	HttpRes::setStatusCode(int statusCode)
 {
 	this->_statusCode = statusCode;
 }
-/*
-void	HttpRes::setFileToSend(std::ifstream filestream)
-{
-	this->_fileToSend = filestream;
-}*/
 
 /*void	HttpRes::setCgiPipeFd(int cgiPipeFd)
 {
 	this->_cgiPipeFd = cgiPipeFd;
 }
-
+*/
 void	HttpRes::setCgiPid(int cgiPid)
 {
 	this->_cgiPid = cgiPid;
-}*/
+}
 
 void	HttpRes::fillMimeTypes() {
 
@@ -353,8 +343,7 @@ int	HttpRes::checkRequestHeader(std::map<std::string, std::string> header) {
 	return (200);
 }
 
-r_type HttpRes::checkResourceType() {
-
+r_type HttpRes::checkResourceType() {	
 	struct stat test;
 	if (access(_uriPath.c_str(), F_OK) != 0)
 		return (NOT_FOUND);
@@ -373,12 +362,9 @@ r_type HttpRes::checkResourceType() {
 					return (FORBIDDEN);
 				else
 				{
-					std::ifstream is (_uriPath.c_str(), std::ifstream::binary);
-  					if (is) {
-    					is.seekg(0, is.end);
-    					_contentLength = is.tellg();
-						is.close();
-					}
+					struct stat file;
+					if (stat(_uriPath.c_str(), &file) == 0)
+						_contentLength = file.st_size;
 					else
 						return (FORBIDDEN);
 					return (NORMALFILE);
@@ -399,12 +385,9 @@ r_type HttpRes::checkResourceType() {
 						return (FORBIDDEN);
 					else
 					{
-						std::ifstream is (_uriPath.c_str(), std::ifstream::binary);
-  						if (is) {
-    						is.seekg(0, is.end);
-    						_contentLength = is.tellg();
-							is.close();
-						}
+						struct stat file;
+						if (stat(_uriPath.c_str(), &file) == 0)
+							_contentLength = file.st_size;
 						else
 							return (FORBIDDEN);
 						return (NORMALFILE);
@@ -423,12 +406,9 @@ r_type HttpRes::checkResourceType() {
 					return (PHP);
 				else
 				{
-					std::ifstream is (_uriPath.c_str(), std::ifstream::binary);
-  					if (is) {
-    					is.seekg(0, is.end);
-    					_contentLength = is.tellg();
-						is.close();
-					}
+					struct stat file;
+					if (stat(_uriPath.c_str(), &file) == 0)
+						_contentLength = file.st_size;
 					else
 						return (FORBIDDEN);
 					return (NORMALFILE);
@@ -442,12 +422,9 @@ r_type HttpRes::checkResourceType() {
 					return (FORBIDDEN);
 				else
 				{
-					std::ifstream is (_uriPath.c_str(), std::ifstream::binary);
-  					if (is) {
-    					is.seekg(0, is.end);
-    					_contentLength = is.tellg();
-						is.close();
-					}
+					struct stat file;
+					if (stat(_uriPath.c_str(), &file) == 0)
+						_contentLength = file.st_size;
 					else
 						return (FORBIDDEN);
 					return (NORMALFILE);
@@ -507,7 +484,7 @@ int	HttpRes::checkUri(std::string uri) {
 		else if (uri[separator + 1] != '\0')
 			_uriQuery = uri.substr(separator + 1, end - (separator + 1));
 	}
-	_script_name = tempPath;
+	_scriptName = tempPath;
 	end = 0;
 	std::vector<Location> locs = _server->getLocations();
 	for (std::vector<Location>::iterator it = locs.begin(); it != locs.end(); it++)
@@ -723,7 +700,7 @@ void	HttpRes::uploadFileToServer(std::string tempFile, std::string boundary) {
 void	HttpRes::handleRequest(HttpReq &request) {
 
 	_statusCode = checkHttpVersion(request.getHttpVersion());
-	if (_statusCode == 200 && request.body_is_too_big() == true)
+	if (_statusCode == 200 && request.bodyIsTooBig() == true)
 		_statusCode = 413;
 	if (_statusCode == 200)
 		_statusCode = checkRequestHeader(request.getHeader());
@@ -763,14 +740,16 @@ void	HttpRes::openBodyFile(void)
 	struct stat buf;
 	stat(this->_uriPath.c_str(), &buf);
 	this->_fileToSendSize = buf.st_size;
+	std::cout << "I want to open file : " << this->_uriPath << " that has a size of " << this->_fileToSendSize << std::endl;
 	this->_fileToSendFd = open(this->_uriPath.c_str(), O_RDONLY);
 	if (this->_fileToSendFd == -1)
 	{
 		this->_statusFileToSend = ERROR;
 		return ; 
 	}
+	std::cout << "I got a FD " << this->_fileToSendFd  << std::endl;
 	this->_statusFileToSend = OPEN;
-	this->_client->add_fd_to_epoll_in(this->_fileToSendFd);
+	this->_client->addFdToPollIn(this->_fileToSendFd);
 }
 
 void	HttpRes::clearFileToSendBuff(void)
@@ -782,7 +761,7 @@ void	HttpRes::closeBodyFile(void)
 {
 	if (this->_fileToSendFd == -1 || this->_statusFileToSend == ERROR)
 		return;
-	this->_client->remove_fd_from_epoll(this->_fileToSendFd);
+	this->_client->removeFdFromPoll(this->_fileToSendFd);
 	if (close(this->_fileToSendFd) == -1)
 		this->_statusFileToSend = ERROR;
 	this->_statusFileToSend = CLOSE;

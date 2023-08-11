@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/12 15:48:32 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/22 17:51:03 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/08/11 16:35:47 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,11 +22,11 @@ Server::Server(void)
 		std::cout << "Server default constructor called" << std::endl;
 	_port = 0;
 	_host = 0;
-	_server_name = "";
+	_serverName = "";
 	_root = "";
-	_client_max_body_size = 0;
+	_clientMaxBodySize = 0;
 	_index = "";
-	_error_pages.clear();
+	_errorPages.clear();
 	_listenSocket = 0;
 }
 
@@ -54,11 +54,11 @@ Server &Server::operator=(Server const &rhs)
 		_port = rhs.getPort();
 		_host = rhs.getHost();
 		_servaddr = rhs.getServerAddr();
-		_server_name = rhs.getServerName();
+		_serverName = rhs.getServerName();
 		_root = rhs.getRoot();
-		_client_max_body_size = rhs.getClientMaxBodySize();
+		_clientMaxBodySize = rhs.getClientMaxBodySize();
 		_index = rhs.getIndex();
-		_error_pages = rhs.getErrorPages();
+		_errorPages = rhs.getErrorPages();
 		_locations = rhs.getLocations();
 		_listenSocket = rhs.getListenSocket();
 	}
@@ -80,7 +80,7 @@ in_addr_t	Server::getHost(void) const {
 
 std::string 	Server::getServerName(void) const {
 
-	return (_server_name);
+	return (_serverName);
 }
 
 std::string		Server::getRoot(void) const {
@@ -90,7 +90,7 @@ std::string		Server::getRoot(void) const {
 
 unsigned long	Server::getClientMaxBodySize(void) const {
 
-	return (_client_max_body_size);
+	return (_clientMaxBodySize);
 }
 
 std::string	Server::getIndex(void) const {
@@ -100,7 +100,7 @@ std::string	Server::getIndex(void) const {
 
 std::map<int, std::string>	Server::getErrorPages(void) const {
 
-	return (_error_pages);
+	return (_errorPages);
 }
 
 std::vector<Location>	Server::getLocations(void) const {
@@ -149,7 +149,7 @@ void	Server::setHost(std::string host) {
 void 	Server::setServerName(std::string name) {
 
 	if (isValidConfValue(name) == true)
-		_server_name = name;
+		_serverName = name;
 	else
 		throw ServerException("';' symbol needed after 'server_name' line");
 }
@@ -180,7 +180,7 @@ void	Server::setClientMaxBodySize(std::string clientMaxBodySize) {
 	int n = stringToInt(clientMaxBodySize);
 	if (n < 1)
 		throw ServerException("Invalid value in 'client_max_body_size' line");
-	_client_max_body_size = n;
+	_clientMaxBodySize = n;
 }
 
 void	Server::setIndex(std::string index) {
@@ -222,11 +222,11 @@ void	Server::setErrorPages(std::vector<std::string> errorPages) {
 			}
 			if (checkFile(path, _root) == false)
 				throw ServerException("Invalid error file path : " + path);
-			it = _error_pages.find(code);
-			if (it == _error_pages.end())
-				_error_pages.insert(std::make_pair(code, path));
+			it = _errorPages.find(code);
+			if (it == _errorPages.end())
+				_errorPages.insert(std::make_pair(code, path));
 			else
-				_error_pages[code] = path;
+				_errorPages[code] = path;
 		}
 	}
 }

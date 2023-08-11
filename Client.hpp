@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/10 19:33:28 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/11 16:34:42 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ private:
 	unsigned int			_id;
 	unsigned int			_byte_sent_header;
 	unsigned int			_byte_sent_body;
-	unsigned int			_byte_recived_req_body;
+	unsigned int			_byteRecivedReqBody;
 	struct timeval			_last_activity;
 	std::ifstream 			_file_to_send;
 	unsigned int			_file_to_send_size;
@@ -80,31 +80,31 @@ public:
 	Client	&operator=(Client const & client);
 
 	void						AddServerPtr(Server * new_server_ptr);
-	int							getCom_socket(void) const;
-	void						SetStatus(t_status_c status);
+	int							getComSocket(void) const;
+	void						setStatus(t_status_c status);
 	t_status_c					getStatus(void) const;
 	struct sockaddr_in		 	getClient_addr(void) const;
 	unsigned int				getId(void) const;
-	void						print_ClientServer(void) const;
-	int							get_byte_sent_header(void) const;
-	void						set_byte_sent_header(int byte);
-	void						send_response(void);
-	void						send_response_header(void);
-	void						send_response_body(void);
-	void						send_response_body_error(void);
-	void						send_response_body_normal_file(void);
-	void						send_response_body_cgi(void);
-	int							receive_request(void);
-	int							receive_request_header(void);
-	int							receive_request_body(void);
-	void						reset_last_activity(void);
-	unsigned long				time_since_last_activity_us(void) const;
-	void						reset_client(void);
+	void						printClientServer(void) const;
+	int							getByteSentHeader(void) const;
+	void						setByteSentHeader(int byte);
+	void						sendResponse(void);
+	void						sendResponseHeader(void);
+	void						sendResponseBody(void);
+	void						sendResponseBodyError(void);
+	void						sendResponseBodyNormalFile(void);
+	void						sendResponseBodyCgi(void);
+	int							receiveRequest(void);
+	int							receiveRequestHeader(void);
+	int							receiveRequestBody(void);
+	void						resetLastActivity(void);
+	unsigned long				timeSinceLastActivityUs(void) const;
+	void						resetClient(void);
 	bool						getKeepAlive(void) const;
 	t_fd						getSocketType(int fd) const;
-	void						remove_fd_from_epoll(int fd);
-	void						add_fd_to_epoll_in(int fd);
-	void						add_fd_to_epoll_out(int fd);
+	void						removeFdFromPoll(int fd);
+	void						addFdToPollIn(int fd);
+	void						addFdToPollOut(int fd);
 	void						addBodyFileToBuff(void);
 	void						writeReqBodyFile(void);
 

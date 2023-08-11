@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 20:36:38 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/04 14:56:24 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/11 16:20:04 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,9 +42,9 @@ int main(int ac, char **av)
 	try {
 		signal(SIGINT, &handle_sigint);
 		signal(SIGPIPE, &handle_sigpipe);
-		launcher.test_folder_tmp();
+		launcher.testFolderTmp();
 		launcher.parse();
-		launcher.launch_servers();
+		launcher.launchServers();
 	}
 	catch (Launcher::SigException &e) {
 		std::cerr << std::endl << "See you soon!" << std::endl;

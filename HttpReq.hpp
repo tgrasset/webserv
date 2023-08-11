@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/08/10 11:12:56 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/11 16:30:04 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,9 +28,6 @@ class Client;
 class HttpReq
 {
 private:
-
-	HttpReq(void);
-
 	Client								*_client;
 	status_req							_status_req;
 	std::string							_method;
@@ -42,22 +39,22 @@ private:
 	std::string							_contentType;
 	unsigned int						_contentLength;
 	bool								_keepAlive;
-	std::string							_body_tmp_path;
-	//std::string						_to_add_body_file;
-	std::vector<char>					_to_add_body_file;
-	unsigned int						_byte_recived_req_body;
-	unsigned int						_byte_wrote_tmp_body_file;
+	std::string							_bodyTmpPath;
+	s_file								_statusBodyFile;
+	std::vector<char>					_toAddBodyFile;
+	unsigned int						_byteRecivedReqBody;
+	unsigned int						_byteWroteTmpBodyFile;
 	int									_bodyTmpFileFd;
-	std::ofstream 						_body_file;
+	std::ofstream 						_bodyFile;
 	unsigned int						_id;
 	Server								*_server;
 	std::string							_boundary;
 
-	static std::string					_body_tmp_folder;
+	static std::string					_bodyTmpFolder;
 	static unsigned int					_count;
 	
-
-	void	parse(std::string &content, std::vector<Server *> servers);
+	HttpReq(void);
+	void								parse(std::string &content, std::vector<Server *> servers);
 
 public:
 
@@ -65,28 +62,27 @@ public:
 	HttpReq(HttpReq const & copy);
 	~HttpReq(void);
 
-	HttpReq	&operator=(HttpReq const & http_req);
+	HttpReq								&operator=(HttpReq const & http_req);
 
-	std::string		getMethod() const;
-	std::string		getUri() const;
-	std::string		getHttpVersion() const;
-	std::map<std::string, std::string> getHeader() const;
-	std::string		getHost() const;
-	std::vector<std::string>	getAccept() const;
-	std::string		getContentType() const;
-	unsigned int	getContentLength() const;
-	bool			getKeepAlive() const;
-	std::string		getBodyTmpFilePath() const;
-	int				getBodyTmpFileFd() const;
-	Server 			*getServer() const;
-	std::string		getBoundary() const;
-	void			add_to_body_file_buff(std::vector<char> str);
-	void			close_body_file(void);
-	void			setServer(std::vector<Server *> servers);
-	bool			ok_to_save_body(void) const;
-	bool			body_is_too_big(void) const;
-	status_req		getStatusReq(void) const;
-	void			writeOnReqBodyFile(void);
+	std::string							getMethod() const;
+	std::string							getUri() const;
+	std::string							getHttpVersion() const;
+	std::map<std::string, std::string>	getHeader() const;
+	std::string							getHost() const;
+	std::vector<std::string>			getAccept() const;
+	std::string							getContentType() const;
+	unsigned int						getContentLength() const;
+	bool								getKeepAlive() const;
+	std::string							getBodyTmpFilePath() const;
+	int									getBodyTmpFileFd() const;
+	Server 								*getServer() const;
+	std::string							getBoundary() const;
+	void								addToBodyFileBuff(std::vector<char> str);
+	void								closeBodyFile(void);
+	void								setServer(std::vector<Server *> servers);
+	bool								bodyIsTooBig(void) const;
+	status_req							getStatusReq(void) const;
+	void								writeOnReqBodyFile(void);
 	
 
 	class HttpReqException : public std::exception {
@@ -101,7 +97,6 @@ public:
 	private:
 		std::string _errMessage;
 	};
-
 };
 
 

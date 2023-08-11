@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/10 19:33:59 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/11 16:34:42 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ Client::Client(void)
 	this->_id = 0;
 	this->_byte_sent_header = 0;
 	this->_byte_sent_body = 0;
-	this->_byte_recived_req_body = 0;
+	this->_byteRecivedReqBody = 0;
 	this->_req = NULL;
 	this->_res = NULL;
 	gettimeofday(&(this->_last_activity), NULL);
@@ -40,7 +40,7 @@ Client::Client(Launcher	*launcher, struct sockaddr_in client_addr, int com_socke
 	this->_status = WANT_TO_RECIVE_REQ;
 	this->_byte_sent_header = 0;
 	this->_byte_sent_body = 0;
-	this->_byte_recived_req_body = 0;
+	this->_byteRecivedReqBody = 0;
 	this->_req = NULL;
 	this->_res = NULL;
 	this->_launcher = launcher;
@@ -86,7 +86,7 @@ Client	& Client::operator=(Client const & client)
 		this->_byte_sent_header = client._byte_sent_header;
 		this->_byte_sent_body = client._byte_sent_body;
 		this->_last_activity = client._last_activity;
-		this->_byte_recived_req_body = client._byte_recived_req_body;
+		this->_byteRecivedReqBody = client._byteRecivedReqBody;
 		this->_launcher = client._launcher;
 	}
 	return (*this);
@@ -98,12 +98,12 @@ void	Client::AddServerPtr(Server * new_server_ptr)
 		this->_server_ptr.push_back(new_server_ptr);
 }
 
-int		Client::getCom_socket(void) const
+int		Client::getComSocket(void) const
 {
 	return (this->_com_socket);
 }
 
-void	Client::SetStatus(t_status_c status)
+void	Client::setStatus(t_status_c status)
 {
 	this->_status = status;
 }
@@ -123,7 +123,7 @@ unsigned int	Client::getId(void) const
 	return (this->_id);
 }
 
-void	Client::print_ClientServer(void) const
+void	Client::printClientServer(void) const
 {
 	for (std::vector< Server *>::const_iterator it = this->_server_ptr.begin();
 		it != this->_server_ptr.end(); ++it)
@@ -133,12 +133,12 @@ void	Client::print_ClientServer(void) const
 	}
 }
 
-int	Client::get_byte_sent_header(void) const
+int	Client::getByteSentHeader(void) const
 {
 	return (this->_byte_sent_header);
 }
 
-void	Client::set_byte_sent_header(int byte)
+void	Client::setByteSentHeader(int byte)
 {
 	this->_byte_sent_header = byte;
 }
@@ -159,17 +159,17 @@ t_fd	Client::getSocketType(int fd) const
 		return (NOT_MINE);
 }
 
-int	Client::receive_request(void)
+int	Client::receiveRequest(void)
 {
-	this->reset_last_activity();
+	this->resetLastActivity();
 	if (this->_status == WANT_TO_RECIVE_REQ || this->_status == RECIVING_REQ_HEADER)
-		return (this->receive_request_header());
+		return (this->receiveRequestHeader());
 	if (this->_status == RECIVING_REQ_BODY)
-		return (this->receive_request_body());
+		return (this->receiveRequestBody());
 	return (1);
 }
 
-int	Client::receive_request_header(void)
+int	Client::receiveRequestHeader(void)
 {
 
 	int byte_recv = 0;
@@ -203,7 +203,7 @@ int	Client::receive_request_header(void)
 				{
 					std::vector<char> to_add_body;
 					to_add_body.insert(to_add_body.end(), this->_req_recived.begin() + pos_end_header + 4, this->_req_recived.end());
-					this->_req->add_to_body_file_buff(to_add_body);
+					this->_req->addToBodyFileBuff(to_add_body);
 				}
 			}
 		}
@@ -217,7 +217,7 @@ int	Client::receive_request_header(void)
 	return (0);
 }
 
-int	Client::receive_request_body(void)
+int	Client::receiveRequestBody(void)
 {
 	if (this->_req->getStatusReq() == COMPLETED)
 		return (0);
@@ -235,14 +235,15 @@ int	Client::receive_request_body(void)
 	{
 		std::vector<char> to_add_body;
 		to_add_body.insert(to_add_body.end(), recvline, recvline + byte_recv);
-		this->_req->add_to_body_file_buff(to_add_body);
+		this->_req->addToBodyFileBuff(to_add_body);
 	}
 	return (0);
 }
 
-void	Client::send_response(void)
+void	Client::sendResponse(void)
 {
-	this->reset_last_activity();
+	std::cout << "Client " << _id << " entering sendResponse" << std::endl;
+	this->resetLastActivity();
 	if (this->_status == WAITING_FOR_RES)
 	{
 		if (this->_res != NULL)
@@ -252,13 +253,14 @@ void	Client::send_response(void)
 			throw ClientException("New didn't work for _res !");
 	}
 	if (this->_status == WAITING_FOR_RES || this->_status == SENDING_RES_HEADER)
-		this->send_response_header();
+		this->sendResponseHeader();
 	else if (this->_status == SENDING_RES_BODY)
-		this->send_response_body();
+		this->sendResponseBody();
 }
 
-void	Client::send_response_header(void)
+void	Client::sendResponseHeader(void)
 {
+	std::cout << "Client " << _id << " entering sendResponseHeader" << std::endl;
 	int	byte_sent = 0;
 	std::string	res_header_full = this->_res->getFormattedHeader();
 	std::string res_header_remain = res_header_full.substr(this->_byte_sent_header, res_header_full.size() - this->_byte_sent_header);
@@ -287,21 +289,23 @@ void	Client::send_response_header(void)
 	}
 }
 
-void	Client::send_response_body(void)
+void	Client::sendResponseBody(void)
 {
+	std::cout << "Client " << _id << " entering sendResponseBody" << std::endl;
 	if (this->_res == NULL)
 		return ;
 	std::string	res_body = this->_res->getBody(); //empty string in case of a file to send
 	if (res_body.size() != 0)
-		this->send_response_body_error();
+		this->sendResponseBodyError();
 	else if (this->_res->getResourceType() == NORMALFILE)
-		this->send_response_body_normal_file();
+		this->sendResponseBodyNormalFile();
 	else if (this->_res->getResourceType() == PYTHON || this->_res->getResourceType() == PHP)
-		this->send_response_body_cgi();
+		this->sendResponseBodyCgi();
 }
 
-void	Client::send_response_body_error(void)
+void	Client::sendResponseBodyError(void)
 {
+	std::cout << "Client " << _id << " entering sendResponseBodyError" << std::endl;
 	int	byte_sent = 0;
 	std::string	res_body = this->_res->getBody();
 	std::string res_body_remain = res_body.substr(this->_byte_sent_body, res_body.size() - this->_byte_sent_body);
@@ -331,12 +335,16 @@ void	Client::send_response_body_error(void)
 	}
 }
 
-void	Client::send_response_body_normal_file(void)
+void	Client::sendResponseBodyNormalFile(void)
 {
+	std::cout << "Client " << _id << " entering sendResponseBodyNormalFile" << std::endl;
 	std::vector<char>	to_send;
 	int byte_sent = 0;
 	if (this->_res->getFileToSendFd() == -1)
+	{
+		std::cout << "openBodyFile();" << std::endl;
 		this->_res->openBodyFile();
+	}
 	else
 	{
 		to_send = this->_res->getFileToSendBuff();
@@ -353,71 +361,26 @@ void	Client::send_response_body_normal_file(void)
 			this->_status = SENDING_RES_BODY;
 			this->_res->clearFileToSendBuff();
 			if (this->_byte_sent_body == this->_res->getFileToSendSize())
+			{
+				std::cout << "closeBodyFile();" << std::endl;
+				this->_res->closeBodyFile();
 				this->_status = RES_SENT;
+			}
 		}
 	}
-		
-	
-
-	/*
-	int byte_read_file = 0;
-	int	byte_sent = 0;
-
-	if (this->_res->getFileToSendFd() == -1) //besoin de ouvrir le fichier et ajouter le fd dans epoll
-	//open file to send
-	//read and store from file to send. 
-	if (!this->_res->getFileToSend().is_open())
-	{
-		this->_res->getFileToSend().open(this->_res->getUriPath().c_str(), std::ifstream::binary);
-		this->_file_to_send.seekg (0, _file_to_send.end);
-		this->_file_to_send_size = this->_file_to_send.tellg();
-		this->_file_to_send.seekg (0, _file_to_send.beg);
-	}
-
-	if (this->_file_to_send.fail())
-		throw ClientException(strerror(errno));
-	char * buffer = new char [BUFFER_SIZE];
-	memset(buffer, 0, BUFFER_SIZE);
-	if (buffer == NULL)
-		throw ClientException(" New char buffer");
-	this->_file_to_send.read(buffer, BUFFER_SIZE);
-	byte_read_file = this->_file_to_send.gcount();
-	byte_sent = send(this->_com_socket, buffer, byte_read_file, 0);
-	if (byte_sent == -1)
-	{
-		this->_status = ERROR_WHILE_SENDING;
-		std::cout << "\e[33m" << getTimestamp() <<  "	I had an error sending file to client " << this->_id << "\e[0m" << std::endl;
-		_file_to_send.close();
-		delete[] buffer;
-		return ;
-	}
-	else
-	{
-		this->_status = SENDING_RES_BODY;
-		this->_byte_sent_body += byte_sent;
-		std::cout << "	body : " << (static_cast<double>(this->_byte_sent_body) / static_cast<double>(this->_file_to_send_size)) * 100 << "% sent" << std::endl;
-	}
-	if (this->_byte_sent_body == this->_file_to_send_size)
-	{
-		this->_status = RES_SENT;
-		std::cout << "\e[33m" << getTimestamp() << "	I have sent the file to client " << this->_id << "\e[0m" << std::endl;
-		this->_file_to_send.close();
-	}
-	delete[] buffer;
-	*/
 }
 
-void	Client::send_response_body_cgi(void)
+void	Client::sendResponseBodyCgi(void)
 {
 
 }
 
-void	Client::reset_last_activity(void)
+void	Client::resetLastActivity(void)
 {
 	gettimeofday(&(this->_last_activity), NULL);
 }
 
-unsigned long	Client::time_since_last_activity_us(void) const
+unsigned long	Client::timeSinceLastActivityUs(void) const
 {
 	unsigned long	ts;
 	struct timeval	now;
@@ -427,9 +390,9 @@ unsigned long	Client::time_since_last_activity_us(void) const
 	return (ts);
 }
 
-void	Client::reset_client(void)
+void	Client::resetClient(void)
 {
-	this->reset_last_activity();
+	this->resetLastActivity();
 	this->_status = WANT_TO_RECIVE_REQ;
 	if (this->_req)
 	{
@@ -444,7 +407,6 @@ void	Client::reset_client(void)
 	this->_incoming_msg = "";
 	this->_req_recived.clear();
 	this->_req_header = "";
-	//this->_req_body = "";
 	this->_byte_sent_header = 0;
 	this->_byte_sent_body = 0;
 	this->_file_to_send_size = 0;
@@ -457,20 +419,19 @@ bool Client::getKeepAlive(void) const
 	return (false);
 }
 
-
-void	Client::remove_fd_from_epoll(int fd)
+void	Client::removeFdFromPoll(int fd)
 {
-	this->_launcher->remove_fd_from_epoll(fd);
+	this->_launcher->removeFdFromPoll(fd);
 }
 
-void	Client::add_fd_to_epoll_in(int fd)
+void	Client::addFdToPollIn(int fd)
 {
-	this->_launcher->add_fd_to_epoll_in(fd);
+	this->_launcher->addFdToPollIn(fd);
 }
 
-void	Client::add_fd_to_epoll_out(int fd)
+void	Client::addFdToPollOut(int fd)
 {
-	this->_launcher->add_fd_to_epoll_out(fd);
+	this->_launcher->addFdToPollOut(fd);
 }
 
 void	Client::writeReqBodyFile(void)

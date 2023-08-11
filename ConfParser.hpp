@@ -11,10 +11,9 @@ class ConfParser {
 
         ConfParser(std::string path);
         ConfParser(ConfParser const &src);
-
         ~ConfParser();
 
-        ConfParser &operator=(ConfParser const &rhs);
+        ConfParser                  &operator=(ConfParser const &rhs);
 
         std::string                 getPath() const;
         std::vector<Server>         getServers() const;
@@ -47,8 +46,8 @@ class ConfParser {
     private:
         ConfParser();
 
-        std::string 				_path;
-        std::vector<Server> 		_servers;
+        std::string                 _path;
+        std::vector<Server>         _servers;
         std::vector<std::string>	_serverConf;
         int 						_serverNb;
 		static bool					_verbose;
