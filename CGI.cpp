@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/29 18:53:19 by jlanza            #+#    #+#             */
-/*   Updated: 2023/08/11 19:13:59 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/12 15:08:34 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,7 @@ void	CGI::setUpEnv(void)
 
 void	CGI::execCGI(void)
 {
+	std::cout << " I START execCGI" << std::endl;
 	// CREATE PIPE FOR OUTPUT
 	int	fd_pipe[2];
 	if (pipe(fd_pipe) == -1)
@@ -73,8 +74,6 @@ void	CGI::execCGI(void)
 		return ;
 	}
 	_res->setCgiPipeFd(fd_pipe[0]);
-	_res->addFdToPollIn(fd_pipe[0]);
-
 	// FORK
 	_res->setCgiPid(fork());
 	if (_res->getCgiPid() == -1)
@@ -98,12 +97,12 @@ void	CGI::execCGI(void)
 
 		// DUP FOR OUTPUT
 		 close(fd_pipe[0]);
-		 if (dup2(fd_pipe[1], STDOUT_FILENO) == -1)
+		if (dup2(fd_pipe[1], STDOUT_FILENO) == -1)
 		{
 		 	std::cerr << "Failed to dup" << std::endl;
 		 	killMe();
 		}
-
+		
 		//SETUP ENV
 		this->setUpEnv();
 

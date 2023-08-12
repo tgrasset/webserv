@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/11 19:28:49 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/12 14:57:40 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -371,7 +371,45 @@ void	Client::sendResponseBodyNormalFile(void)
 
 void	Client::sendResponseBodyCgi(void)
 {
-	/* A FAIRE EN S'INSPIRANT DES FICHIER. ATTENTION UTILISER PLUTOT ENVOIE EN CHUNCK. */
+	std::cout << "Client " << _id << " entering sendResponseBodyCgi" << std::endl;
+	std::vector<char>	to_send;
+	int byte_sent = 0;
+	to_send = this->_res->getCgiBuff();
+
+	int	size_chunk = to_send.size();
+	if (size_chunk > 0)
+	{
+		std::ostringstream ss;
+		ss << std::hex << size_chunk << "\r\n";
+		to_send.insert(to_send.begin(), ss.str().data(), ss.str().data() + ss.str().size());
+		to_send.push_back('\r');
+		to_send.push_back('\n');
+		byte_sent = send(this->_com_socket, to_send.data(), to_send.size(), 0);
+		if (byte_sent == -1)
+		{
+			this->_status = ERROR_WHILE_SENDING;
+			std::cout << "\e[33m" << getTimestamp() <<  "	I had an error sending CGI to client " << this->_id << "\e[0m" << std::endl;
+			return ;
+		}
+		std::cout << "CGI Sent to client " << _id << ":" << std::endl;
+		std::cout << to_send.data() << std::endl;
+		this->_byte_sent_body += byte_sent;
+		this->_status = SENDING_RES_BODY;
+		this->_res->clearCgiBuff();
+	}
+	else if (this->_res->getStatusCgiPipe() == PIPE_FINISH)
+	{
+		std::string end_of_cgi("0\r\n\r\n");
+		byte_sent = send(this->_com_socket, end_of_cgi.c_str(), end_of_cgi.size(), 0);
+		if (byte_sent == -1)
+		{
+			this->_status = ERROR_WHILE_SENDING;
+			std::cout << "\e[33m" << getTimestamp() <<  "	I had an error sending CGI to client " << this->_id << "\e[0m" << std::endl;
+			return ; 
+		}
+		std::cout << end_of_cgi << std::endl;
+		this->_status = RES_SENT;
+	}
 }
 
 void	Client::resetLastActivity(void)
@@ -446,4 +484,9 @@ void	Client::addBodyFileToBuff(void)
 void Client::addCgiToBuff(void)
 {
 	this->_res->addCgiToBuff();
+}
+
+void	Client::cgiPipeFinishedWriting(void)
+{
+	this->_res->cgiPipeFinishedWriting();
 }

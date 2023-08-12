@@ -41,6 +41,13 @@ typedef enum eStatus {
 	ERROR
 }	s_file;
 
+typedef enum ePipeStatus {
+	PIPE_CLOSE,
+	PIPE_OPEN,
+	PIPE_FINISH,
+	PIPE_ERROR
+}	s_pipe;
+
 std::vector<std::string>    cpp_split(std::string str, char const *charset);
 int							stringToInt(std::string str);
 bool						isValidConfValue(std::string &str);

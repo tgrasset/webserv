@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/11 19:22:55 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/12 14:40:57 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,6 +107,7 @@ public:
 	void						addBodyFileToBuff(void);
 	void						addCgiToBuff(void);
 	void						writeReqBodyFile(void);
+	void						cgiPipeFinishedWriting(void);
 
 	class ClientException : public std::exception {
 	public :

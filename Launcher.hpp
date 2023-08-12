@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:33 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/11 16:21:47 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/12 14:35:34 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,7 @@ public:
 	void							addFdToPollIn(int fd);
 	void							addFdToPollOut(int fd);	
 	void							printPollEvent(void) const;
+	void							processCloseConnexionOrError(int fd);
 	
 	class LauncherException : public std::exception {
 	public :

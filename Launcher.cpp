@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/11 19:22:08 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/12 14:40:41 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,9 +101,7 @@ void	Launcher::launchServers(void)
 				}
 				else if ((it->revents & POLLERR) || (it->revents & POLLHUP))
 				{
-					std::list<Client>::iterator client_it = this->findClient(it->fd);
-					std::cout << "Client " << client_it->getId() << " has close connexion" << std::endl;
-					this->removeClient(client_it);
+					this->processCloseConnexionOrError(it->fd);
 				}
 				if (_breakPollLoop)
 					break;
@@ -180,16 +178,15 @@ void	Launcher::processReadingFd(int fd)
 		break;
 	case CGI_PIPE:
 		std::cout << std::endl << "I have a reading CGI_PIPE event from client " << client->getId() << std::endl;
-		client->addCgiToBuff();/* code */
+		client->addCgiToBuff();
 		break;
 	case RES_FILE_FD:
 		std::cout<< std::endl << "I have a reading RES_FILE_FD event from client " << client->getId() << std::endl;
 		client->addBodyFileToBuff();
 		break;
-	case REQ_FILE_FD:
+	/*case REQ_FILE_FD:
 		std::cout << std::endl << "I have a reading REQ_FILE_FD event from client " << client->getId() << std::endl;
-		/**/
-		break;
+		break;*/
 	default:
 		throw LauncherException("The Reading FD is not in possible category");
 	}
@@ -227,6 +224,24 @@ void	Launcher::processWritingFd(int fd)
 		break;
 	default:
 		throw LauncherException("Problem writing fd is not a correct category");
+	}
+}
+
+void	Launcher::processCloseConnexionOrError(int fd)
+{
+	/*Si c'est un CGI, le POLLHUP veut dire que c'est fini et il faut terminer. */
+	std::list<Client>::iterator client = this->findClient(fd);
+	switch (client->getSocketType(fd))
+	{
+	case COM_SOCKET:
+		std::cout << "Client " << client->getId() << " has close connexion" << std::endl;
+		this->removeClient(client);
+		break;
+	case CGI_PIPE:
+		client->cgiPipeFinishedWriting();
+		break;
+	default:
+		break;
 	}
 }
 

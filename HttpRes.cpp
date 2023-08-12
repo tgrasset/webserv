@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/11 19:26:48 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/12 14:59:08 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,8 @@ HttpRes::HttpRes(Client * client, HttpReq &request) {
 	_fileToSendFd = -1;
 	_fileToSendBuff.clear();
 	_statusFileToSend = CLOSE;
+	_cgiBuff.clear();
+	_statusCgiPipe = PIPE_CLOSE;
 	
 	if (_mimeTypes.empty() == true)
 		fillMimeTypes();
@@ -62,6 +64,8 @@ HttpRes::~HttpRes(void) {
 		std::cout << "HttpRes destructor called" << std::endl;
 	if (_location != NULL)
 		delete _location;
+	closeBodyFile();
+	closeCgiPipe();
 }
 
 /* ************************************************************************** */
@@ -94,6 +98,8 @@ HttpRes	& HttpRes::operator=(HttpRes const & httpres)
 		_fileToSendBuff = httpres._fileToSendBuff;
 		_client = httpres._client;
 		_statusFileToSend = httpres._statusFileToSend;
+		_cgiBuff = httpres._cgiBuff;
+		_statusCgiPipe = httpres._statusCgiPipe;
 	}
 	return (*this);
 }
@@ -102,118 +108,128 @@ HttpRes	& HttpRes::operator=(HttpRes const & httpres)
 /*                     Methodes                                               */
 /* ************************************************************************** */
 
-std::string HttpRes::getHttpVersion() const {
+std::string HttpRes::getHttpVersion(void) const {
 
 	return(_httpVersion);
 }
 
-int	HttpRes::getStatusCode() const {
+int	HttpRes::getStatusCode(void) const {
 
 	return (_statusCode);
 }
 
-std::string	HttpRes::getMethod() const {
+std::string	HttpRes::getMethod(void) const {
 
 	return (_method);
 }
 
-std::string	HttpRes::getStatusMessage() const {
+std::string	HttpRes::getStatusMessage(void) const {
 
 	return (_statusMessage);
 }
 
-std::map<std::string, std::string> HttpRes::getHeader() const {
+std::map<std::string, std::string> HttpRes::getHeader(void) const {
 
 	return (_header);
 }
 
-std::string	HttpRes::getBody() const {
+std::string	HttpRes::getBody(void) const {
 
 	return (_body);
 }
-Server	*HttpRes::getServer() const {
+Server	*HttpRes::getServer(void) const {
 
 	return (_server);
 }
 
-std::string	HttpRes::getFormattedHeader() const {
+std::string	HttpRes::getFormattedHeader(void) const {
 
 	return (_formattedHeader);
 }
 
-bool	HttpRes::getKeepAlive() const {
+bool	HttpRes::getKeepAlive(void) const {
 
 	return (_keepAlive);
 }
 
-std::string	HttpRes::getUriPath() const {
+std::string	HttpRes::getUriPath(void) const {
 
 	return (_uriPath);
 }
 
-std::string	HttpRes::getUriPathInfo() const {
+std::string	HttpRes::getUriPathInfo(void) const {
 
 	return (_uriPathInfo);
 }
 
-std::string HttpRes::getUriQuery() const {
+std::string HttpRes::getUriQuery(void) const {
 
 	return (_uriQuery);
 }
 
-std::string	HttpRes::getScriptName() const {
+std::string	HttpRes::getScriptName(void) const {
 
 	return (_scriptName);
 }
 
-r_type	HttpRes::getResourceType() const {
+r_type	HttpRes::getResourceType(void) const {
 
 	return (_resourceType);
 }
 
-Location	*HttpRes::getLocation() const {
+Location	*HttpRes::getLocation(void) const {
 
 	return (_location);
 }
 
-size_t	HttpRes::getContentLength() const {
+size_t	HttpRes::getContentLength(void) const {
 
 	return (_contentLength);
 }
 
-std::string	HttpRes::getCgiFilePath() const {
+std::string	HttpRes::getCgiFilePath(void) const {
 	
 	return (_cgiFilePath);
 }
 
-int		HttpRes::getFileToSendFd() const
+int		HttpRes::getFileToSendFd(void) const
 {
 	return (this->_fileToSendFd);
 }
 
-std::vector<char>	HttpRes::getFileToSendBuff() const
+std::vector<char>	HttpRes::getFileToSendBuff(void) const
 {
 	return (_fileToSendBuff);
 }
 
-size_t	HttpRes::getFileToSendSize() const {
+size_t	HttpRes::getFileToSendSize(void) const {
 
 	return (_fileToSendSize);
 }
 
-s_file	HttpRes::getStatusFileToSend() const
+s_file	HttpRes::getStatusFileToSend(void) const
 {
 	return (this->_statusFileToSend);
 }
 
-int		HttpRes::getCgiPipeFd() const {
+int		HttpRes::getCgiPipeFd(void) const {
 
 	return (this->_cgiPipeFd);
 }
 
-pid_t	HttpRes::getCgiPid() const {
+pid_t	HttpRes::getCgiPid(void) const {
 
 	return (_cgiPid);
+}
+
+std::vector<char>	HttpRes::getCgiBuff(void) const
+{
+	return (_cgiBuff);
+}
+
+s_pipe	HttpRes::getStatusCgiPipe(void) const
+{
+	return (_statusCgiPipe);
 }
 
 void	HttpRes::setStatusCode(int statusCode)
@@ -223,7 +239,9 @@ void	HttpRes::setStatusCode(int statusCode)
 
 void	HttpRes::setCgiPipeFd(int cgiPipeFd)
 {
+	this->_statusCgiPipe = PIPE_OPEN;
 	this->_cgiPipeFd = cgiPipeFd;
+	addFdToPollIn(cgiPipeFd);
 }
 
 void	HttpRes::setCgiPid(int cgiPid)
@@ -339,7 +357,7 @@ int	HttpRes::checkRequestHeader(std::map<std::string, std::string> header) {
 	return (200);
 }
 
-r_type HttpRes::checkResourceType() {	
+r_type HttpRes::checkResourceType(void) {	
 	struct stat test;
 	if (access(_uriPath.c_str(), F_OK) != 0)
 		return (NOT_FOUND);
@@ -561,11 +579,14 @@ void	HttpRes::bodyBuild(std::string requestUri) {
 
 /* Dans le cas d'un fichier normal a envoyer, le content length est calcule dans le fonction checkURI. 
 A modifier pour les fichiers generes par les CGI.*/
-void	HttpRes::headerBuild() {
+void	HttpRes::headerBuild(void) {
 
 	_header["Date:"] = timeStamp();
 	_header["Server:"] = "Webserv/1.0";
-	_header["Content-Length:"] = sizeToString(_contentLength);
+	if (_resourceType == PHP || _resourceType == PYTHON)
+		_header["Transfer-Encoding: "] = "chunked";
+	else		
+		_header["Content-Length:"] = sizeToString(_contentLength);
 	if (_keepAlive == true)
 	{
 		_header["Connection:"] = "keep-alive";
@@ -579,7 +600,7 @@ void	HttpRes::headerBuild() {
 		_header["Content-Type:"] = getMimeType(_uriPath, _mimeTypes);
 }
 
-void	HttpRes::formatHeader() {
+void	HttpRes::formatHeader(void) {
 
 	std::stringstream response;
 	response << _httpVersion << " " << _statusCode << " " << _statusMessage << "\r\n";
@@ -717,6 +738,43 @@ void	HttpRes::handleRequest(HttpReq &request) {
 	{
 		CGI cgi(request, *this);
 		cgi.execCGI();
+	}
+	else if (_statusCode == 200 && _method == "POST")
+		uploadFileToServer(request.getBodyTmpFilePath(), request.getBoundary());
+	_statusMessage = getStatus(_statusCode);
+	if (!(_resourceType == PHP || _resourceType == PYTHON))
+		bodyBuild(request.getUri());
+	if (request.getKeepAlive() == false)
+		_keepAlive = false;
+	headerBuild();
+	formatHeader();
+}
+
+/*
+void	HttpRes::handleRequest(HttpReq &request) {
+
+	_statusCode = checkHttpVersion(request.getHttpVersion());
+	if (_statusCode == 200 && request.bodyIsTooBig() == true)
+		_statusCode = 413;
+	if (_statusCode == 200)
+		_statusCode = checkRequestHeader(request.getHeader());
+	if (_statusCode == 200)
+		_statusCode = checkUri(request.getUri());
+	if (_statusCode == 200 && methodIsAllowed(request.getMethod()) == false)
+		_statusCode = 405;
+	if (_statusCode == 200 && _method == "GET" && _resourceType == NORMALFILE)
+		checkIfAcceptable(request.getAccept());
+	else if (_statusCode == 200 && _method == "DELETE")
+	{
+		if (std::remove(_uriPath.c_str()) != 0)
+			_statusCode = 400;
+		else
+			_statusCode = 204;
+	}
+	else if (_statusCode == 200 && (_resourceType == PHP || _resourceType == PYTHON))
+	{
+		CGI cgi(request, *this);
+		cgi.execCGI();
 		return ;
 	}
 	else if (_statusCode == 200 && _method == "POST")
@@ -728,7 +786,7 @@ void	HttpRes::handleRequest(HttpReq &request) {
 	headerBuild();
 	formatHeader();
 }
-
+*/
 void	HttpRes::openBodyFile(void)
 {
 	if (this->_fileToSendFd != -1 || this->_statusFileToSend == ERROR)
@@ -752,6 +810,11 @@ void	HttpRes::openBodyFile(void)
 void	HttpRes::clearFileToSendBuff(void)
 {
 	this->_fileToSendBuff.clear();
+}
+
+void	HttpRes::clearCgiBuff(void)
+{
+	this->_cgiBuff.clear();
 }
 
 void	HttpRes::closeBodyFile(void)
@@ -781,7 +844,27 @@ void	HttpRes::addBodyFileToBuff(void)
 
 void	HttpRes::addCgiToBuff(void)
 {
-	/*A Faire. il faut faire comme  pour le fichier */
+	if (this->_statusCgiPipe != PIPE_OPEN)
+		return ;
+	int byte_read = 0;
+	char readline[BUFFER_SIZE + 1];
+	memset(readline, 0, BUFFER_SIZE + 1);
+	byte_read = read(this->_cgiPipeFd, readline, BUFFER_SIZE);
+	if (byte_read < 0)
+		this->closeCgiPipe();
+	else if (byte_read > 0)
+		this->_cgiBuff.insert(this->_cgiBuff.end(), readline, readline + byte_read);
+}
+
+void	HttpRes::closeCgiPipe(void)
+{
+	if (_cgiPipeFd == -1 || _statusCgiPipe == PIPE_ERROR || _statusCgiPipe == PIPE_CLOSE)
+		return;
+	_client->removeFdFromPoll(this->_cgiPipeFd);
+	if (close(this->_cgiPipeFd) == -1)
+		this->_statusCgiPipe = PIPE_ERROR;
+	_statusCgiPipe = PIPE_CLOSE;
+	_cgiPipeFd = -1;
 }
 
 void	HttpRes::removeFdFromPoll(int fd)
@@ -794,3 +877,8 @@ void	HttpRes::addFdToPollIn(int fd)
 	this->_client->addFdToPollIn(fd);
 }
 
+void	HttpRes::cgiPipeFinishedWriting(void)
+{
+	this->_statusCgiPipe = PIPE_FINISH;
+	closeCgiPipe();
+}
