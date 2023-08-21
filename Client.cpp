@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/12 14:57:40 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/21 18:14:50 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -189,6 +189,8 @@ int	Client::receiveRequestHeader(void)
 		if (pos_end_header != std::string::npos)
 		{
 			this->_req_header = req_recived_string.substr(0, pos_end_header);
+			std::cout << std::endl << "\e[33m" << getTimestamp() << "	Client " << this->_id << " just recieved the following request header\e[32m" << std::endl;
+			std::cout << this->_req_header << TXT_END << std::endl;
 			this->_req = new HttpReq(this, this->_req_header, this->_server_ptr);
 			if (this->_req == NULL)
 				throw ClientException("New didn't work for _req !");
@@ -206,12 +208,12 @@ int	Client::receiveRequestHeader(void)
 			}
 		}
 	}
-	if (this->_status == WAITING_FOR_RES)
+	/*if (this->_status == WAITING_FOR_RES)
 	{
 		std::cout << std::endl << "\e[33m" << getTimestamp() << "	Client " << this->_id << " just recieved the following request:\e[32m" << std::endl;
 		std::cout << this->_req_recived.data() << std::endl;
 		std::cout << "\e[0m";
-	}
+	}*/
 	return (0);
 }
 
@@ -240,7 +242,7 @@ int	Client::receiveRequestBody(void)
 
 void	Client::sendResponse(void)
 {
-	std::cout << "Client " << _id << " entering sendResponse" << std::endl;
+	//std::cout << "	Client " << _id << " entering sendResponse" << std::endl;
 	this->resetLastActivity();
 	if (this->_status == WAITING_FOR_RES)
 	{
@@ -259,7 +261,7 @@ void	Client::sendResponse(void)
 /*Attention dans le cas ou l'on est sur un CGI il faut ajouter la ligne en plus sur le header avec le transfert protocole, et retirer le content length. */
 void	Client::sendResponseHeader(void)
 {
-	std::cout << "Client " << _id << " entering sendResponseHeader" << std::endl;
+	std::cout << "	Client " << _id << " entering sendResponseHeader" << std::endl;
 	int	byte_sent = 0;
 	std::string	res_header_full = this->_res->getFormattedHeader();
 	std::string res_header_remain = res_header_full.substr(this->_byte_sent_header, res_header_full.size() - this->_byte_sent_header);
@@ -290,7 +292,7 @@ void	Client::sendResponseHeader(void)
 
 void	Client::sendResponseBody(void)
 {
-	std::cout << "Client " << _id << " entering sendResponseBody" << std::endl;
+	//std::cout << "	Client " << _id << " entering sendResponseBody" << std::endl;
 	if (this->_res == NULL)
 		return ;
 	std::string	res_body = this->_res->getBody(); //empty string in case of a file to send
@@ -304,7 +306,7 @@ void	Client::sendResponseBody(void)
 
 void	Client::sendResponseBodyError(void)
 {
-	std::cout << "Client " << _id << " entering sendResponseBodyError" << std::endl;
+	std::cout << "	Client " << _id << " entering sendResponseBodyError" << std::endl;
 	int	byte_sent = 0;
 	std::string	res_body = this->_res->getBody();
 	std::string res_body_remain = res_body.substr(this->_byte_sent_body, res_body.size() - this->_byte_sent_body);
@@ -336,12 +338,12 @@ void	Client::sendResponseBodyError(void)
 
 void	Client::sendResponseBodyNormalFile(void)
 {
-	std::cout << "Client " << _id << " entering sendResponseBodyNormalFile" << std::endl;
+	std::cout << "	Client " << _id << " entering sendResponseBodyNormalFile" << std::endl;
 	std::vector<char>	to_send;
 	int byte_sent = 0;
 	if (this->_res->getFileToSendFd() == -1)
 	{
-		std::cout << "openBodyFile();" << std::endl;
+		std::cout << TXT_GREEN << TXT_I << "	openBodyFile();" << TXT_END << std::endl;
 		this->_res->openBodyFile();
 	}
 	else
@@ -356,16 +358,26 @@ void	Client::sendResponseBodyNormalFile(void)
 				std::cout << "\e[33m" << getTimestamp() <<  "	I had an error sending file to client " << this->_id << "\e[0m" << std::endl;
 				return ;
 			}
+			std::cout << "	I just sended " << byte_sent << " to the client " << this->_id << std::endl;
 			this->_byte_sent_body += byte_sent;
 			this->_status = SENDING_RES_BODY;
 			this->_res->clearFileToSendBuff();
+			
 			if (this->_byte_sent_body == this->_res->getFileToSendSize())
 			{
-				std::cout << "closeBodyFile();" << std::endl;
+				std::cout << TXT_RED << TXT_I << "	closeBodyFile();" << TXT_END << std::endl;
 				this->_res->closeBodyFile();
 				this->_status = RES_SENT;
 			}
 		}
+		else if (this->_res->getFileToSendSize() == 0)
+		{
+			std::cout << TXT_RED << TXT_I << "	closeBodyFile();" << TXT_END << std::endl;
+			this->_res->closeBodyFile();
+			this->_status = RES_SENT;
+		}
+		else
+			std::cout << "	buffToSend is empty at the moment for client "<< this->_id << ", waiting for an event to fill it" << std::endl;
 	}
 }
 

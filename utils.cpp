@@ -263,8 +263,9 @@ std::string redirectionHTML(int code, std::string message, std::string path) {
 
 std::string autoindexHTML(std::string dirPath, std::string requestUri) {
 
-	struct stat test;
 	std::string path;
+	struct stat test;
+	struct tm * timeinfo;
 	struct dirent *dirStruct;
 	if (requestUri[requestUri.length() - 1] == '/')
 		requestUri = requestUri.substr(0, requestUri.length() - 1);
@@ -283,24 +284,56 @@ std::string autoindexHTML(std::string dirPath, std::string requestUri) {
 	else
 		s << requestUri;
 	s << "</h1>\n";
-	s << "<table style=\"width:80%; font-size:15pixel\">\n<hr>\n<th style=\"text-align:left\">File name</th>\n<th style=\"text-align:left\">Last modified</th>\n<th style=\"text-align:left\">Size</th>\n";
+	s << "<table style=\"width:80%; font-size:15pixel\">\n<hr>\n<th style=\"text-align:left\">File name</th>\n<th style=\"text-align:center\">Last modified</th>\n<th style=\"text-align:right\">Size</th>\n";
 	while ((dirStruct = readdir(dir)) != NULL)
 	{
 		if (strcmp(dirStruct->d_name, ".") == 0)
-			continue;
-		path = dirPath + dirStruct->d_name;
-		s << "<tr>\n<td>\n<a href=\"" << requestUri << "/" << dirStruct->d_name;
+			continue;	
+		path = dirPath + "/" + dirStruct->d_name;
 		stat(path.c_str(), &test);
-		if (S_ISDIR(test.st_mode))
-			s << "/";
-		s << "\">" << dirStruct->d_name;
-		if (S_ISDIR(test.st_mode))
-			s << "/";
-		s << "</a>\n</td>\n<td>\n" << ctime(&test.st_mtim.tv_sec);
-		s << "</td><td>";
-		if (!S_ISDIR(test.st_mode))
-			s << sizeToString(test.st_size);
-		s << "</td>\n</tr>";
+		std::string name(dirStruct->d_name);
+		timeinfo = localtime (&test.st_mtim.tv_sec);
+
+		if (dirStruct->d_type == DT_DIR)
+			name += "/";
+		s << "<tr>\n<td>";
+		if (dirStruct->d_type == DT_DIR)
+			s << "<b>";
+		s << "<a href=\"" << requestUri << "/" << name << "\">" << name << "</a>";
+		if (dirStruct->d_type == DT_DIR)
+			s << "</b>";
+		s << "</td>\n";
+		s << "<td style=\"text-align:center\">" << timeinfo->tm_year + 1900 << "-";
+		if (timeinfo->tm_mon < 9)
+			s << "0";
+		s << timeinfo->tm_mon + 1 << "-";
+		if (timeinfo->tm_mday < 9)
+			s << "0";
+		s << timeinfo->tm_mday << " ";
+		if (timeinfo->tm_hour < 9)
+			s << "0";
+		s << timeinfo->tm_hour << ":";
+		if (timeinfo->tm_min < 9)
+			s << "0"; 
+		s << timeinfo->tm_min << ":";
+		if (timeinfo->tm_sec < 9)
+			s << "0";
+		s << timeinfo->tm_sec << "</td>\n";
+		s << "<td style=\"text-align: right\">";
+		if (dirStruct->d_type == DT_DIR)
+			s << "-";
+		else
+		{
+			s << std::setprecision(2);
+			s << std::setiosflags(std::ios::fixed);
+			if (test.st_size < 1000)
+				s << test.st_size << " B </td>\n";
+			else if (test.st_size < 1000000)
+				s << static_cast<double>(test.st_size) / 1000 << " KB </td>\n";
+			else
+				s << static_cast<double>(test.st_size) / 1000000 << " MB </td>\n";
+		}
+		s << "</td>\n</tr>\n";
 	}
 	closedir(dir);
 	s << "</table><hr></body>\n</html>\n";

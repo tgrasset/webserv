@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/12 14:40:41 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/21 18:16:50 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -166,7 +166,7 @@ void	Launcher::processReadingFd(int fd)
 	switch (client->getSocketType(fd))
 	{
 	case COM_SOCKET:
-		std::cout << std::endl << "I have a reading COM_SOCKET event from client " << client->getId() << std::endl;
+		std::cout << std::endl << TXT_B << TXT_CY << "I have a reading COM_SOCKET event from client " << client->getId() << TXT_END << std::endl;
 		if (client->receiveRequest())
 			this->removeClient(client);
 		else if (client->getStatus() == WAITING_FOR_RES)
@@ -177,11 +177,11 @@ void	Launcher::processReadingFd(int fd)
 		}
 		break;
 	case CGI_PIPE:
-		std::cout << std::endl << "I have a reading CGI_PIPE event from client " << client->getId() << std::endl;
+		std::cout << std::endl << TXT_B << TXT_CY << "I have a reading CGI_PIPE event from client " << client->getId() << TXT_END << std::endl;
 		client->addCgiToBuff();
 		break;
 	case RES_FILE_FD:
-		std::cout<< std::endl << "I have a reading RES_FILE_FD event from client " << client->getId() << std::endl;
+		std::cout<< std::endl << TXT_B << TXT_CY << "I have a reading RES_FILE_FD event from client " << client->getId() << TXT_END << std::endl;
 		client->addBodyFileToBuff();
 		break;
 	/*case REQ_FILE_FD:
@@ -198,7 +198,7 @@ void	Launcher::processWritingFd(int fd)
 	switch (client->getSocketType(fd))
 	{
 	case COM_SOCKET:
-		std::cout << std::endl << "I have a writing COM_SOCKET event from client " << client->getId() << std::endl;
+		std::cout << std::endl << TXT_B << TXT_MAG << "I have a writing COM_SOCKET event from client " << client->getId() << TXT_END << std::endl;
 		client->sendResponse();
 		if (client->getStatus() == RES_SENT && client->getKeepAlive())
 		{
@@ -219,7 +219,7 @@ void	Launcher::processWritingFd(int fd)
 		}
 		break;
 	case REQ_FILE_FD:
-		std::cout << std::endl << "I have a writing REQ_FILE_FD event from client " << client->getId() << std::endl;
+		std::cout << std::endl << TXT_B << TXT_MAG << "I have a writing REQ_FILE_FD event from client " << client->getId() << TXT_END << std::endl;
 		client->writeReqBodyFile();
 		break;
 	default:

@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/12 14:59:08 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/21 17:07:59 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -794,7 +794,7 @@ void	HttpRes::openBodyFile(void)
 	struct stat buf;
 	stat(this->_uriPath.c_str(), &buf);
 	this->_fileToSendSize = buf.st_size;
-	std::cout << "I want to open file : " << this->_uriPath << " that has a size of " << this->_fileToSendSize << std::endl;
+	std::cout << TXT_I << TXT_YEL <<"	I want to open file : " << this->_uriPath << " that has a size of " << this->_fileToSendSize;
 	this->_fileToSendFd = open(this->_uriPath.c_str(), O_RDONLY);
 	if (this->_fileToSendFd == -1)
 	{
@@ -802,7 +802,7 @@ void	HttpRes::openBodyFile(void)
 		this->setStatusCode(500);
 		return ; 
 	}
-	std::cout << "I got a FD " << this->_fileToSendFd  << std::endl;
+	std::cout << " and I got the FD " << this->_fileToSendFd << " for it. "<< TXT_END << std::endl;
 	this->_statusFileToSend = OPEN;
 	this->_client->addFdToPollIn(this->_fileToSendFd);
 }
@@ -821,6 +821,7 @@ void	HttpRes::closeBodyFile(void)
 {
 	if (this->_fileToSendFd == -1 || this->_statusFileToSend == ERROR)
 		return;
+	std::cout << "	I am closing BodyFile with the fd " << this->_fileToSendFd << std::endl;
 	this->_client->removeFdFromPoll(this->_fileToSendFd);
 	if (close(this->_fileToSendFd) == -1)
 		this->_statusFileToSend = ERROR;
@@ -836,6 +837,7 @@ void	HttpRes::addBodyFileToBuff(void)
 	char readline[BUFFER_SIZE + 1];
 	memset(readline, 0, BUFFER_SIZE + 1);
 	byte_read = read(this->_fileToSendFd, readline, BUFFER_SIZE);
+	std::cout << "	I added " << byte_read << " bytes from the fd " << this->_fileToSendFd << " to the bufferToSend." << std::endl;
 	if (byte_read <= 0)
 		this->closeBodyFile();
 	else

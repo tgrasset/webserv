@@ -1,5 +1,8 @@
 # Note pour l'equipe
-## 11/08/09
+## 21/08
+- Besoin de faire en sorte que lorsqu'on recoit un body dans la req et qu'on l'a sauvegarder, on puisse continuer le processus du client (le passer en Req Completed, et le passer du poll lecture au poll ecriture). 
+
+## 11/08
 - Code modifie pour monitorer les fd des ouvertures des fichiers normaux comme demande par le sujet.
 - Du coup epoll et fonction associees remplacees par poll. 
 - Il reste encore a ajouter la partie CGI dans les fd a monitorer. 

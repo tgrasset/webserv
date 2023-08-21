@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/08/11 19:21:13 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/21 18:52:57 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@ HttpReq::HttpReq(Client *client, std::string &content, std::vector<Server *> ser
 	_boundary = "";
 	_byteRecivedReqBody = 0;
 	_byteWroteTmpBodyFile = 0;
+	_bodyTmpFileFd = -1;
 	HttpReq::parse(content, servers);
 	if (_contentLength == 0 || _method != "POST" || _contentLength > this->_server->getClientMaxBodySize())
 		_statusReq = COMPLETED;
@@ -52,8 +53,8 @@ HttpReq::HttpReq(HttpReq const & copy)
 
 HttpReq::~HttpReq(void)
 {
-	if (access(_bodyTmpPath.c_str(), F_OK) == 0 && std::remove(_bodyTmpPath.c_str()))
-		std::cout << "I could not delete the file of client " << this->_id << std::endl;
+	/*if (access(_bodyTmpPath.c_str(), F_OK) == 0 && std::remove(_bodyTmpPath.c_str()))
+		std::cout << "I could not delete the file of client " << this->_id << std::endl;*/
 	if (_server != NULL)
 		delete _server;
 }
@@ -83,6 +84,7 @@ HttpReq	& HttpReq::operator=(HttpReq const & httpreq)
 		_byteRecivedReqBody = httpreq._byteRecivedReqBody;
 		_byteWroteTmpBodyFile = httpreq._byteWroteTmpBodyFile;
 		_client = httpreq._client;
+		_bodyTmpFileFd = httpreq._bodyTmpFileFd;
 	}
 	return (*this);
 }
@@ -245,6 +247,12 @@ status_req		HttpReq::getStatusReq(void) const
 
 void		HttpReq::addToBodyFileBuff(std::vector<char> str)
 {
+	std::cout << TXT_B << TXT_RED << "I got something for the body : " ;
+	for (std::vector<char>::iterator it = str.begin(); it != str.end(); ++it)
+	{
+		std::cout << *it;
+	}
+	std::cout << TXT_END << std::endl;
 	
 	this->_toAddBodyFile.insert(_toAddBodyFile.end(), str.begin(), str.end());
 	if (this->_bodyTmpFileFd == -1)
@@ -252,6 +260,7 @@ void		HttpReq::addToBodyFileBuff(std::vector<char> str)
 		std::ostringstream	file_path;
 		file_path << HttpReq::_bodyTmpFolder << "body_client_" << this->_id;
 		this->_bodyTmpPath = file_path.str();
+		std::cout << TXT_I << TXT_GREEN << "I am opening " << this->_bodyTmpPath.c_str() << TXT_END << std::endl;
 		_bodyTmpFileFd = open(this->_bodyTmpPath.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
 		if (_bodyTmpFileFd == -1)
 			throw HttpReqException("Opening the body file");
@@ -265,19 +274,35 @@ void	HttpReq::writeOnReqBodyFile(void)
 	int	byte_wrote;
 	if (this->_bodyTmpFileFd != -1 && this->_toAddBodyFile.size() != 0 && _statusBodyFile == OPEN)
 	{
-		byte_wrote = send(_bodyTmpFileFd, _toAddBodyFile.data(), _toAddBodyFile.size(), 0);
+		std::cout << "_toAddBodyFile: " << _toAddBodyFile.data() << std::endl;
+		byte_wrote = write(_bodyTmpFileFd, _toAddBodyFile.data(), _toAddBodyFile.size());
 		if (byte_wrote == -1)
 			throw HttpReqException("Writing on the body file");
 		_byteWroteTmpBodyFile += byte_wrote;
+		std::cout << "_byteWroteTmpBodyFile " << _byteWroteTmpBodyFile << std::endl;
 		_toAddBodyFile.clear();
-		if (_contentLength == _byteRecivedReqBody && _contentLength == _byteWroteTmpBodyFile)
+		if (_contentLength == _byteWroteTmpBodyFile)
 		{
 			_statusReq = COMPLETED;
+			std::cout << "	I just save the request body in a file, I will now removing the FD from the poll and close the file" << std::endl;
 			this->_client->removeFdFromPoll(_bodyTmpFileFd);
 			if (close(_bodyTmpFileFd) == -1)
 				throw HttpReqException("Closing tmp body file");
 			_statusBodyFile = CLOSE;
 		}
+	}
+	else if (this->_toAddBodyFile.size() == 0 && _contentLength > _byteWroteTmpBodyFile)
+	{
+		std::cout << "	_toAddBodyFile is still empty " << std::endl;
+	}
+	else if (_statusBodyFile == OPEN)
+	{
+		std::cout << "	I just save the request body in a file, I will now removing the FD from the poll and close the file" << std::endl;
+		_statusReq = COMPLETED;
+		this->_client->removeFdFromPoll(_bodyTmpFileFd);
+		if (close(_bodyTmpFileFd) == -1)
+			throw HttpReqException("Closing tmp body file");
+		_statusBodyFile = CLOSE;
 	}
 }
 
