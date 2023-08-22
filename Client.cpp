@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/21 18:14:50 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/22 13:56:42 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -195,7 +195,12 @@ int	Client::receiveRequestHeader(void)
 			if (this->_req == NULL)
 				throw ClientException("New didn't work for _req !");
 			if (this->_req->getStatusReq() == COMPLETED)
+			{
 				this->_status = WAITING_FOR_RES;
+				this->_launcher->removeFdFromPoll(_com_socket);
+				this->_launcher->addFdToPollOut(_com_socket);
+			}
+				
 			else
 			{
 				this->_status = RECIVING_REQ_BODY;
@@ -208,12 +213,6 @@ int	Client::receiveRequestHeader(void)
 			}
 		}
 	}
-	/*if (this->_status == WAITING_FOR_RES)
-	{
-		std::cout << std::endl << "\e[33m" << getTimestamp() << "	Client " << this->_id << " just recieved the following request:\e[32m" << std::endl;
-		std::cout << this->_req_recived.data() << std::endl;
-		std::cout << "\e[0m";
-	}*/
 	return (0);
 }
 

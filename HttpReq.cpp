@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/08/21 18:52:57 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/22 14:01:27 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -289,6 +289,9 @@ void	HttpReq::writeOnReqBodyFile(void)
 			if (close(_bodyTmpFileFd) == -1)
 				throw HttpReqException("Closing tmp body file");
 			_statusBodyFile = CLOSE;
+			this->_client->setStatus(WAITING_FOR_RES);
+			this->_client->removeFdFromPoll(_client->getComSocket());
+			this->_client->addFdToPollOut(_client->getComSocket());
 		}
 	}
 	else if (this->_toAddBodyFile.size() == 0 && _contentLength > _byteWroteTmpBodyFile)
@@ -303,6 +306,9 @@ void	HttpReq::writeOnReqBodyFile(void)
 		if (close(_bodyTmpFileFd) == -1)
 			throw HttpReqException("Closing tmp body file");
 		_statusBodyFile = CLOSE;
+		this->_client->setStatus(WAITING_FOR_RES);
+		this->_client->removeFdFromPoll(_client->getComSocket());
+		this->_client->addFdToPollOut(_client->getComSocket());
 	}
 }
 

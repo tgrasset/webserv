@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/21 18:16:50 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/22 13:55:31 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -169,12 +169,12 @@ void	Launcher::processReadingFd(int fd)
 		std::cout << std::endl << TXT_B << TXT_CY << "I have a reading COM_SOCKET event from client " << client->getId() << TXT_END << std::endl;
 		if (client->receiveRequest())
 			this->removeClient(client);
-		else if (client->getStatus() == WAITING_FOR_RES)
+		/*else if (client->getStatus() == WAITING_FOR_RES)
 		{
 			client->resetLastActivity();
 			removeFdFromPoll(fd);
 			addFdToPollOut(fd);
-		}
+		}*/
 		break;
 	case CGI_PIPE:
 		std::cout << std::endl << TXT_B << TXT_CY << "I have a reading CGI_PIPE event from client " << client->getId() << TXT_END << std::endl;
@@ -188,6 +188,7 @@ void	Launcher::processReadingFd(int fd)
 		std::cout << std::endl << "I have a reading REQ_FILE_FD event from client " << client->getId() << std::endl;
 		break;*/
 	default:
+		std::cout << "I got the fd " << fd << "from client " << client->getId() << " (that is a " << client->getSocketType(fd) << ")" << std::endl;
 		throw LauncherException("The Reading FD is not in possible category");
 	}
 }

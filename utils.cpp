@@ -257,7 +257,7 @@ std::string redirectionHTML(int code, std::string message, std::string path) {
 
 	std::stringstream s;
 	s << "<!doctype html>\n<html>\n<head>\n<title>" << code << " : " << message << "</title>\n<meta http-equiv=\"refresh\" content=\"3; URL=" << path << "\">\n</head>";
-	s << "<body>" << code << " : " << message << "\n<br>\nRedirection to " << path <<  " in 3 seconds.\n</body>\n</html>";
+	s << "<body>" << code << " : " << message << "\n<br>\nRedirection to " << path <<  " in 3 seconds.\n</body>\n</html>\n";
 	return (s.str());
 }
 
@@ -271,7 +271,7 @@ std::string autoindexHTML(std::string dirPath, std::string requestUri) {
 		requestUri = requestUri.substr(0, requestUri.length() - 1);
 	DIR *dir = opendir(dirPath.c_str());
 	if (dir == NULL)
-		return ("<!doctype html>\n<html>\n<head>\n<title>Error 403</title>\n</head>\n<body>\n<p>403 : Forbidden</p>\n</body>\n</html>");
+		return ("<!doctype html>\n<html>\n<head>\n<title>Error 403</title>\n</head>\n<body>\n<p>403 : Forbidden</p>\n</body>\n</html>\n");
 	std::stringstream s;
 	s << "<!doctype html>\n<html>\n<head>\n<title>Index of ";
 	if (requestUri == "")
@@ -343,14 +343,14 @@ std::string autoindexHTML(std::string dirPath, std::string requestUri) {
 std::string errorHTML(int code, std::string message) {
 
 	std::stringstream s;
-	s << "<!doctype html>\n<html>\n<head>\n<title>" << code << "</title>\n</head>\n<body>\n<p>" << code << " : " << message << "</p>\n</body>\n</html>";
+	s << "<!doctype html>\n<html>\n<head>\n<title>" << code << "</title>\n</head>\n<body>\n<p>" << code << " : " << message << "</p>\n</body>\n</html>\n";
 	return (s.str());
 }
 
 std::string successfulDeleteHTML(std::string path) {
 
 	std::stringstream s;
-	s << "<!doctype html>\n<html>\n<head>\n<title>Delete successful" << "</title>\n</head>\n<body>\n<p>" << path << " was successfully deleted from the server" << "</p>\n</body>\n</html>";
+	s << "<!doctype html>\n<html>\n<head>\n<title>Delete successful" << "</title>\n</head>\n<body>\n<p>" << path << " was successfully deleted from the server" << "</p>\n</body>\n</html>\n";
 	return (s.str());
 }
 
