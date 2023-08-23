@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/22 14:00:03 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/23 17:02:29 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,9 +54,7 @@ private:
 	std::vector< Server *> 	_server_ptr;
 	struct sockaddr_in		_client_addr;
 	std::vector<char>		_req_recived;
-	//std::string			_req_recived;
 	std::string				_req_header;
-	//std::string			_req_body;
 	unsigned int			_id;
 	unsigned int			_byte_sent_header;
 	unsigned int			_byte_sent_body;

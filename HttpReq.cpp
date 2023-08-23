@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/08/22 14:01:27 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/23 18:17:31 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,8 +53,8 @@ HttpReq::HttpReq(HttpReq const & copy)
 
 HttpReq::~HttpReq(void)
 {
-	/*if (access(_bodyTmpPath.c_str(), F_OK) == 0 && std::remove(_bodyTmpPath.c_str()))
-		std::cout << "I could not delete the file of client " << this->_id << std::endl;*/
+	if (access(_bodyTmpPath.c_str(), F_OK) == 0 && std::remove(_bodyTmpPath.c_str()))
+		std::cout << "I could not delete the file of client " << this->_id << std::endl;
 	if (_server != NULL)
 		delete _server;
 }
@@ -274,12 +274,10 @@ void	HttpReq::writeOnReqBodyFile(void)
 	int	byte_wrote;
 	if (this->_bodyTmpFileFd != -1 && this->_toAddBodyFile.size() != 0 && _statusBodyFile == OPEN)
 	{
-		std::cout << "_toAddBodyFile: " << _toAddBodyFile.data() << std::endl;
 		byte_wrote = write(_bodyTmpFileFd, _toAddBodyFile.data(), _toAddBodyFile.size());
 		if (byte_wrote == -1)
 			throw HttpReqException("Writing on the body file");
 		_byteWroteTmpBodyFile += byte_wrote;
-		std::cout << "_byteWroteTmpBodyFile " << _byteWroteTmpBodyFile << std::endl;
 		_toAddBodyFile.clear();
 		if (_contentLength == _byteWroteTmpBodyFile)
 		{

@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/22 13:56:42 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/23 18:16:01 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -241,7 +241,7 @@ int	Client::receiveRequestBody(void)
 
 void	Client::sendResponse(void)
 {
-	//std::cout << "	Client " << _id << " entering sendResponse" << std::endl;
+	
 	this->resetLastActivity();
 	if (this->_status == WAITING_FOR_RES)
 	{
@@ -260,7 +260,6 @@ void	Client::sendResponse(void)
 /*Attention dans le cas ou l'on est sur un CGI il faut ajouter la ligne en plus sur le header avec le transfert protocole, et retirer le content length. */
 void	Client::sendResponseHeader(void)
 {
-	std::cout << "	Client " << _id << " entering sendResponseHeader" << std::endl;
 	int	byte_sent = 0;
 	std::string	res_header_full = this->_res->getFormattedHeader();
 	std::string res_header_remain = res_header_full.substr(this->_byte_sent_header, res_header_full.size() - this->_byte_sent_header);
@@ -291,7 +290,6 @@ void	Client::sendResponseHeader(void)
 
 void	Client::sendResponseBody(void)
 {
-	//std::cout << "	Client " << _id << " entering sendResponseBody" << std::endl;
 	if (this->_res == NULL)
 		return ;
 	std::string	res_body = this->_res->getBody(); //empty string in case of a file to send
@@ -305,7 +303,6 @@ void	Client::sendResponseBody(void)
 
 void	Client::sendResponseBodyError(void)
 {
-	std::cout << "	Client " << _id << " entering sendResponseBodyError" << std::endl;
 	int	byte_sent = 0;
 	std::string	res_body = this->_res->getBody();
 	std::string res_body_remain = res_body.substr(this->_byte_sent_body, res_body.size() - this->_byte_sent_body);
@@ -337,7 +334,6 @@ void	Client::sendResponseBodyError(void)
 
 void	Client::sendResponseBodyNormalFile(void)
 {
-	std::cout << "	Client " << _id << " entering sendResponseBodyNormalFile" << std::endl;
 	std::vector<char>	to_send;
 	int byte_sent = 0;
 	if (this->_res->getFileToSendFd() == -1)
@@ -382,19 +378,20 @@ void	Client::sendResponseBodyNormalFile(void)
 
 void	Client::sendResponseBodyCgi(void)
 {
-	std::cout << "Client " << _id << " entering sendResponseBodyCgi" << std::endl;
-	std::vector<char>	to_send;
+	std::vector<char>	cgi_buff;
 	int byte_sent = 0;
-	to_send = this->_res->getCgiBuff();
-
-	int	size_chunk = to_send.size();
+	cgi_buff = this->_res->getCgiBuff();
+	int	size_chunk = cgi_buff.size();
 	if (size_chunk > 0)
 	{
 		std::ostringstream ss;
 		ss << std::hex << size_chunk << "\r\n";
-		to_send.insert(to_send.begin(), ss.str().data(), ss.str().data() + ss.str().size());
+		std::string str_size_chunk(ss.str());
+		std::vector<char>	to_send(str_size_chunk.begin(), str_size_chunk.end());
+		to_send.insert(to_send.end(), cgi_buff.begin(), cgi_buff.end());
 		to_send.push_back('\r');
 		to_send.push_back('\n');
+		
 		byte_sent = send(this->_com_socket, to_send.data(), to_send.size(), 0);
 		if (byte_sent == -1)
 		{
@@ -402,13 +399,11 @@ void	Client::sendResponseBodyCgi(void)
 			std::cout << "\e[33m" << getTimestamp() <<  "	I had an error sending CGI to client " << this->_id << "\e[0m" << std::endl;
 			return ;
 		}
-		std::cout << "CGI Sent to client " << _id << ":" << std::endl;
-		std::cout << to_send.data() << std::endl;
 		this->_byte_sent_body += byte_sent;
 		this->_status = SENDING_RES_BODY;
 		this->_res->clearCgiBuff();
 	}
-	else if (this->_res->getStatusCgiPipe() == PIPE_FINISH)
+	if (this->_res->getStatusCgiPipe() == PIPE_FINISH)
 	{
 		std::string end_of_cgi("0\r\n\r\n");
 		byte_sent = send(this->_com_socket, end_of_cgi.c_str(), end_of_cgi.size(), 0);
@@ -418,7 +413,6 @@ void	Client::sendResponseBodyCgi(void)
 			std::cout << "\e[33m" << getTimestamp() <<  "	I had an error sending CGI to client " << this->_id << "\e[0m" << std::endl;
 			return ; 
 		}
-		std::cout << end_of_cgi << std::endl;
 		this->_status = RES_SENT;
 	}
 }

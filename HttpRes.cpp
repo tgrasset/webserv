@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/21 17:07:59 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/23 18:16:20 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -584,7 +584,7 @@ void	HttpRes::headerBuild(void) {
 	_header["Date:"] = timeStamp();
 	_header["Server:"] = "Webserv/1.0";
 	if (_resourceType == PHP || _resourceType == PYTHON)
-		_header["Transfer-Encoding: "] = "chunked";
+		_header["Transfer-Encoding:"] = "chunked";
 	else		
 		_header["Content-Length:"] = sizeToString(_contentLength);
 	if (_keepAlive == true)
@@ -852,10 +852,15 @@ void	HttpRes::addCgiToBuff(void)
 	char readline[BUFFER_SIZE + 1];
 	memset(readline, 0, BUFFER_SIZE + 1);
 	byte_read = read(this->_cgiPipeFd, readline, BUFFER_SIZE);
-	if (byte_read < 0)
-		this->closeCgiPipe();
+	if (byte_read <= 0)
+	{
+		this->cgiPipeFinishedWriting();
+	}
 	else if (byte_read > 0)
+	{
 		this->_cgiBuff.insert(this->_cgiBuff.end(), readline, readline + byte_read);
+	}
+		
 }
 
 void	HttpRes::closeCgiPipe(void)
@@ -865,7 +870,6 @@ void	HttpRes::closeCgiPipe(void)
 	_client->removeFdFromPoll(this->_cgiPipeFd);
 	if (close(this->_cgiPipeFd) == -1)
 		this->_statusCgiPipe = PIPE_ERROR;
-	_statusCgiPipe = PIPE_CLOSE;
 	_cgiPipeFd = -1;
 }
 
