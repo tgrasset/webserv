@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/23 18:16:01 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/24 14:16:16 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,14 +174,20 @@ int	Client::receiveRequestHeader(void)
 	char recvline[BUFFER_SIZE + 1];
 	memset(recvline, 0, BUFFER_SIZE + 1);
 	byte_recv = recv(this->_com_socket, recvline, BUFFER_SIZE, 0);
-	if (byte_recv == 0)
+	if (byte_recv == -1)
 	{
-		std::cout << "Client " << this->_id << " has close connexion" << std::endl;
+		std::cout << "Reading of com socket for client " << this->_id << " failed. The client will be removed." << std::endl;
 		return (1);
 	}
-	std::cout << "Client " << this->_id << " just recieved " << byte_recv << " bytes for the request header" << std::endl;
-	if (byte_recv > 0)
+	else if (byte_recv == 0)
 	{
+		std::cout << "Client " << this->_id << " has close connexion. The client will be removed" << std::endl;
+		return (1);
+	}
+	else
+	{
+			std::cout << "Client " << this->_id << " just recieved " << byte_recv << " bytes for the request header" << std::endl;
+
 		this->_status = RECIVING_REQ_HEADER;
 		this->_req_recived.insert(this->_req_recived.end(), recvline, recvline + byte_recv);
 		std::string req_recived_string(static_cast<char *>(this->_req_recived.data()));
@@ -224,9 +230,14 @@ int	Client::receiveRequestBody(void)
 	char recvline[BUFFER_SIZE + 1];
 	memset(recvline, 0, BUFFER_SIZE + 1);
 	byte_recv = recv(this->_com_socket, recvline, BUFFER_SIZE, 0);
-	if (byte_recv == 0)
+	if (byte_recv == -1)
 	{
-		std::cout << "Client " << this->_id << " has close connexion" << std::endl;
+		std::cout << "Reading of com socket for client " << this->_id << " failed. The client will be removed." << std::endl;
+		return (1);
+	}
+	else if (byte_recv == 0)
+	{
+		std::cout << "Client " << this->_id << " has close connexion. The client will be removed." << std::endl;
 		return (1);
 	}
 	std::cout << "Client " << this->_id << " just recieved " << byte_recv << " bytes for the request body" << std::endl;
@@ -269,12 +280,14 @@ void	Client::sendResponseHeader(void)
 	else
 		to_send_header = res_header_remain.substr(0, BUFFER_SIZE);
 	byte_sent = send(this->_com_socket, to_send_header.c_str(), to_send_header.size(), 0);
+	/*besoin de retirer le client en cas de Error*/
 	if (byte_sent == -1)
 	{
 		this->_status = ERROR_WHILE_SENDING;
 		std::cout << "\e[33m" << getTimestamp() <<  "	I had an error sending response header to client " << this->_id << "\e[0m" << std::endl;
 		return ;
 	}
+	/* Besoin de tester le cas ou byte_sent vaut 0, mais je sais pas trop quoi faire dans ce cas. */
 	else
 	{
 		this->_status = SENDING_RES_HEADER;

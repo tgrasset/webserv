@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/08/23 18:17:31 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/24 14:25:35 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -247,13 +247,13 @@ status_req		HttpReq::getStatusReq(void) const
 
 void		HttpReq::addToBodyFileBuff(std::vector<char> str)
 {
-	std::cout << TXT_B << TXT_RED << "I got something for the body : " ;
+	/*std::cout << TXT_B << TXT_RED << "I got something for the body : " ;
 	for (std::vector<char>::iterator it = str.begin(); it != str.end(); ++it)
 	{
 		std::cout << *it;
 	}
 	std::cout << TXT_END << std::endl;
-	
+	*/
 	this->_toAddBodyFile.insert(_toAddBodyFile.end(), str.begin(), str.end());
 	if (this->_bodyTmpFileFd == -1)
 	{

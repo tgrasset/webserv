@@ -1,3 +1,11 @@
+# Reste a faire par rapport a la correction\
+## General 
+- Search for all read recv write send on a socket and check that if an error returned the client is remove
+- Search for all read recv write send and check if the return value is well checked (checking only -1 or 0 is not good enouth, you should check both)
+- cas d'un upload de gros fichier, la fermeture du fichier foire ce qui fait fermer tout le serveur web. je pense qu'il vaut mieux gerer le truc autrement et juste remove le client. 
+- besoin de mieux choisir la maniere dont on affiche les messages car ca devient pas visible pour les gros fichiers. 
+- Implemeter l'upload de fichier via chunck.
+
 # Note pour l'equipe
 ## 21/08
 - Besoin de faire en sorte que lorsqu'on recoit un body dans la req et qu'on l'a sauvegarder, on puisse continuer le processus du client (le passer en Req Completed, et le passer du poll lecture au poll ecriture). 

@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/23 18:16:20 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/24 14:01:04 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -838,6 +838,7 @@ void	HttpRes::addBodyFileToBuff(void)
 	memset(readline, 0, BUFFER_SIZE + 1);
 	byte_read = read(this->_fileToSendFd, readline, BUFFER_SIZE);
 	std::cout << "	I added " << byte_read << " bytes from the fd " << this->_fileToSendFd << " to the bufferToSend." << std::endl;
+	/* Si byte_read est == -1 besoin de remove le client*/
 	if (byte_read <= 0)
 		this->closeBodyFile();
 	else
@@ -852,6 +853,7 @@ void	HttpRes::addCgiToBuff(void)
 	char readline[BUFFER_SIZE + 1];
 	memset(readline, 0, BUFFER_SIZE + 1);
 	byte_read = read(this->_cgiPipeFd, readline, BUFFER_SIZE);
+	/* Si byte_read est == -1 besoin de remove le client*/
 	if (byte_read <= 0)
 	{
 		this->cgiPipeFinishedWriting();
