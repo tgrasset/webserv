@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/23 17:02:29 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/24 17:29:35 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,8 +64,7 @@ private:
 	unsigned int			_file_to_send_size;
 	Launcher				*_launcher;
 	
-	
-	static bool				_verbose;
+	static bool				_printBody;	
 	static unsigned int		_count;
 	
 public:

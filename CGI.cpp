@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/29 18:53:19 by jlanza            #+#    #+#             */
-/*   Updated: 2023/08/12 15:08:34 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/24 18:25:32 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,6 @@ void	CGI::setUpEnv(void)
 
 void	CGI::execCGI(void)
 {
-	std::cout << " I START execCGI" << std::endl;
 	// CREATE PIPE FOR OUTPUT
 	int	fd_pipe[2];
 	if (pipe(fd_pipe) == -1)

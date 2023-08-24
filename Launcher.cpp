@@ -6,20 +6,17 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/23 18:14:33 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/24 18:25:58 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Launcher.hpp"
 
-bool	Launcher::_verbose = false;
 /* ************************************************************************** */
 /*                     Constructeurs et destructeurs                          */
 /* ************************************************************************** */
 Launcher::Launcher(std::string path)
 {
-	if (Launcher::_verbose)
-		std::cout << "Launcher path constructor called" << std::endl;
 	this->_pathConf = path;
 	_breakPollLoop = false;
 	_pollEvent.clear();
@@ -29,8 +26,6 @@ Launcher::Launcher(std::string path)
 Launcher::Launcher(Launcher const & copy)
 {
 	*this = copy;
-	if (Launcher::_verbose)
-		std::cout << "Launcher copy constructor called" << std::endl;
 }
 
 Launcher::~Launcher(void)
@@ -41,8 +36,6 @@ Launcher::~Launcher(void)
 	for (std::vector<Server>::iterator it = this->_servers.begin();
 		it != this->_servers.end(); ++it)
 		close(it->getListenSocket());
-	if (Launcher::_verbose)
-		std::cout << "Launcher destructor called" << std::endl;
 }
 
 /* ************************************************************************** */
@@ -152,7 +145,7 @@ void	Launcher::processNewClient(int fd)
 	addServerOfClient(fd, &new_client);
 	_clients.push_back(new_client);
 	inet_ntop (AF_INET, &(client_addr.sin_addr), str_ip_client, sizeof (str_ip_client));
-	std::cout << getTimestamp() << "\e[33m	I just accepted a new connexion from " << str_ip_client << "\e[0m" << std::endl;
+	std::cout << TXT_GREEN << getTimestamp() << "	New client connexion from " << str_ip_client << " ==> Client " << new_client.getId() << TXT_END << std::endl;
 }
 
 /*
@@ -166,16 +159,13 @@ void	Launcher::processReadingFd(int fd)
 	switch (client->getSocketType(fd))
 	{
 	case COM_SOCKET:
-		std::cout << std::endl << TXT_B << TXT_CY << "I have a reading COM_SOCKET event from client " << client->getId() << TXT_END << std::endl;
 		if (client->receiveRequest())
 			this->removeClient(client);
 		break;
 	case CGI_PIPE:
-		std::cout << std::endl << TXT_B << TXT_CY << "I have a reading CGI_PIPE event from client " << client->getId() << TXT_END << std::endl;
 		client->addCgiToBuff();
 		break;
 	case RES_FILE_FD:
-		std::cout<< std::endl << TXT_B << TXT_CY << "I have a reading RES_FILE_FD event from client " << client->getId() << TXT_END << std::endl;
 		client->addBodyFileToBuff();
 		break;
 	default:
@@ -190,28 +180,26 @@ void	Launcher::processWritingFd(int fd)
 	switch (client->getSocketType(fd))
 	{
 	case COM_SOCKET:
-		//std::cout << std::endl << TXT_B << TXT_MAG << "I have a writing COM_SOCKET event from client " << client->getId() << TXT_END << std::endl;
 		client->sendResponse();
 		if (client->getStatus() == RES_SENT && client->getKeepAlive())
 		{
-			std::cout << "Finish writing to " << client->getId() << ", I add him to listen socket" << std::endl;
+			std::cout << TXT_GREEN << getTimestamp() << "Client " << client->getId() << ":	Writing finised. Adding him to reading monitored sockets" << TXT_END << std::endl;
 			client->resetClient();
 			removeFdFromPoll(fd);
 			addFdToPollIn(fd);
 		}
 		else if (client->getStatus() == RES_SENT)
 		{
-			std::cout << "Process finished for client " << client->getId() << ", it will now be removed" << std::endl;
+			std::cout << TXT_GREEN << getTimestamp() << "Client " << client->getId() << ":	Process finished. Client removed" << TXT_END << std::endl;
 			this->removeClient(client);
 		}
 		else if (client->getStatus() == ERROR_WHILE_SENDING)
 		{
-			std::cout << "An error happend while sending the response  to client " << client->getId() << ". The client will now be removed" << std::endl << std::endl;
+			std::cout << TXT_RED << getTimestamp() << "Client " << client->getId() << ":	An error happend while sending the response. Client Removed" << TXT_END << std::endl;
 			this->removeClient(client);
 		}
 		break;
 	case REQ_FILE_FD:
-		std::cout << std::endl << TXT_B << TXT_MAG << "I have a writing REQ_FILE_FD event from client " << client->getId() << TXT_END << std::endl;
 		client->writeReqBodyFile();
 		break;
 	default:
@@ -225,7 +213,7 @@ void	Launcher::processCloseConnexionOrError(int fd)
 	switch (client->getSocketType(fd))
 	{
 	case COM_SOCKET:
-		std::cout << "Client " << client->getId() << " has close connexion" << std::endl;
+		std::cout << TXT_RED << getTimestamp() << "Client " << client->getId() << ":	Connexion has been closed" << TXT_END <<std::endl;
 		this->removeClient(client);
 		break;
 	case CGI_PIPE:
@@ -293,8 +281,7 @@ void	Launcher::checkTimeoutClients(void)
 		time = it->timeSinceLastActivityUs() / 1000000;
 		if (time > MAX_TIME_CLIENT_S)
 		{
-			std::cout << "\e[31mTimeout for client " << it->getId()
-			<< ", time = " << time << " it will now be removed\e[0m" << std::endl << std::endl;
+			std::cout << TXT_MAG << getTimestamp() << "Client " << it->getId() << ":	Timeout, time = " << time << ". Client removed" << TXT_END << std::endl;
 			std::list<Client>::iterator it_tmp = it;
 			--it;
 			this->removeClient(it_tmp);
@@ -308,7 +295,7 @@ void	Launcher::removeClient(std::list<Client>::iterator client)
 	close(client->getComSocket());
 	this->_clients.erase(client);
 }
-
+/*
 void	Launcher::printSituation(void)
 {
 	char				str_ip_client[INET_ADDRSTRLEN];
@@ -360,6 +347,7 @@ void	Launcher::printSituation(void)
 		std::cout << std::endl << std::endl;
 	}
 }
+*/
 void Launcher::testFolderTmp(void) const
 {
 	std::string body_tmp_folder(BODY_TMP_FOLDER);

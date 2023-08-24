@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:33 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/12 14:35:34 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/24 17:29:24 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,9 +27,9 @@ private:
 	std::vector<Server> 			_servers;
 	std::list<Client> 				_clients;
 	std::string						_pathConf;
-	static bool						_verbose;
 	std::vector< struct pollfd >	_pollEvent;
 	bool							_breakPollLoop;
+							
 	Launcher(void);
 	
 public:

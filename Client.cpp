@@ -6,15 +6,14 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/24 14:16:16 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/24 18:15:46 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 
-bool			Client::_verbose = false;
 unsigned int	Client::_count = 0;
-
+bool			Client::_printBody = false;
 /* ************************************************************************** */
 /*                     Constructeurs et destructeurs                          */
 /* ************************************************************************** */
@@ -27,8 +26,6 @@ Client::Client(void)
 	this->_req = NULL;
 	this->_res = NULL;
 	gettimeofday(&(this->_last_activity), NULL);
-	if (Client::_verbose)
-		std::cout << "Client default constructor called" << std::endl;
 }
 
 Client::Client(Launcher	*launcher, struct sockaddr_in client_addr, int com_socket)
@@ -45,15 +42,11 @@ Client::Client(Launcher	*launcher, struct sockaddr_in client_addr, int com_socke
 	this->_res = NULL;
 	this->_launcher = launcher;
 	gettimeofday(&(this->_last_activity), NULL);
-	if (Client::_verbose)
-		std::cout << "Client constructor called" << std::endl;
 }
 
 Client::Client(Client const & copy)
 {
 	*this = copy;
-	if (Client::_verbose)
-		std::cout << "Client copy constructor called" << std::endl;
 }
 
 Client::~Client(void)
@@ -62,8 +55,6 @@ Client::~Client(void)
 		delete this->_req;
 	if (this->_res)
 		delete this->_res;
-	if (Client::_verbose)
-		std::cout << "Client destructor called" << std::endl;
 }
 
 /* ************************************************************************** */
@@ -181,13 +172,12 @@ int	Client::receiveRequestHeader(void)
 	}
 	else if (byte_recv == 0)
 	{
-		std::cout << "Client " << this->_id << " has close connexion. The client will be removed" << std::endl;
+		std::cout << TXT_CY << getTimestamp() << "Client " << _id << ":	Connexion has been closed. The client will be removed." << TXT_END << std::endl;
 		return (1);
 	}
 	else
 	{
-			std::cout << "Client " << this->_id << " just recieved " << byte_recv << " bytes for the request header" << std::endl;
-
+		//std::cout << "Client " << this->_id << " just recieved " << byte_recv << " bytes for the request header" << std::endl;
 		this->_status = RECIVING_REQ_HEADER;
 		this->_req_recived.insert(this->_req_recived.end(), recvline, recvline + byte_recv);
 		std::string req_recived_string(static_cast<char *>(this->_req_recived.data()));
@@ -195,8 +185,9 @@ int	Client::receiveRequestHeader(void)
 		if (pos_end_header != std::string::npos)
 		{
 			this->_req_header = req_recived_string.substr(0, pos_end_header);
-			std::cout << std::endl << "\e[33m" << getTimestamp() << "	Client " << this->_id << " just recieved the following request header\e[32m" << std::endl;
-			std::cout << this->_req_header << TXT_END << std::endl;
+			std::cout << TXT_CY << getTimestamp() << "Client " << _id << ":	Request header received" << TXT_END << std::endl;
+			if (_printBody)
+				std::cout << TXT_I << this->_req_header << TXT_END <<std::endl;
 			this->_req = new HttpReq(this, this->_req_header, this->_server_ptr);
 			if (this->_req == NULL)
 				throw ClientException("New didn't work for _req !");
@@ -206,7 +197,6 @@ int	Client::receiveRequestHeader(void)
 				this->_launcher->removeFdFromPoll(_com_socket);
 				this->_launcher->addFdToPollOut(_com_socket);
 			}
-				
 			else
 			{
 				this->_status = RECIVING_REQ_BODY;
@@ -232,17 +222,17 @@ int	Client::receiveRequestBody(void)
 	byte_recv = recv(this->_com_socket, recvline, BUFFER_SIZE, 0);
 	if (byte_recv == -1)
 	{
-		std::cout << "Reading of com socket for client " << this->_id << " failed. The client will be removed." << std::endl;
+		std::cout << TXT_RED << getTimestamp() << "Client " << _id << ":	Reading of com socket failed. The client will be removed." << TXT_END << std::endl;
 		return (1);
 	}
 	else if (byte_recv == 0)
 	{
-		std::cout << "Client " << this->_id << " has close connexion. The client will be removed." << std::endl;
+		std::cout << TXT_CY << getTimestamp() << "Client " << _id << ":	Connexion has been closed. The client will be removed." << TXT_END << std::endl;
 		return (1);
 	}
-	std::cout << "Client " << this->_id << " just recieved " << byte_recv << " bytes for the request body" << std::endl;
-	if (byte_recv > 0)
+	else
 	{
+		//std::cout << "Client " << this->_id << " just recieved " << byte_recv << " bytes for the request body" << std::endl;
 		std::vector<char> to_add_body;
 		to_add_body.insert(to_add_body.end(), recvline, recvline + byte_recv);
 		this->_req->addToBodyFileBuff(to_add_body);
@@ -284,7 +274,7 @@ void	Client::sendResponseHeader(void)
 	if (byte_sent == -1)
 	{
 		this->_status = ERROR_WHILE_SENDING;
-		std::cout << "\e[33m" << getTimestamp() <<  "	I had an error sending response header to client " << this->_id << "\e[0m" << std::endl;
+		std::cout << TXT_RED << getTimestamp() << "Client " << _id << ":	Error sending response header"<< TXT_END << std::endl;
 		return ;
 	}
 	/* Besoin de tester le cas ou byte_sent vaut 0, mais je sais pas trop quoi faire dans ce cas. */
@@ -296,8 +286,9 @@ void	Client::sendResponseHeader(void)
 	if (this->_byte_sent_header == static_cast<unsigned int>(res_header_full.size()))
 	{
 		this->_status = SENDING_RES_BODY;
-		std::cout << "\e[33m" << getTimestamp() <<  "	I have sent the following response header to client " << this->_id << " : \e[32m " << std::endl;
-		std::cout << std::endl << res_header_full << "\e[0m" << std::endl;
+		std::cout << TXT_CY << getTimestamp() << "Client " << _id << ":	Response header has been sent" << TXT_END << std::endl;
+		if (_printBody)
+			std::cout << TXT_I << res_header_full << TXT_END << std::endl;
 	}
 }
 
@@ -328,20 +319,22 @@ void	Client::sendResponseBodyError(void)
 	if (byte_sent == -1)
 	{
 		this->_status = ERROR_WHILE_SENDING;
-		std::cout << "\e[33m" << getTimestamp() <<  "	I had an error sending response body to client " << this->_id << "\e[0m" << std::endl;
+		std::cout << TXT_RED << getTimestamp() << "Client " << _id << ":	Error sending response body"<< TXT_END << std::endl;
 		return ;
 	}
 	else
 	{
 		this->_status = SENDING_RES_BODY;
 		this->_byte_sent_body += byte_sent;
-		std::cout << "	body : " << this->_byte_sent_body << "/" << res_body_remain.size() << " sent" << std::endl;
+		int percent_sent = static_cast<int>(static_cast<double>(_byte_sent_body)/static_cast<double>(res_body_remain.size()) * 100);
+		std::cout << TXT_CY << getTimestamp() << "Client " << _id << ":	" << percent_sent << "% of the body sent" << TXT_END << std::endl;
 	}
 	if (this->_byte_sent_body == static_cast<unsigned int>(res_body.size()))
 	{
 		this->_status = RES_SENT;
-		std::cout << "\e[33m" <<  getTimestamp() << "	I have sent the following response body to client " << this->_id << " : \e[32m " << std::endl;
-		std::cout << std::endl << res_body << "\e[0m" << std::endl;
+		std::cout << TXT_CY <<  getTimestamp() << "Client " << _id << ":	Response body has been sent" << TXT_END << std::endl;
+		if (_printBody)
+			std::cout << TXT_I << res_body << TXT_END << std::endl;
 	}
 }
 
@@ -351,7 +344,6 @@ void	Client::sendResponseBodyNormalFile(void)
 	int byte_sent = 0;
 	if (this->_res->getFileToSendFd() == -1)
 	{
-		std::cout << TXT_GREEN << TXT_I << "	openBodyFile();" << TXT_END << std::endl;
 		this->_res->openBodyFile();
 	}
 	else
@@ -363,29 +355,28 @@ void	Client::sendResponseBodyNormalFile(void)
 			if (byte_sent == -1)
 			{
 				this->_status = ERROR_WHILE_SENDING;
-				std::cout << "\e[33m" << getTimestamp() <<  "	I had an error sending file to client " << this->_id << "\e[0m" << std::endl;
+				std::cout << TXT_RED << getTimestamp() << "Client " << _id << ":	Error sending file" << TXT_END << std::endl;
 				return ;
 			}
-			std::cout << "	I just sended " << byte_sent << " to the client " << this->_id << std::endl;
 			this->_byte_sent_body += byte_sent;
+			int percent_sent = static_cast<int>(static_cast<double>(_byte_sent_body)/static_cast<double>(this->_res->getFileToSendSize()) * 100);
+			std::cout << TXT_CY << getTimestamp() << "Client " << _id << ":	" << percent_sent << "% of the file sent" << TXT_END << std::endl;
 			this->_status = SENDING_RES_BODY;
 			this->_res->clearFileToSendBuff();
 			
 			if (this->_byte_sent_body == this->_res->getFileToSendSize())
 			{
-				std::cout << TXT_RED << TXT_I << "	closeBodyFile();" << TXT_END << std::endl;
 				this->_res->closeBodyFile();
 				this->_status = RES_SENT;
 			}
 		}
 		else if (this->_res->getFileToSendSize() == 0)
 		{
-			std::cout << TXT_RED << TXT_I << "	closeBodyFile();" << TXT_END << std::endl;
 			this->_res->closeBodyFile();
 			this->_status = RES_SENT;
 		}
-		else
-			std::cout << "	buffToSend is empty at the moment for client "<< this->_id << ", waiting for an event to fill it" << std::endl;
+		/*else
+			std::cout << "	buffToSend is empty at the moment for client "<< this->_id << ", waiting for an event to fill it" << std::endl;*/
 	}
 }
 
@@ -409,7 +400,7 @@ void	Client::sendResponseBodyCgi(void)
 		if (byte_sent == -1)
 		{
 			this->_status = ERROR_WHILE_SENDING;
-			std::cout << "\e[33m" << getTimestamp() <<  "	I had an error sending CGI to client " << this->_id << "\e[0m" << std::endl;
+			std::cout << TXT_RED << getTimestamp() << "Client " << _id << ":	Error sending CGI" << TXT_END << std::endl;
 			return ;
 		}
 		this->_byte_sent_body += byte_sent;
@@ -423,7 +414,7 @@ void	Client::sendResponseBodyCgi(void)
 		if (byte_sent == -1)
 		{
 			this->_status = ERROR_WHILE_SENDING;
-			std::cout << "\e[33m" << getTimestamp() <<  "	I had an error sending CGI to client " << this->_id << "\e[0m" << std::endl;
+			std::cout << TXT_RED << getTimestamp() << "Client " << _id << ":	Error sending CGI" << TXT_END << std::endl;
 			return ; 
 		}
 		this->_status = RES_SENT;

@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/08/24 14:25:35 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/24 18:10:53 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -247,20 +247,13 @@ status_req		HttpReq::getStatusReq(void) const
 
 void		HttpReq::addToBodyFileBuff(std::vector<char> str)
 {
-	/*std::cout << TXT_B << TXT_RED << "I got something for the body : " ;
-	for (std::vector<char>::iterator it = str.begin(); it != str.end(); ++it)
-	{
-		std::cout << *it;
-	}
-	std::cout << TXT_END << std::endl;
-	*/
 	this->_toAddBodyFile.insert(_toAddBodyFile.end(), str.begin(), str.end());
 	if (this->_bodyTmpFileFd == -1)
 	{
 		std::ostringstream	file_path;
 		file_path << HttpReq::_bodyTmpFolder << "body_client_" << this->_id;
 		this->_bodyTmpPath = file_path.str();
-		std::cout << TXT_I << TXT_GREEN << "I am opening " << this->_bodyTmpPath.c_str() << TXT_END << std::endl;
+		std::cout << TXT_YEL << getTimestamp() << "Client " << this->_client->getId() << ":	Opening " << this->_bodyTmpPath.c_str() << TXT_END << std::endl;
 		_bodyTmpFileFd = open(this->_bodyTmpPath.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
 		if (_bodyTmpFileFd == -1)
 			throw HttpReqException("Opening the body file");
@@ -282,7 +275,7 @@ void	HttpReq::writeOnReqBodyFile(void)
 		if (_contentLength == _byteWroteTmpBodyFile)
 		{
 			_statusReq = COMPLETED;
-			std::cout << "	I just save the request body in a file, I will now removing the FD from the poll and close the file" << std::endl;
+			std::cout << TXT_YEL << getTimestamp() << "Client " << this->_client->getId() << ":	Request body saved in a file. Removing FD of the tmp file from the poll and closing it" << TXT_END << std::endl;
 			this->_client->removeFdFromPoll(_bodyTmpFileFd);
 			if (close(_bodyTmpFileFd) == -1)
 				throw HttpReqException("Closing tmp body file");
@@ -298,7 +291,7 @@ void	HttpReq::writeOnReqBodyFile(void)
 	}
 	else if (_statusBodyFile == OPEN)
 	{
-		std::cout << "	I just save the request body in a file, I will now removing the FD from the poll and close the file" << std::endl;
+		std::cout << TXT_YEL << getTimestamp() << "Client " << this->_client->getId() << ":	Request body saved in a file. Removing FD of the tmp file from the poll and closing it" << TXT_END << std::endl;
 		_statusReq = COMPLETED;
 		this->_client->removeFdFromPoll(_bodyTmpFileFd);
 		if (close(_bodyTmpFileFd) == -1)

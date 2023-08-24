@@ -6,13 +6,12 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/24 14:01:04 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/24 18:31:12 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpRes.hpp"
 
-bool	HttpRes::_verbose = false;
 std::map<std::string, std::string> HttpRes::_mimeTypes;
 /* ************************************************************************** */
 /*                     Constructeurs et destructeurs                          */
@@ -20,8 +19,6 @@ std::map<std::string, std::string> HttpRes::_mimeTypes;
 
 HttpRes::HttpRes(Client * client, HttpReq &request) {
 
-	if (HttpRes::_verbose)
-		std::cout << "HttpRes default constructor called" << std::endl;
 	_client = client;
 	_httpVersion = "";
 	_statusCode = -1;
@@ -54,14 +51,10 @@ HttpRes::HttpRes(Client * client, HttpReq &request) {
 HttpRes::HttpRes(HttpRes const & copy) {
 
 	*this = copy;
-	if (HttpRes::_verbose)
-		std::cout << "HttpRes copy constructor called" << std::endl;
 }
 
 HttpRes::~HttpRes(void) {
 
-	if (HttpRes::_verbose)
-		std::cout << "HttpRes destructor called" << std::endl;
 	if (_location != NULL)
 		delete _location;
 	closeBodyFile();
@@ -533,7 +526,7 @@ int	HttpRes::checkUri(std::string uri) {
 		std::string tempPath2 = tempPath.substr(_location->getPath().length(), tempPath.length() - _location->getPath().length());
 		_uriPath = _location->getRoot() + "" + tempPath2;
 	}
-	std::cerr << _uriPathInfo << std::endl;
+	//std::cerr << _uriPathInfo << std::endl;
 	_resourceType = checkResourceType();
 	if (_resourceType == NOT_FOUND)
 		return (404);
@@ -794,7 +787,7 @@ void	HttpRes::openBodyFile(void)
 	struct stat buf;
 	stat(this->_uriPath.c_str(), &buf);
 	this->_fileToSendSize = buf.st_size;
-	std::cout << TXT_I << TXT_YEL <<"	I want to open file : " << this->_uriPath << " that has a size of " << this->_fileToSendSize;
+	std::cout << TXT_BL << getTimestamp() << "Client " << this->_client->getId() << ":	Opening file " << this->_uriPath << " (size of " << this->_fileToSendSize << ")"<< TXT_END << std::endl;
 	this->_fileToSendFd = open(this->_uriPath.c_str(), O_RDONLY);
 	if (this->_fileToSendFd == -1)
 	{
@@ -802,7 +795,7 @@ void	HttpRes::openBodyFile(void)
 		this->setStatusCode(500);
 		return ; 
 	}
-	std::cout << " and I got the FD " << this->_fileToSendFd << " for it. "<< TXT_END << std::endl;
+	std::cout << TXT_BL <<  getTimestamp() << "Client " << this->_client->getId() << ":	FD " << this->_fileToSendFd << " has been affected to the file " << this->_uriPath << TXT_END << std::endl;
 	this->_statusFileToSend = OPEN;
 	this->_client->addFdToPollIn(this->_fileToSendFd);
 }
@@ -821,7 +814,7 @@ void	HttpRes::closeBodyFile(void)
 {
 	if (this->_fileToSendFd == -1 || this->_statusFileToSend == ERROR)
 		return;
-	std::cout << "	I am closing BodyFile with the fd " << this->_fileToSendFd << std::endl;
+	std::cout << TXT_BL << getTimestamp() << "Client " << this->_client->getId() << ":	Closing BodyFile " << this->_uriPath << TXT_END << std::endl;
 	this->_client->removeFdFromPoll(this->_fileToSendFd);
 	if (close(this->_fileToSendFd) == -1)
 		this->_statusFileToSend = ERROR;
@@ -837,7 +830,6 @@ void	HttpRes::addBodyFileToBuff(void)
 	char readline[BUFFER_SIZE + 1];
 	memset(readline, 0, BUFFER_SIZE + 1);
 	byte_read = read(this->_fileToSendFd, readline, BUFFER_SIZE);
-	std::cout << "	I added " << byte_read << " bytes from the fd " << this->_fileToSendFd << " to the bufferToSend." << std::endl;
 	/* Si byte_read est == -1 besoin de remove le client*/
 	if (byte_read <= 0)
 		this->closeBodyFile();

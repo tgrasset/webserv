@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfParser.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/12 15:35:55 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/06/15 16:09:50 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/08/24 18:31:43 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -307,5 +307,5 @@ void    ConfParser::parse() {
                 throw ConfParserException("Two server blocks can't share same port, host and server name");
         }
     }
-    std::cout << "Configuration file parsed successfully" << std::endl;
+    std::cout << TXT_GREEN << getTimestamp() << "	Configuration file parsed successfully" << TXT_END << std::endl;
 }

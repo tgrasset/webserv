@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/12 14:48:46 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/24 16:18:13 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,7 +106,6 @@ class HttpRes
 	private:
 
 		HttpRes(void);
-		static bool									_verbose;
 
 		Client										*_client;
 		std::string									_httpVersion;

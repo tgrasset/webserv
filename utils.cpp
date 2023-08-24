@@ -204,6 +204,8 @@ std::string	getTimestamp(void)
 
 	time (&rawtime);
 	timeinfo = localtime (&rawtime);
+	if (timeinfo->tm_mday < 9)
+		os << "0";
 	os << timeinfo->tm_mday;
 	os << "/";
 	if (timeinfo->tm_mon < 9)
@@ -212,9 +214,16 @@ std::string	getTimestamp(void)
 	os << "/";
 	os << timeinfo->tm_year + 1900;
 	os << " ";
-	os << timeinfo->tm_hour;
-	os << ":" << timeinfo->tm_min;
-	os << ":" << timeinfo->tm_sec;
+	if (timeinfo->tm_hour <= 9)
+		os << "0";
+	os << timeinfo->tm_hour << ":";
+	if (timeinfo->tm_min <= 9)
+		os << "0";
+	os << timeinfo->tm_min << ":";
+	if (timeinfo->tm_sec <= 9)
+		os << "0";
+	os << timeinfo->tm_sec;
+	os << "	";
 
 	return (os.str());
 }
