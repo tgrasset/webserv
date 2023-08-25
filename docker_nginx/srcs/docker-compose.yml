@@ -17,4 +17,4 @@ volumes:
     driver_opts:
       type: 'none'
       o: 'bind'
-      device: '/mnt/nfs/homes/mbocquel/c_cursus/webserv_common_git/docker_nginx/sites'
+      device: '/home/mbocquel/Documents/webserv/docker_nginx/sites'

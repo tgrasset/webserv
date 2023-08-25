@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/08/25 11:48:35 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/25 17:14:42 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@ private:
 	static std::string					_bodyTmpFolder;
 	static unsigned int					_count;
 	static bool							_printReqBodyRec;
+	static bool							_printMsg;
 	
 	HttpReq(void);
 	void								parse(std::string &content, std::vector<Server *> servers);

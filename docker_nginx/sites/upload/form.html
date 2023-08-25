@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8">
+        <title>Webserv test du Form Post</title>
+    </head>
+    <body>
+      <h1>Upload a file on the server</h1>
+      <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="fileToUpload">
+        <input type="submit" value="Upload">
+      </form>
+    </body>
+</html>

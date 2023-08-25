@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/08/25 11:55:27 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/25 18:00:39 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 std::string		HttpReq::_bodyTmpFolder(BODY_TMP_FOLDER);
 unsigned int	HttpReq::_count = 0;
 bool			HttpReq::_printReqBodyRec = false;
+bool			HttpReq::_printMsg = true;
 
 /* ************************************************************************** */
 /*                     Constructeurs et destructeurs                          */
@@ -273,7 +274,7 @@ void	HttpReq::writeOnReqBodyFile(void)
 			throw HttpReqException("Writing on the body file");
 		_byteWroteTmpBodyFile += byte_wrote;
 		double	percent_received = (static_cast<double>(_byteWroteTmpBodyFile) / static_cast<double>(_contentLength)) * 100;
-		if (std::fmod(percent_received, 10.0) < 0.1)
+		if (std::fmod(percent_received, 10.0) < 0.1 && _printMsg)
 			std::cout << TXT_YEL << getTimestamp() << "Client " << _client->getId() << ":	" << static_cast<int>(percent_received) << "% of of the Req Body File recieved" << TXT_END << std::endl;
 		if (_printReqBodyRec)
 		{
@@ -294,7 +295,7 @@ void	HttpReq::writeOnReqBodyFile(void)
 			this->_client->addFdToPollOut(_client->getComSocket());
 		}
 	}
-	else if (this->_toAddBodyFile.size() == 0 && _contentLength > _byteWroteTmpBodyFile)
+	else if (this->_toAddBodyFile.size() == 0 && _contentLength > _byteWroteTmpBodyFile && _printMsg)
 	{
 		std::cout << TXT_YEL << getTimestamp() << "Client " << this->_client->getId() << ":	Nothing yet to add to the ReqBodyFile, waiting for the client to send data" << TXT_END << std::endl;
 	}
