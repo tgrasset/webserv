@@ -6,14 +6,14 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/24 18:44:03 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/25 10:54:01 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 
 unsigned int	Client::_count = 0;
-bool			Client::_printBody = false;
+bool			Client::_printBody = true;
 /* ************************************************************************** */
 /*                     Constructeurs et destructeurs                          */
 /* ************************************************************************** */

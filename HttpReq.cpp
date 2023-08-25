@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/08/24 18:10:53 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/08/25 11:55:27 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 std::string		HttpReq::_bodyTmpFolder(BODY_TMP_FOLDER);
 unsigned int	HttpReq::_count = 0;
+bool			HttpReq::_printReqBodyRec = false;
 
 /* ************************************************************************** */
 /*                     Constructeurs et destructeurs                          */
@@ -271,6 +272,14 @@ void	HttpReq::writeOnReqBodyFile(void)
 		if (byte_wrote == -1)
 			throw HttpReqException("Writing on the body file");
 		_byteWroteTmpBodyFile += byte_wrote;
+		double	percent_received = (static_cast<double>(_byteWroteTmpBodyFile) / static_cast<double>(_contentLength)) * 100;
+		if (std::fmod(percent_received, 10.0) < 0.1)
+			std::cout << TXT_YEL << getTimestamp() << "Client " << _client->getId() << ":	" << static_cast<int>(percent_received) << "% of of the Req Body File recieved" << TXT_END << std::endl;
+		if (_printReqBodyRec)
+		{
+			std::cout << TXT_I;
+			printVectorChar(_toAddBodyFile);
+		}
 		_toAddBodyFile.clear();
 		if (_contentLength == _byteWroteTmpBodyFile)
 		{
@@ -287,7 +296,7 @@ void	HttpReq::writeOnReqBodyFile(void)
 	}
 	else if (this->_toAddBodyFile.size() == 0 && _contentLength > _byteWroteTmpBodyFile)
 	{
-		std::cout << "	_toAddBodyFile is still empty " << std::endl;
+		std::cout << TXT_YEL << getTimestamp() << "Client " << this->_client->getId() << ":	Nothing yet to add to the ReqBodyFile, waiting for the client to send data" << TXT_END << std::endl;
 	}
 	else if (_statusBodyFile == OPEN)
 	{

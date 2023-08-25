@@ -396,3 +396,12 @@ std::string	getMimeType(std::string path, std::map<std::string, std::string> &ty
 		return (types[ext]);
 	return ("text/plain");
 }
+
+void	printVectorChar(std::vector<char> vectChar)
+{
+	for (std::vector<char>::iterator it = vectChar.begin(); it != vectChar.end(); ++it)
+	{
+		std::cout << *it;
+	}
+	std::cout << std::endl;
+}

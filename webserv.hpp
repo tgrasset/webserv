@@ -13,6 +13,7 @@
 # include <iomanip>
 # include <cstdio>
 # include <list>
+# include <cmath>
 
 # include <sys/types.h>
 # include <sys/stat.h>
@@ -74,5 +75,6 @@ std::string					errorHTML(int code, std::string message);
 std::string					successfulDeleteHTML(std::string path);
 std::string					getErrorPageContent(std::string path, int code, std::string message);
 std::string					getMimeType(std::string path, std::map<std::string, std::string> &types);
+void						printVectorChar(std::vector<char> vectChar);
 
 #endif
