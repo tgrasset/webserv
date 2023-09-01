@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpReq.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/08/25 18:00:39 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/01 14:25:15 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,12 +163,12 @@ void	HttpReq::setServer(std::vector<Server *> servers) {
 	}
 	std::string hostname;
 	if (_host.find(':') != std::string::npos)
-		hostname = _host.substr(0, _host.length() - _host.find(':'));
+		hostname = _host.substr(0, _host.length() - (_host.length() - _host.find(':')));
 	else
 		hostname = _host;
 	for (std::vector<Server *>::iterator it = servers.begin(); it != servers.end(); it++)
 	{
-		if ((*it)->getServerName() == _host)
+		if ((*it)->getServerName() == hostname)
 		{
 			_server = new Server(*(*it));
 			return;
