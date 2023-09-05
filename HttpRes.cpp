@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/25 17:45:40 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/05 14:44:17 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -587,10 +587,16 @@ void	HttpRes::headerBuild(void) {
 	}
 	else
 		_header["Connection:"] = "close";
-	if (_resourceType != NORMALFILE)
+	if (_resourceType != NORMALFILE || _uriPath == "www/cgi-bin/upload.py")
+	{
 		_header["Content-Type:"] = "text/html";
+		std::cout << "youpi" << std::endl;
+	}
 	else
+	{
 		_header["Content-Type:"] = getMimeType(_uriPath, _mimeTypes);
+		std::cout << "matin" << std::endl;
+	}
 }
 
 void	HttpRes::formatHeader(void) {
@@ -709,17 +715,30 @@ void	HttpRes::uploadFileToServer(std::string tempFile, std::string boundary) {
 
 void	HttpRes::handleRequest(HttpReq &request) {
 
+	std::cout << getTimestamp() << "checkHttpVersion" << std::endl;
 	_statusCode = checkHttpVersion(request.getHttpVersion());
+	std::cout << getTimestamp() << "bodyIsTooBig" << std::endl;
 	if (_statusCode == 200 && request.bodyIsTooBig() == true)
 		_statusCode = 413;
 	if (_statusCode == 200)
+	{
+		std::cout << getTimestamp() << "checkRequestHeader" << std::endl;
 		_statusCode = checkRequestHeader(request.getHeader());
+	}
 	if (_statusCode == 200)
+	{
+		std::cout << getTimestamp() << "checkUri" << std::endl;
 		_statusCode = checkUri(request.getUri());
+	}
+	if (_statusCode == 200)
+		std::cout << getTimestamp() << "methodIsAllowed" << std::endl;
 	if (_statusCode == 200 && methodIsAllowed(request.getMethod()) == false)
 		_statusCode = 405;
 	if (_statusCode == 200 && _method == "GET" && _resourceType == NORMALFILE)
+	{
+		std::cout << getTimestamp() << "checkIfAcceptable" << std::endl;
 		checkIfAcceptable(request.getAccept());
+	}
 	else if (_statusCode == 200 && _method == "DELETE")
 	{
 		if (std::remove(_uriPath.c_str()) != 0)
@@ -727,21 +746,43 @@ void	HttpRes::handleRequest(HttpReq &request) {
 		else
 			_statusCode = 204;
 	}
-	else if (_statusCode == 200 && (_resourceType == PHP || _resourceType == PYTHON))
+	else if (_statusCode == 200 && (_resourceType == PHP || _resourceType == PYTHON || _method == "POST"))
 	{
+		if (!(_resourceType == PHP || _resourceType == PYTHON )) // pas py ou php ==> upload de fichier
+		{
+			request.setUri("/cgi-bin/upload.py");
+			_uriPath = "www/cgi-bin/upload.py";
+		}
+		else 
+		{
+			std::cout << "request.getUri() : " << request.getUri()<< std::endl;
+			std::cout << "_uriPath : " << _uriPath << std::endl;
+		}
+		std::cout << getTimestamp() << "Je lance le CGI " << std::endl;
 		CGI cgi(request, *this);
 		cgi.execCGI();
 	}
-	else if (_statusCode == 200 && _method == "POST")
+	/*else if (_statusCode == 200 && _method == "POST")
+	{
+		std::cout << getTimestamp() << "uploadFileToServer" << std::endl;
 		uploadFileToServer(request.getBodyTmpFilePath(), request.getBoundary());
+	}*/
+	std::cout << getTimestamp() << "getStatus" << std::endl;
 	_statusMessage = getStatus(_statusCode);
 	if (!(_resourceType == PHP || _resourceType == PYTHON))
+	{
+		std::cout << getTimestamp() << "bodyBuild" << std::endl;
 		bodyBuild(request.getUri());
+	}
 	if (request.getKeepAlive() == false)
 		_keepAlive = false;
+	std::cout << getTimestamp() << "headerBuild" << std::endl;
 	headerBuild();
+	std::cout << getTimestamp() << "formatHeader" << std::endl;
 	formatHeader();
 }
+
+
 
 /*
 void	HttpRes::handleRequest(HttpReq &request) {

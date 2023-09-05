@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/09/05 10:34:16 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/05 13:42:30 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,8 +55,8 @@ HttpReq::HttpReq(HttpReq const & copy)
 
 HttpReq::~HttpReq(void)
 {
-	if (access(_bodyTmpPath.c_str(), F_OK) == 0 && std::remove(_bodyTmpPath.c_str()))
-		std::cout << "I could not delete the file of client " << this->_id << std::endl;
+	/*if (access(_bodyTmpPath.c_str(), F_OK) == 0 && std::remove(_bodyTmpPath.c_str()))
+		std::cout << "I could not delete the file of client " << this->_id << std::endl;*/
 	if (this->_statusBodyFile  == OPEN)
 	{
 		this->_client->removeFdFromPoll(_bodyTmpFileFd);
@@ -291,7 +291,7 @@ void	HttpReq::writeOnReqBodyFile(void)
 		if (_contentLength == _byteWroteTmpBodyFile)
 		{
 			_statusReq = COMPLETED;
-			std::cout << TXT_YEL << getTimestamp() << "Client " << this->_client->getId() << ":	Request body saved in a file. Removing FD of the tmp file from the poll and closing it" << TXT_END << std::endl;
+			std::cout << TXT_YEL << getTimestamp() << "AA Client " << this->_client->getId() << ":	Request body saved in a file. Removing FD of the tmp file from the poll and closing it" << TXT_END << std::endl;
 			this->_client->removeFdFromPoll(_bodyTmpFileFd);
 			if (close(_bodyTmpFileFd) == -1)
 				throw HttpReqException("Closing tmp body file");
@@ -303,7 +303,7 @@ void	HttpReq::writeOnReqBodyFile(void)
 	}
 	else if (this->_toAddBodyFile.size() == 0 && _contentLength > _byteWroteTmpBodyFile && _printMsg)
 	{
-		std::cout << TXT_YEL << getTimestamp() << "Client " << this->_client->getId() << ":	Nothing yet to add to the ReqBodyFile, waiting for the client to send data" << TXT_END << std::endl;
+		//std::cout << TXT_YEL << getTimestamp() << "Client " << this->_client->getId() << ":	Nothing yet to add to the ReqBodyFile, waiting for the client to send data" << TXT_END << std::endl;
 	}
 	else if (_statusBodyFile == OPEN)
 	{
@@ -327,3 +327,7 @@ bool	HttpReq::bodyIsTooBig() const
 		return (false);
 }
 
+void	HttpReq::setUri(std::string new_uri)
+{
+	this->_uri = new_uri;
+}

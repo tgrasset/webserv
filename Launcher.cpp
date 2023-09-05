@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/05 10:36:02 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/05 11:52:10 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,26 +79,28 @@ void	Launcher::launchServers(void)
 			throw LauncherException("Problem with poll !");
 		if (nfds > 0)
 		{
+			//std::cout << getTimestamp() << "boucle realeased taille event" << nfds << std::endl;
 			for (std::vector< struct pollfd >::iterator it = _pollEvent.begin(); it != _pollEvent.end(); ++it)
 			{	
-				if (it->revents & POLLIN) //Read.
+				if (it->revents & POLLIN && !_breakPollLoop) //Read.
 				{
 					if (checkIfListenSocket(it->fd)) //New connexion
 						this->processNewClient(it->fd);
 					else
 						this->processReadingFd(it->fd);
 				}
-				else if (it->revents & POLLOUT) //Write
+				else if (it->revents & POLLOUT && !_breakPollLoop) //Write
 				{
 					this->processWritingFd(it->fd);
 				}
-				else if ((it->revents & POLLERR) || (it->revents & POLLHUP))
+				else if (((it->revents & POLLERR) || (it->revents & POLLHUP)) && !_breakPollLoop)
 				{
 					this->processCloseConnexionOrError(it->fd);
 				}
 				if (_breakPollLoop)
 					break;
 			}
+			//std::cout << "..." << std::endl;
 		}
 	}
 }
@@ -204,6 +206,7 @@ void	Launcher::processWritingFd(int fd)
 		break;
 	default:
 		throw LauncherException("Problem writing fd is not a correct category");
+	//std::cout << getTimestamp() << "processWritingFd" << std::endl;
 	}
 }
 

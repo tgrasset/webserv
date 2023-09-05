@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/05 10:17:17 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/05 14:53:49 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -241,7 +241,7 @@ int	Client::receiveRequestBody(void)
 
 void	Client::sendResponse(void)
 {
-	
+	//std::cout << _id << "sendResponse()" << std::endl ;
 	this->resetLastActivity();
 	if (this->_status == WAITING_FOR_RES)
 	{
@@ -260,6 +260,7 @@ void	Client::sendResponse(void)
 /*Attention dans le cas ou l'on est sur un CGI il faut ajouter la ligne en plus sur le header avec le transfert protocole, et retirer le content length. */
 void	Client::sendResponseHeader(void)
 {
+	//std::cout << _id << "sendResponseHeader()" << std::endl ;
 	int	byte_sent = 0;
 	std::string	res_header_full = this->_res->getFormattedHeader();
 	std::string res_header_remain = res_header_full.substr(this->_byte_sent_header, res_header_full.size() - this->_byte_sent_header);
@@ -293,19 +294,22 @@ void	Client::sendResponseHeader(void)
 
 void	Client::sendResponseBody(void)
 {
+	//std::cout << _id << "sendResponseBody()" << std::endl ;
 	if (this->_res == NULL)
 		return ;
 	std::string	res_body = this->_res->getBody(); //empty string in case of a file to send
 	if (res_body.size() != 0)
 		this->sendResponseBodyError();
-	else if (this->_res->getResourceType() == NORMALFILE)
+	else if (this->_res->getResourceType() == NORMALFILE && this->_req->getMethod() != "POST")
 		this->sendResponseBodyNormalFile();
-	else if (this->_res->getResourceType() == PYTHON || this->_res->getResourceType() == PHP)
+	//else if (this->_res->getResourceType() == PYTHON || this->_res->getResourceType() == PHP)
+	else
 		this->sendResponseBodyCgi();
 }
 
 void	Client::sendResponseBodyError(void)
 {
+	//std::cout << _id << "sendResponseBodyError()" << std::endl ;
 	int	byte_sent = 0;
 	std::string	res_body = this->_res->getBody();
 	std::string res_body_remain = res_body.substr(this->_byte_sent_body, res_body.size() - this->_byte_sent_body);
@@ -339,6 +343,7 @@ void	Client::sendResponseBodyError(void)
 
 void	Client::sendResponseBodyNormalFile(void)
 {
+	//std::cout << _id << "sendResponseBodyNormalFile()" << std::endl ;
 	std::vector<char>	to_send;
 	int byte_sent = 0;
 	if (this->_res->getFileToSendFd() == -1)
@@ -381,6 +386,7 @@ void	Client::sendResponseBodyNormalFile(void)
 
 void	Client::sendResponseBodyCgi(void)
 {
+	std::cout << _id << "sendResponseBodyCgi()" << std::endl ;
 	std::vector<char>	cgi_buff;
 	int byte_sent = 0;
 	cgi_buff = this->_res->getCgiBuff();

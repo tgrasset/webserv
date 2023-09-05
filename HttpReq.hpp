@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpReq.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/08/25 17:14:42 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/05 13:41:30 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,6 +83,7 @@ public:
 	bool								bodyIsTooBig(void) const;
 	status_req							getStatusReq(void) const;
 	void								writeOnReqBodyFile(void);
+	void								setUri(std::string new_uri);
 	
 
 	class HttpReqException : public std::exception {
