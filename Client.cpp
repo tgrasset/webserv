@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/25 10:54:01 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/05 10:17:17 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -177,7 +177,6 @@ int	Client::receiveRequestHeader(void)
 	}
 	else
 	{
-		//std::cout << "Client " << this->_id << " just recieved " << byte_recv << " bytes for the request header" << std::endl;
 		this->_status = RECIVING_REQ_HEADER;
 		this->_req_recived.insert(this->_req_recived.end(), recvline, recvline + byte_recv);
 		std::string req_recived_string(static_cast<char *>(this->_req_recived.data()));
