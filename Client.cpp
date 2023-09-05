@@ -3,17 +3,18 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/05 14:53:49 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/05 17:12:11 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 
 unsigned int	Client::_count = 0;
-bool			Client::_printBody = true;
+bool			Client::_printBody = false;
+
 /* ************************************************************************** */
 /*                     Constructeurs et destructeurs                          */
 /* ************************************************************************** */
@@ -231,7 +232,6 @@ int	Client::receiveRequestBody(void)
 	}
 	else
 	{
-		//std::cout << "Client " << this->_id << " just recieved " << byte_recv << " bytes for the request body" << std::endl;
 		std::vector<char> to_add_body;
 		to_add_body.insert(to_add_body.end(), recvline, recvline + byte_recv);
 		this->_req->addToBodyFileBuff(to_add_body);
@@ -241,7 +241,6 @@ int	Client::receiveRequestBody(void)
 
 void	Client::sendResponse(void)
 {
-	//std::cout << _id << "sendResponse()" << std::endl ;
 	this->resetLastActivity();
 	if (this->_status == WAITING_FOR_RES)
 	{
@@ -257,10 +256,8 @@ void	Client::sendResponse(void)
 		this->sendResponseBody();
 }
 
-/*Attention dans le cas ou l'on est sur un CGI il faut ajouter la ligne en plus sur le header avec le transfert protocole, et retirer le content length. */
 void	Client::sendResponseHeader(void)
 {
-	//std::cout << _id << "sendResponseHeader()" << std::endl ;
 	int	byte_sent = 0;
 	std::string	res_header_full = this->_res->getFormattedHeader();
 	std::string res_header_remain = res_header_full.substr(this->_byte_sent_header, res_header_full.size() - this->_byte_sent_header);
@@ -270,7 +267,6 @@ void	Client::sendResponseHeader(void)
 	else
 		to_send_header = res_header_remain.substr(0, BUFFER_SIZE);
 	byte_sent = send(this->_com_socket, to_send_header.c_str(), to_send_header.size(), 0);
-	/*besoin de retirer le client en cas de Error*/
 	if (byte_sent == -1)
 	{
 		this->_status = ERROR_WHILE_SENDING;
@@ -294,22 +290,19 @@ void	Client::sendResponseHeader(void)
 
 void	Client::sendResponseBody(void)
 {
-	//std::cout << _id << "sendResponseBody()" << std::endl ;
 	if (this->_res == NULL)
 		return ;
-	std::string	res_body = this->_res->getBody(); //empty string in case of a file to send
+	std::string	res_body = this->_res->getBody();
 	if (res_body.size() != 0)
 		this->sendResponseBodyError();
-	else if (this->_res->getResourceType() == NORMALFILE && this->_req->getMethod() != "POST")
+	else if (this->_res->getResourceType() == NORMALFILE)
 		this->sendResponseBodyNormalFile();
-	//else if (this->_res->getResourceType() == PYTHON || this->_res->getResourceType() == PHP)
-	else
+	else if (this->_res->getResourceType() == PYTHON || this->_res->getResourceType() == PHP)
 		this->sendResponseBodyCgi();
 }
 
 void	Client::sendResponseBodyError(void)
 {
-	//std::cout << _id << "sendResponseBodyError()" << std::endl ;
 	int	byte_sent = 0;
 	std::string	res_body = this->_res->getBody();
 	std::string res_body_remain = res_body.substr(this->_byte_sent_body, res_body.size() - this->_byte_sent_body);
@@ -343,7 +336,6 @@ void	Client::sendResponseBodyError(void)
 
 void	Client::sendResponseBodyNormalFile(void)
 {
-	//std::cout << _id << "sendResponseBodyNormalFile()" << std::endl ;
 	std::vector<char>	to_send;
 	int byte_sent = 0;
 	if (this->_res->getFileToSendFd() == -1)
@@ -379,14 +371,11 @@ void	Client::sendResponseBodyNormalFile(void)
 			this->_res->closeBodyFile();
 			this->_status = RES_SENT;
 		}
-		/*else
-			std::cout << "	buffToSend is empty at the moment for client "<< this->_id << ", waiting for an event to fill it" << std::endl;*/
 	}
 }
 
 void	Client::sendResponseBodyCgi(void)
 {
-	std::cout << _id << "sendResponseBodyCgi()" << std::endl ;
 	std::vector<char>	cgi_buff;
 	int byte_sent = 0;
 	cgi_buff = this->_res->getCgiBuff();

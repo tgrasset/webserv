@@ -35,6 +35,7 @@
 # define BUFFER_SIZE 4092
 # define MAX_TIME_CLIENT_S 10
 # define BODY_TMP_FOLDER "tmp_body/"
+# define PATH_CGI_UPLOAD "/cgi-bin/upload.py"
 # define TXT_END "\033[0m"
 # define TXT_YEL "\033[33m"
 # define TXT_RED "\033[31m"
@@ -45,6 +46,7 @@
 # define TXT_B "\033[1m"
 # define TXT_U "\033[4m"
 # define TXT_I "\033[3m"
+
 
 typedef enum eStatus {
 	CLOSE,

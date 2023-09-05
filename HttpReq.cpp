@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpReq.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/09/05 13:42:30 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/05 18:10:00 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,10 +42,8 @@ HttpReq::HttpReq(Client *client, std::string &content, std::vector<Server *> ser
 	_byteWroteTmpBodyFile = 0;
 	_bodyTmpFileFd = -1;
 	HttpReq::parse(content, servers);
-	if (_contentLength == 0 || _method != "POST" || _contentLength > this->_server->getClientMaxBodySize())
+	if (_contentLength == 0 || _method != "POST" || _contentLength > this->_server->getClientMaxBodySize()) //Ici il faudrait aussi verifier que on est pas dans le cas ou la location interdit 
 		_statusReq = COMPLETED;
-	else
-		_statusReq = WAITING_TO_FILL_BODY_FILE;
 }
 
 HttpReq::HttpReq(HttpReq const & copy)
@@ -55,8 +53,8 @@ HttpReq::HttpReq(HttpReq const & copy)
 
 HttpReq::~HttpReq(void)
 {
-	/*if (access(_bodyTmpPath.c_str(), F_OK) == 0 && std::remove(_bodyTmpPath.c_str()))
-		std::cout << "I could not delete the file of client " << this->_id << std::endl;*/
+	if (access(_bodyTmpPath.c_str(), F_OK) == 0 && std::remove(_bodyTmpPath.c_str()))
+		std::cout << "I could not delete the file of client " << this->_id << std::endl;
 	if (this->_statusBodyFile  == OPEN)
 	{
 		this->_client->removeFdFromPoll(_bodyTmpFileFd);
@@ -114,15 +112,21 @@ void	HttpReq::parse(std::string &content, std::vector<Server *> servers)
 	std::vector<std::string>	head;
 	head = cpp_split(content, "\n");
 
-	// parse first line
+	/* Parse first lineb */
 	const int	first_space = head[0].find(' ');
 	const int	second_space = head[0].find(' ', first_space + 1);
 	_method			= head[0].substr(0, first_space);
 	_uri			= head[0].substr(first_space + 1, second_space - first_space - 1);
 	_httpVersion	= head[0].substr(second_space + 1, second_space - head[0].size());
 	head.erase(head.begin());
-
-	//create _header map
+	
+	/*Case of upload a file*/
+	if (_method == "POST" 
+		&& !(_uri.size() > 3 && _uri.substr(_uri.size() - 3, 3) == ".py")
+		&& !(_uri.size() > 4 && _uri.substr(_uri.size() - 4, 4) == ".php"))
+		_uri = PATH_CGI_UPLOAD;
+		
+	/*create _header map*/
 	int	pos = 0;
 	std::string	key;
 	std::string	value;
@@ -136,7 +140,7 @@ void	HttpReq::parse(std::string &content, std::vector<Server *> servers)
 		_header.insert(std::make_pair(key, value));
 	}
 
-	// parse rest of request
+	/* Parse rest of request*/
 	if (_header.find("HOST") != _header.end())
 		_host = _header["HOST"];
 	if (_header.find("ACCEPT") != _header.end())
@@ -291,7 +295,7 @@ void	HttpReq::writeOnReqBodyFile(void)
 		if (_contentLength == _byteWroteTmpBodyFile)
 		{
 			_statusReq = COMPLETED;
-			std::cout << TXT_YEL << getTimestamp() << "AA Client " << this->_client->getId() << ":	Request body saved in a file. Removing FD of the tmp file from the poll and closing it" << TXT_END << std::endl;
+			std::cout << TXT_YEL << getTimestamp() << "Client " << this->_client->getId() << ":	Request body saved in a file. Removing FD of the tmp file from the poll and closing it" << TXT_END << std::endl;
 			this->_client->removeFdFromPoll(_bodyTmpFileFd);
 			if (close(_bodyTmpFileFd) == -1)
 				throw HttpReqException("Closing tmp body file");
@@ -301,11 +305,11 @@ void	HttpReq::writeOnReqBodyFile(void)
 			this->_client->addFdToPollOut(_client->getComSocket());
 		}
 	}
-	else if (this->_toAddBodyFile.size() == 0 && _contentLength > _byteWroteTmpBodyFile && _printMsg)
+	/*else if (this->_toAddBodyFile.size() == 0 && _contentLength > _byteWroteTmpBodyFile && _printMsg)
 	{
-		//std::cout << TXT_YEL << getTimestamp() << "Client " << this->_client->getId() << ":	Nothing yet to add to the ReqBodyFile, waiting for the client to send data" << TXT_END << std::endl;
-	}
-	else if (_statusBodyFile == OPEN)
+		std::cout << TXT_YEL << getTimestamp() << "Client " << this->_client->getId() << ":	Nothing yet to add to the ReqBodyFile, waiting for the client to send data" << TXT_END << std::endl;
+	}*/
+	else if (_statusBodyFile == OPEN && !(this->_toAddBodyFile.size() == 0 && _contentLength > _byteWroteTmpBodyFile))
 	{
 		std::cout << TXT_YEL << getTimestamp() << "Client " << this->_client->getId() << ":	Request body saved in a file. Removing FD of the tmp file from the poll and closing it" << TXT_END << std::endl;
 		_statusReq = COMPLETED;

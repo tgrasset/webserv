@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Launcher.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/05 11:52:10 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/05 17:01:36 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,6 @@ void	Launcher::launchServers(void)
 			throw LauncherException("Problem with poll !");
 		if (nfds > 0)
 		{
-			//std::cout << getTimestamp() << "boucle realeased taille event" << nfds << std::endl;
 			for (std::vector< struct pollfd >::iterator it = _pollEvent.begin(); it != _pollEvent.end(); ++it)
 			{	
 				if (it->revents & POLLIN && !_breakPollLoop) //Read.
@@ -100,7 +99,6 @@ void	Launcher::launchServers(void)
 				if (_breakPollLoop)
 					break;
 			}
-			//std::cout << "..." << std::endl;
 		}
 	}
 }
@@ -206,7 +204,6 @@ void	Launcher::processWritingFd(int fd)
 		break;
 	default:
 		throw LauncherException("Problem writing fd is not a correct category");
-	//std::cout << getTimestamp() << "processWritingFd" << std::endl;
 	}
 }
 
@@ -298,59 +295,7 @@ void	Launcher::removeClient(std::list<Client>::iterator client)
 	close(client->getComSocket());
 	this->_clients.erase(client);
 }
-/*
-void	Launcher::printSituation(void)
-{
-	char				str_ip_client[INET_ADDRSTRLEN];
-	struct sockaddr_in  client_addr;
 
-	for (std::list<Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
-	{
-		if (it == this->_clients.begin())
-			std::cout << "--------------------- Clients -----------------" << std::endl;
-		client_addr = it->getClient_addr();
-		inet_ntop (AF_INET, &(client_addr.sin_addr), str_ip_client, sizeof (str_ip_client));
-		std::cout << "ID : " << it->getId() << "	|";
-		std::cout << " Com Socket : " << it->getComSocket() << "	|";
-		std::cout << " Addresse : " << str_ip_client << "	|";
-		std::cout << " Server :";
-		it->printClientServer();
-		std::cout << "	|";
-		std::cout << " Status : ";
-		switch (it->getStatus())
-		{
-		case 0:
-			std::cout << "WANT_TO_RECIVE_REQ";
-			break;
-		case 1:
-			std::cout << "RECIVING_REQ_HEADER";
-			break;
-		case 2:
-			std::cout << "RECIVING_REQ_BODY";
-			break;
-		case 3:
-			std::cout << "REQ_RECIVED";
-			break;
-		case 4:
-			std::cout << "WAITING_FOR_RES";
-			break;
-		case 5:
-			std::cout << "SENDING_RES_HEADER";
-			break;
-		case 6:
-			std::cout << "SENDING_RES_BODY";
-			break;
-		case 7:
-			std::cout << "RES_SENT";
-			break;
-		default:
-			std::cout << "ERROR_WHILE_SENDING";
-			break;
-		}
-		std::cout << std::endl << std::endl;
-	}
-}
-*/
 void Launcher::testFolderTmp(void) const
 {
 	std::string body_tmp_folder(BODY_TMP_FOLDER);
@@ -360,7 +305,6 @@ void Launcher::testFolderTmp(void) const
 	|| access(body_tmp_folder.c_str(), W_OK | R_OK) != 0
 	|| !S_ISDIR(stats_dossier.st_mode))
 		throw LauncherException("Temp body folder does not exist");
-
 }
 
 void	Launcher::removeFdFromPoll(int fd)

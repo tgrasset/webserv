@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/29 18:53:19 by jlanza            #+#    #+#             */
-/*   Updated: 2023/08/24 18:25:32 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/05 18:18:57 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,12 @@ void	CGI::setUpEnv(void)
 	oss2 << _request->getContentLength();
 	std::string contentLen = oss2.str();
 	setenv("CONTENT_LENGTH", contentLen.c_str(), 1);
+	if (_request->getUri() == PATH_CGI_UPLOAD)
+	{
+		setenv("BOUNDARY", _request->getBoundary().c_str(), 1);
+		setenv("TMP_FILE", _request->getBodyTmpFilePath().c_str(), 1);
+	}
+		
 }
 
 void	CGI::execCGI(void)
@@ -95,7 +101,7 @@ void	CGI::execCGI(void)
 		}
 
 		// DUP FOR OUTPUT
-		 close(fd_pipe[0]);
+		close(fd_pipe[0]);
 		if (dup2(fd_pipe[1], STDOUT_FILENO) == -1)
 		{
 		 	std::cerr << "Failed to dup" << std::endl;
@@ -117,7 +123,7 @@ void	CGI::execCGI(void)
 		std::string cmd1 = ("./" + _res->getUriPath());
 		cmd[1] = const_cast<char *>(cmd1.c_str());
 		cmd[2] = NULL;
-
+		
 		std::string		pathToExec;
 		if (_res->getResourceType() == PYTHON)
 			pathToExec = _res->getLocation()->getCgiExtensionAndPath()[".py"];
@@ -139,7 +145,6 @@ void	CGI::execCGI(void)
 	{
 		//close(fd_pipe[0]);
 		close(fd_pipe[1]);
-		//waitpid(_res->getCgiPid(), NULL, 0);
 	}
 }
 

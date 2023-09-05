@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/05 14:44:17 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/05 17:36:19 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -407,9 +407,9 @@ r_type HttpRes::checkResourceType(void) {
 			size_t len = _uriPath.length();
 			if (_location != NULL && _location->getCgiBool() == true)
 			{
-				if (len > 3 && _uriPath[len - 1] == 'y' && _uriPath[len - 2] == 'p' && _uriPath[len - 3] == '.')
+				if (len > 3 && _uriPath.substr(len - 3, 3) == ".py")
 					return (PYTHON);
-				else if (len > 4 && _uriPath[len - 1] == 'p' && _uriPath[len - 2] == 'h' && _uriPath[len - 3] == 'p' && _uriPath[len - 4] == '.')
+				else if (len > 4 && _uriPath.substr(len - 4, 4) == ".php")
 					return (PHP);
 				else
 				{
@@ -423,9 +423,9 @@ r_type HttpRes::checkResourceType(void) {
 			}
 			else
 			{
-				if (len > 3 && _uriPath[len - 1] == 'y' && _uriPath[len - 2] == 'p' && _uriPath[len - 3] == '.')
+				if (len > 3 && _uriPath.substr(len - 3, 3) == ".py")
 					return (FORBIDDEN);
-				else if (len > 4 && _uriPath[len - 1] == 'p' && _uriPath[len - 2] == 'h' && _uriPath[len - 3] == 'p' && _uriPath[len - 4] == '.')
+				else if (len > 4 && _uriPath.substr(len - 4, 4) == ".php")
 					return (FORBIDDEN);
 				else
 				{
@@ -587,16 +587,10 @@ void	HttpRes::headerBuild(void) {
 	}
 	else
 		_header["Connection:"] = "close";
-	if (_resourceType != NORMALFILE || _uriPath == "www/cgi-bin/upload.py")
-	{
+	if (_resourceType != NORMALFILE)
 		_header["Content-Type:"] = "text/html";
-		std::cout << "youpi" << std::endl;
-	}
 	else
-	{
 		_header["Content-Type:"] = getMimeType(_uriPath, _mimeTypes);
-		std::cout << "matin" << std::endl;
-	}
 }
 
 void	HttpRes::formatHeader(void) {
@@ -632,7 +626,7 @@ bool	HttpRes::methodIsAllowed(std::string method) {
 	}
 	return (false);
 }
-
+/*
 void	HttpRes::uploadFileToServer(std::string tempFile, std::string boundary) {
 
 	if (_location == NULL || _location->getUploadDir() == "")
@@ -711,80 +705,8 @@ void	HttpRes::uploadFileToServer(std::string tempFile, std::string boundary) {
 		_statusCode = 201;
 		std::remove(tempFile.c_str());
 	}
-}
+}*/
 
-void	HttpRes::handleRequest(HttpReq &request) {
-
-	std::cout << getTimestamp() << "checkHttpVersion" << std::endl;
-	_statusCode = checkHttpVersion(request.getHttpVersion());
-	std::cout << getTimestamp() << "bodyIsTooBig" << std::endl;
-	if (_statusCode == 200 && request.bodyIsTooBig() == true)
-		_statusCode = 413;
-	if (_statusCode == 200)
-	{
-		std::cout << getTimestamp() << "checkRequestHeader" << std::endl;
-		_statusCode = checkRequestHeader(request.getHeader());
-	}
-	if (_statusCode == 200)
-	{
-		std::cout << getTimestamp() << "checkUri" << std::endl;
-		_statusCode = checkUri(request.getUri());
-	}
-	if (_statusCode == 200)
-		std::cout << getTimestamp() << "methodIsAllowed" << std::endl;
-	if (_statusCode == 200 && methodIsAllowed(request.getMethod()) == false)
-		_statusCode = 405;
-	if (_statusCode == 200 && _method == "GET" && _resourceType == NORMALFILE)
-	{
-		std::cout << getTimestamp() << "checkIfAcceptable" << std::endl;
-		checkIfAcceptable(request.getAccept());
-	}
-	else if (_statusCode == 200 && _method == "DELETE")
-	{
-		if (std::remove(_uriPath.c_str()) != 0)
-			_statusCode = 400;
-		else
-			_statusCode = 204;
-	}
-	else if (_statusCode == 200 && (_resourceType == PHP || _resourceType == PYTHON || _method == "POST"))
-	{
-		if (!(_resourceType == PHP || _resourceType == PYTHON )) // pas py ou php ==> upload de fichier
-		{
-			request.setUri("/cgi-bin/upload.py");
-			_uriPath = "www/cgi-bin/upload.py";
-		}
-		else 
-		{
-			std::cout << "request.getUri() : " << request.getUri()<< std::endl;
-			std::cout << "_uriPath : " << _uriPath << std::endl;
-		}
-		std::cout << getTimestamp() << "Je lance le CGI " << std::endl;
-		CGI cgi(request, *this);
-		cgi.execCGI();
-	}
-	/*else if (_statusCode == 200 && _method == "POST")
-	{
-		std::cout << getTimestamp() << "uploadFileToServer" << std::endl;
-		uploadFileToServer(request.getBodyTmpFilePath(), request.getBoundary());
-	}*/
-	std::cout << getTimestamp() << "getStatus" << std::endl;
-	_statusMessage = getStatus(_statusCode);
-	if (!(_resourceType == PHP || _resourceType == PYTHON))
-	{
-		std::cout << getTimestamp() << "bodyBuild" << std::endl;
-		bodyBuild(request.getUri());
-	}
-	if (request.getKeepAlive() == false)
-		_keepAlive = false;
-	std::cout << getTimestamp() << "headerBuild" << std::endl;
-	headerBuild();
-	std::cout << getTimestamp() << "formatHeader" << std::endl;
-	formatHeader();
-}
-
-
-
-/*
 void	HttpRes::handleRequest(HttpReq &request) {
 
 	_statusCode = checkHttpVersion(request.getHttpVersion());
@@ -809,18 +731,16 @@ void	HttpRes::handleRequest(HttpReq &request) {
 	{
 		CGI cgi(request, *this);
 		cgi.execCGI();
-		return ;
 	}
-	else if (_statusCode == 200 && _method == "POST")
-		uploadFileToServer(request.getBodyTmpFilePath(), request.getBoundary());
 	_statusMessage = getStatus(_statusCode);
-	bodyBuild(request.getUri());
+	if (!(_resourceType == PHP || _resourceType == PYTHON))
+		bodyBuild(request.getUri());
 	if (request.getKeepAlive() == false)
 		_keepAlive = false;
 	headerBuild();
 	formatHeader();
 }
-*/
+
 void	HttpRes::openBodyFile(void)
 {
 	if (this->_fileToSendFd != -1 || this->_statusFileToSend == ERROR)
