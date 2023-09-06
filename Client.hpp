@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/06 15:48:41 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/06 16:49:32 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,9 +101,9 @@ public:
 	void						removeFdFromPoll(int fd);
 	void						addFdToPollIn(int fd);
 	void						addFdToPollOut(int fd);
-	void						addBodyFileToBuff(void);
-	void						addCgiToBuff(void);
-	void						writeReqBodyFile(void);
+	int							addBodyFileToBuff(void);
+	int							addCgiToBuff(void);
+	int							writeReqBodyFile(void);
 	void						cgiPipeFinishedWriting(void);
 	Launcher					*getLauncher(void) const;
 

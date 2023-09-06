@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/06 15:49:15 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/06 16:49:00 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -185,7 +185,7 @@ int	Client::receiveRequestHeader(void)
 	{
 		this->_status = RECIVING_REQ_HEADER;
 		this->_req_recived.insert(this->_req_recived.end(), recvline, recvline + byte_recv);
-		std::string req_recived_string(static_cast<char *>(this->_req_recived.data()));
+		std::string req_recived_string(this->_req_recived.begin(), this->_req_recived.end());
 		std::size_t pos_end_header = req_recived_string.find("\r\n\r\n");
 		if (pos_end_header != std::string::npos)
 		{
@@ -209,7 +209,7 @@ int	Client::receiveRequestHeader(void)
 				{
 					std::vector<char> to_add_body;
 					to_add_body.insert(to_add_body.end(), this->_req_recived.begin() + pos_end_header + 4, this->_req_recived.end());
-					this->_req->addToBodyFileBuff(to_add_body);
+					return (this->_req->addToBodyFileBuff(to_add_body));
 				}
 			}
 		}
@@ -239,7 +239,7 @@ int	Client::receiveRequestBody(void)
 	{
 		std::vector<char> to_add_body;
 		to_add_body.insert(to_add_body.end(), recvline, recvline + byte_recv);
-		this->_req->addToBodyFileBuff(to_add_body);
+		return (this->_req->addToBodyFileBuff(to_add_body));
 	}
 	return (0);
 }
@@ -275,8 +275,7 @@ void	Client::sendResponseHeader(void)
 	if (byte_sent == -1)
 	{
 		this->_status = ERROR_WHILE_SENDING;
-		std::cout << TXT_RED << getTimestamp() << "Client " << _id << ":	Error sending response header"<< TXT_END << std::endl;
-		return ;
+		return;
 	}
 	/* Besoin de tester le cas ou byte_sent vaut 0, mais je sais pas trop quoi faire dans ce cas. */
 	else
@@ -320,7 +319,6 @@ void	Client::sendResponseBodyError(void)
 	if (byte_sent == -1)
 	{
 		this->_status = ERROR_WHILE_SENDING;
-		std::cout << TXT_RED << getTimestamp() << "Client " << _id << ":	Error sending response body"<< TXT_END << std::endl;
 		return ;
 	}
 	else
@@ -344,9 +342,7 @@ void	Client::sendResponseBodyNormalFile(void)
 	std::vector<char>	to_send;
 	int byte_sent = 0;
 	if (this->_res->getFileToSendFd() == -1)
-	{
 		this->_res->openBodyFile();
-	}
 	else
 	{
 		to_send = this->_res->getFileToSendBuff();
@@ -356,15 +352,13 @@ void	Client::sendResponseBodyNormalFile(void)
 			if (byte_sent == -1)
 			{
 				this->_status = ERROR_WHILE_SENDING;
-				std::cout << TXT_RED << getTimestamp() << "Client " << _id << ":	Error sending file" << TXT_END << std::endl;
-				return ;
+				return;
 			}
 			this->_byte_sent_body += byte_sent;
 			int percent_sent = static_cast<int>(static_cast<double>(_byte_sent_body)/static_cast<double>(this->_res->getFileToSendSize()) * 100);
 			std::cout << TXT_CY << getTimestamp() << "Client " << _id << ":	" << percent_sent << "% of the file sent" << TXT_END << std::endl;
 			this->_status = SENDING_RES_BODY;
 			this->_res->clearFileToSendBuff();
-			
 			if (this->_byte_sent_body == this->_res->getFileToSendSize())
 			{
 				this->_res->closeBodyFile();
@@ -394,17 +388,18 @@ void	Client::sendResponseBodyCgi(void)
 		to_send.insert(to_send.end(), cgi_buff.begin(), cgi_buff.end());
 		to_send.push_back('\r');
 		to_send.push_back('\n');
-		
 		byte_sent = send(this->_com_socket, to_send.data(), to_send.size(), 0);
 		if (byte_sent == -1)
 		{
 			this->_status = ERROR_WHILE_SENDING;
-			std::cout << TXT_RED << getTimestamp() << "Client " << _id << ":	Error sending CGI" << TXT_END << std::endl;
 			return ;
 		}
-		this->_byte_sent_body += byte_sent;
-		this->_status = SENDING_RES_BODY;
-		this->_res->clearCgiBuff();
+		else if (byte_sent > 0)
+		{
+			this->_byte_sent_body += byte_sent;
+			this->_status = SENDING_RES_BODY;
+			this->_res->clearCgiBuff();
+		}
 	}
 	if (this->_res->getStatusCgiPipe() == PIPE_FINISH)
 	{
@@ -413,10 +408,10 @@ void	Client::sendResponseBodyCgi(void)
 		if (byte_sent == -1)
 		{
 			this->_status = ERROR_WHILE_SENDING;
-			std::cout << TXT_RED << getTimestamp() << "Client " << _id << ":	Error sending CGI" << TXT_END << std::endl;
 			return ; 
 		}
-		this->_status = RES_SENT;
+		else if (byte_sent > 0)
+			this->_status = RES_SENT;
 	}
 }
 
@@ -479,19 +474,19 @@ void	Client::addFdToPollOut(int fd)
 	this->_launcher->addFdToPollOut(fd);
 }
 
-void	Client::writeReqBodyFile(void)
+int	Client::writeReqBodyFile(void)
 {
-	this->_req->writeOnReqBodyFile();
+	return (this->_req->writeOnReqBodyFile());
 }
 
-void	Client::addBodyFileToBuff(void)
+int	Client::addBodyFileToBuff(void)
 {
-	this->_res->addBodyFileToBuff();
+	return (this->_res->addBodyFileToBuff());
 }
 
-void Client::addCgiToBuff(void)
+int Client::addCgiToBuff(void)
 {
-	this->_res->addCgiToBuff();
+	return (this->_res->addCgiToBuff());
 }
 
 void	Client::cgiPipeFinishedWriting(void)

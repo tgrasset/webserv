@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/06 16:17:28 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/06 16:52:56 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -766,39 +766,44 @@ void	HttpRes::closeBodyFile(void)
 	this->_fileToSendFd = -1;
 }
 
-void	HttpRes::addBodyFileToBuff(void)
+int		HttpRes::addBodyFileToBuff(void)
 {
 	if (this->_statusFileToSend != OPEN)
-		return ;
+		return (1);
 	int byte_read = 0;
 	char readline[BUFFER_SIZE + 1];
 	memset(readline, 0, BUFFER_SIZE + 1);
 	byte_read = read(this->_fileToSendFd, readline, BUFFER_SIZE);
-	/* Si byte_read est == -1 besoin de remove le client*/
-	if (byte_read <= 0)
+	if (byte_read == -1)
+	{
+		this->_statusFileToSend = ERROR;
 		this->closeBodyFile();
-	else
+		return (1);
+	}
+	else if (byte_read > 0)
 		this->_fileToSendBuff.insert(this->_fileToSendBuff.end(), readline, readline + byte_read);
+	return (0);
 }
 
-void	HttpRes::addCgiToBuff(void)
+int	HttpRes::addCgiToBuff(void)
 {
 	if (this->_statusCgiPipe != PIPE_OPEN)
-		return ;
+		return (1);
 	int byte_read = 0;
 	char readline[BUFFER_SIZE + 1];
 	memset(readline, 0, BUFFER_SIZE + 1);
 	byte_read = read(this->_cgiPipeFd, readline, BUFFER_SIZE);
-	/* Si byte_read est == -1 besoin de remove le client*/
-	if (byte_read <= 0)
+	if (byte_read == -1)
 	{
+		this->_statusCgiPipe = PIPE_ERROR;
 		this->cgiPipeFinishedWriting();
+		return (1);
 	}
 	else if (byte_read > 0)
 	{
 		this->_cgiBuff.insert(this->_cgiBuff.end(), readline, readline + byte_read);
 	}
-		
+	return (0);
 }
 
 void	HttpRes::closeCgiPipe(void)
