@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CGI.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/29 18:53:19 by jlanza            #+#    #+#             */
-/*   Updated: 2023/09/05 18:18:57 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/06 15:40:52 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,6 +98,7 @@ void	CGI::execCGI(void)
 				killMe();
 			if (dup2(file_fd, 0) == -1)
 				killMe();
+			close (file_fd); //CLOSING FDS SO VALGRIND IS HAPPY
 		}
 
 		// DUP FOR OUTPUT
@@ -107,6 +108,7 @@ void	CGI::execCGI(void)
 		 	std::cerr << "Failed to dup" << std::endl;
 		 	killMe();
 		}
+		close(fd_pipe[1]);
 		
 		//SETUP ENV
 		this->setUpEnv();
