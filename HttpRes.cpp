@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/05 17:36:19 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/06 16:17:28 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,14 @@ HttpRes::HttpRes(Client * client, HttpReq &request) {
 	_body = "";
 	_formattedHeader = "";
 	_server = request.getServer();
-	_location = NULL;
+	if (request.getLocation() == NULL)
+		_location = NULL;
+	else
+	{
+		_location = new Location(*request.getLocation());
+		if (_location == NULL)
+			throw HttpResException("New error in HttpRes");
+	}
 	_keepAlive = true;
 	_uriPath = "";
 	_uriQuery = "";
@@ -450,8 +457,6 @@ int	HttpRes::checkUri(std::string uri) {
 	size_t separator = uri.find('?');
 	size_t end = uri.rfind('#');
 	std::string tempPath;
-	std::string locPath;
-	Location *tempLoc = NULL;
 
 	//stock dans _uriPathInfo le PATH_INFO, puis de supprime de uri
 	size_t pos_py = uri.find(".py");
@@ -492,28 +497,6 @@ int	HttpRes::checkUri(std::string uri) {
 			_uriQuery = uri.substr(separator + 1, end - (separator + 1));
 	}
 	_scriptName = tempPath;
-	end = 0;
-	std::vector<Location> locs = _server->getLocations();
-	for (std::vector<Location>::iterator it = locs.begin(); it != locs.end(); it++)
-	{
-		locPath = (*it).getPath();
-		if (tempLoc == NULL && locPath == "/")
-		{
-			tempLoc = &(*it);
-			continue;
-		}
-		for (end = 0; tempPath[end] != '\0' && locPath[end] != '\0' && tempPath[end] == locPath[end]; end++)
-		{
-			;
-		}
-		if (locPath[end] == '\0' && (tempPath[end] == '\0' || tempPath[end] == '/'))
-		{
-			if (tempLoc == NULL || (tempLoc != NULL && tempLoc->getPath().length() < (*it).getPath().length()))
-				tempLoc = &(*it);
-		}
-	}
-	if (tempLoc != NULL)
-		_location = new Location(*tempLoc);
 	if (_location != NULL && _location->getRedirectionCode() > 0)
 	{
 		_resourceType = REDIRECTION;
@@ -587,7 +570,7 @@ void	HttpRes::headerBuild(void) {
 	}
 	else
 		_header["Connection:"] = "close";
-	if (_resourceType != NORMALFILE)
+	if (_resourceType != NORMALFILE || _statusCode >= 400)
 		_header["Content-Type:"] = "text/html";
 	else
 		_header["Content-Type:"] = getMimeType(_uriPath, _mimeTypes);
@@ -714,10 +697,10 @@ void	HttpRes::handleRequest(HttpReq &request) {
 		_statusCode = 413;
 	if (_statusCode == 200)
 		_statusCode = checkRequestHeader(request.getHeader());
-	if (_statusCode == 200)
-		_statusCode = checkUri(request.getUri());
 	if (_statusCode == 200 && methodIsAllowed(request.getMethod()) == false)
 		_statusCode = 405;
+	if (_statusCode == 200)
+		_statusCode = checkUri(request.getUri());
 	if (_statusCode == 200 && _method == "GET" && _resourceType == NORMALFILE)
 		checkIfAcceptable(request.getAccept());
 	else if (_statusCode == 200 && _method == "DELETE")

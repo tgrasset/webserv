@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/09/05 13:41:30 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/06 15:45:58 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 # define HTTP_REQ_HPP
 # include "webserv.hpp"
 # include "Server.hpp"
+# include "Location.hpp"
 # include "Client.hpp"
 
 typedef enum e_statusReq {
@@ -47,6 +48,7 @@ private:
 	int									_bodyTmpFileFd;
 	unsigned int						_id;
 	Server								*_server;
+	Location							*_location;
 	std::string							_boundary;
 
 	static std::string					_bodyTmpFolder;
@@ -77,13 +79,17 @@ public:
 	std::string							getBodyTmpFilePath() const;
 	int									getBodyTmpFileFd() const;
 	Server 								*getServer() const;
+	Location							*getLocation()const;
+	Client								*getClient() const;
 	std::string							getBoundary() const;
 	void								addToBodyFileBuff(std::vector<char> str);
 	void								setServer(std::vector<Server *> servers);
+	void								setLocation(std::string uri);
 	bool								bodyIsTooBig(void) const;
 	status_req							getStatusReq(void) const;
 	void								writeOnReqBodyFile(void);
 	void								setUri(std::string new_uri);
+	bool								unauthorizedMethod(void) const;
 	
 
 	class HttpReqException : public std::exception {

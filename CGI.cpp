@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CGI.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/29 18:53:19 by jlanza            #+#    #+#             */
-/*   Updated: 2023/09/05 18:18:57 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/06 16:11:12 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,6 +98,7 @@ void	CGI::execCGI(void)
 				killMe();
 			if (dup2(file_fd, 0) == -1)
 				killMe();
+			close (file_fd); //CLOSING FDs SO VALGRIND IS HAPPY
 		}
 
 		// DUP FOR OUTPUT
@@ -107,6 +108,7 @@ void	CGI::execCGI(void)
 		 	std::cerr << "Failed to dup" << std::endl;
 		 	killMe();
 		}
+		close(fd_pipe[1]); //CLOSING FDs SO VALGRIND IS HAPPY
 		
 		//SETUP ENV
 		this->setUpEnv();
@@ -132,7 +134,7 @@ void	CGI::execCGI(void)
 			pathToExec = _res->getLocation()->getCgiExtensionAndPath()[".php"];
 			setenv("REDIRECT_STATUS", "200", 1);
 		}
-
+		closeAllSocketsBeforeExec(); //CLOSING FDs SO VALGRIND IS HAPPY
 		//EXECUTION
 		if (execve(pathToExec.c_str(), cmd, environ) == -1)
 		{
@@ -151,4 +153,15 @@ void	CGI::execCGI(void)
 void	CGI::killMe(void)
 {
 	throw CGIexception();
+}
+
+void	CGI::closeAllSocketsBeforeExec(void) {
+	
+	std::vector<Server> servers = _request->getClient()->getLauncher()->getServers();
+	std::list<Client> clients = _request->getClient()->getLauncher()->getClients();
+
+	for (std::list<Client>::iterator it2 = clients.begin() ; it2 != clients.end() ; it2++)
+		close((*it2).getComSocket());
+	for (std::vector<Server>::iterator it = servers.begin() ; it != servers.end() ; it++)
+		close((*it).getListenSocket());
 }

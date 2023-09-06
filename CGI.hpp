@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CGI.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/29 18:53:45 by jlanza            #+#    #+#             */
-/*   Updated: 2023/07/10 13:51:43 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/09/06 16:05:57 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 # include "webserv.hpp"
 # include "HttpRes.hpp"
 # include "HttpReq.hpp"
+# include "Client.hpp"
 
 # include <sys/types.h>
 # include <sys/stat.h>
@@ -25,6 +26,7 @@
 
 class HttpRes;
 class HttpReq;
+class Client;
 
 class CGI
 {
@@ -44,6 +46,7 @@ public:
 	void	setUpEnv(void);
 	void	execCGI(void);
 	void	killMe(void);
+	void	closeAllSocketsBeforeExec(void);
 
 	class CGIexception : public std::exception {
             public :

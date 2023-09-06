@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Launcher.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:33 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/24 17:29:24 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/06 16:04:12 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,8 @@ public:
 	void							addFdToPollOut(int fd);	
 	void							printPollEvent(void) const;
 	void							processCloseConnexionOrError(int fd);
+	std::vector<Server>				&getServers(void);
+	std::list<Client>				&getClients(void);
 	
 	class LauncherException : public std::exception {
 	public :

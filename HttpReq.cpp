@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpReq.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/09/05 18:10:00 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/06 16:16:33 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ HttpReq::HttpReq(Client *client, std::string &content, std::vector<Server *> ser
 	_byteWroteTmpBodyFile = 0;
 	_bodyTmpFileFd = -1;
 	HttpReq::parse(content, servers);
-	if (_contentLength == 0 || _method != "POST" || _contentLength > this->_server->getClientMaxBodySize()) //Ici il faudrait aussi verifier que on est pas dans le cas ou la location interdit 
+	if (_contentLength == 0 || _method != "POST" || _contentLength > this->_server->getClientMaxBodySize() || unauthorizedMethod())
 		_statusReq = COMPLETED;
 }
 
@@ -63,6 +63,8 @@ HttpReq::~HttpReq(void)
 	}
 	if (_server != NULL)
 		delete _server;
+	if (_location != NULL)
+		delete _location;
 }
 
 /* ************************************************************************** */
@@ -84,6 +86,7 @@ HttpReq	& HttpReq::operator=(HttpReq const & httpreq)
 		_bodyTmpPath = httpreq._bodyTmpPath;
 		_id = httpreq._id;
 		_server = httpreq._server;
+		_location = httpreq._location;
 		_boundary = httpreq._boundary;
 		_toAddBodyFile = httpreq._toAddBodyFile;
 		_statusReq = httpreq._statusReq;
@@ -120,6 +123,7 @@ void	HttpReq::parse(std::string &content, std::vector<Server *> servers)
 	_httpVersion	= head[0].substr(second_space + 1, second_space - head[0].size());
 	head.erase(head.begin());
 	
+	std::string uriCopy = _uri;
 	/*Case of upload a file*/
 	if (_method == "POST" 
 		&& !(_uri.size() > 3 && _uri.substr(_uri.size() - 3, 3) == ".py")
@@ -153,6 +157,7 @@ void	HttpReq::parse(std::string &content, std::vector<Server *> servers)
 		_contentType = _header["CONTENT-TYPE"];
 
 	setServer(servers);
+	setLocation(uriCopy);
 	if (_contentType.find("multipart") != std::string::npos)
 	{
 		size_t bound = _contentType.find("boundary=");
@@ -169,6 +174,8 @@ void	HttpReq::setServer(std::vector<Server *> servers) {
 	if (servers.size() == 1)
 	{
 		_server = new Server(*servers[0]);
+		if (_server == NULL)
+			throw HttpReqException("New error in HttpReq");
 		return ;
 	}
 	std::string hostname;
@@ -181,10 +188,48 @@ void	HttpReq::setServer(std::vector<Server *> servers) {
 		if ((*it)->getServerName() == hostname)
 		{
 			_server = new Server(*(*it));
+			if (_server == NULL)
+				throw HttpReqException("New error in HttpReq");
 			return;
 		}
 	}
 	_server = new Server(*servers[0]);
+	if (_server == NULL)
+		throw HttpReqException("New error in HttpReq");
+}
+
+void	HttpReq::setLocation(std::string uri) {
+
+	std::string locPath;
+	Location *tempLoc = NULL;
+	size_t	end;
+	std::vector<Location> locs = _server->getLocations();
+	for (std::vector<Location>::iterator it = locs.begin(); it != locs.end(); it++)
+	{
+		locPath = (*it).getPath();
+		if (tempLoc == NULL && locPath == "/")
+		{
+			tempLoc = &(*it);
+			continue;
+		}
+		for (end = 0; uri[end] != '\0' && locPath[end] != '\0' && uri[end] == locPath[end]; end++)
+		{
+			;
+		}
+		if (locPath[end] == '\0' && (uri[end] == '\0' || uri[end] == '/'))
+		{
+			if (tempLoc == NULL || (tempLoc != NULL && tempLoc->getPath().length() < (*it).getPath().length()))
+				tempLoc = &(*it);
+		}
+	}
+	if (tempLoc != NULL)
+	{
+		_location = new Location(*tempLoc);
+		if (_location == NULL)
+			throw HttpReqException("New error in HttpReq");
+	}
+	else
+		_location = NULL;
 }
 
 std::string		HttpReq::getMethod() const {
@@ -247,6 +292,11 @@ Server *HttpReq::getServer() const {
 	return (_server);
 }
 
+Location	*HttpReq::getLocation()const {
+
+	return (_location);
+}
+
 std::string	HttpReq::getBoundary() const {
 
 	return (_boundary);
@@ -256,6 +306,12 @@ status_req		HttpReq::getStatusReq(void) const
 {
 	return (_statusReq);
 }
+
+Client		*HttpReq::getClient() const {
+
+	return (_client);
+}
+
 
 void		HttpReq::addToBodyFileBuff(std::vector<char> str)
 {
@@ -334,4 +390,17 @@ bool	HttpReq::bodyIsTooBig() const
 void	HttpReq::setUri(std::string new_uri)
 {
 	this->_uri = new_uri;
+}
+
+bool	HttpReq::unauthorizedMethod(void) const {
+
+	if (_location == NULL)
+		return (0);
+	std::vector<std::string> authMethods = _location->getMethods();
+	for (std::vector<std::string>::iterator it = authMethods.begin(); it != authMethods.end(); it++)
+	{
+		if (_method == *it)
+			return (false);
+	}
+	return (true);
 }
