@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/24 17:29:35 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/06 15:48:41 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,6 +105,7 @@ public:
 	void						addCgiToBuff(void);
 	void						writeReqBodyFile(void);
 	void						cgiPipeFinishedWriting(void);
+	Launcher					*getLauncher(void) const;
 
 	class ClientException : public std::exception {
 	public :

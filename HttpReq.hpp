@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/09/06 14:31:50 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/06 15:45:58 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,7 @@ public:
 	int									getBodyTmpFileFd() const;
 	Server 								*getServer() const;
 	Location							*getLocation()const;
+	Client								*getClient() const;
 	std::string							getBoundary() const;
 	void								addToBodyFileBuff(std::vector<char> str);
 	void								setServer(std::vector<Server *> servers);

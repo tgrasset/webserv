@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/05 17:12:11 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/06 15:49:15 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,6 +113,11 @@ struct sockaddr_in 	Client::getClient_addr(void) const
 unsigned int	Client::getId(void) const
 {
 	return (this->_id);
+}
+
+Launcher	*Client::getLauncher(void) const {
+
+	return (this->_launcher);
 }
 
 void	Client::printClientServer(void) const

@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/06 14:27:27 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/06 16:17:28 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,11 @@ HttpRes::HttpRes(Client * client, HttpReq &request) {
 	if (request.getLocation() == NULL)
 		_location = NULL;
 	else
+	{
 		_location = new Location(*request.getLocation());
+		if (_location == NULL)
+			throw HttpResException("New error in HttpRes");
+	}
 	_keepAlive = true;
 	_uriPath = "";
 	_uriQuery = "";

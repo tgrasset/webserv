@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/24 16:18:13 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/06 16:19:53 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,6 +100,19 @@ class HttpRes
 		void								addCgiToBuff(void);
 		void								closeCgiPipe(void);
 		void								cgiPipeFinishedWriting(void);
+
+		class HttpResException : public std::exception {
+			public :
+				HttpResException(std::string errMessage) throw() {
+					_errMessage = "HttpRes Error: " + errMessage;
+				}
+				virtual const char* what() const throw() {
+					return (_errMessage.c_str());
+				}
+				~HttpResException() throw() {}
+			private:
+				std::string _errMessage;
+	};
 		
 
 

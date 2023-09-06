@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Launcher.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/05 17:01:36 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/06 16:04:05 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -344,4 +344,14 @@ void	Launcher::addFdToPollOut(int fd)
 	poll_struct.events = POLLOUT | POLLERR;
 	_pollEvent.push_back(poll_struct);
 	_breakPollLoop = true;
+}
+
+std::vector<Server>	&Launcher::getServers(void) {
+
+	return (this->_servers);
+}
+
+std::list<Client>	&Launcher::getClients(void) {
+
+	return (this->_clients);
 }

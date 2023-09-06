@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/09/06 14:32:23 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/06 16:16:33 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,6 +174,8 @@ void	HttpReq::setServer(std::vector<Server *> servers) {
 	if (servers.size() == 1)
 	{
 		_server = new Server(*servers[0]);
+		if (_server == NULL)
+			throw HttpReqException("New error in HttpReq");
 		return ;
 	}
 	std::string hostname;
@@ -186,10 +188,14 @@ void	HttpReq::setServer(std::vector<Server *> servers) {
 		if ((*it)->getServerName() == hostname)
 		{
 			_server = new Server(*(*it));
+			if (_server == NULL)
+				throw HttpReqException("New error in HttpReq");
 			return;
 		}
 	}
 	_server = new Server(*servers[0]);
+	if (_server == NULL)
+		throw HttpReqException("New error in HttpReq");
 }
 
 void	HttpReq::setLocation(std::string uri) {
@@ -217,7 +223,11 @@ void	HttpReq::setLocation(std::string uri) {
 		}
 	}
 	if (tempLoc != NULL)
+	{
 		_location = new Location(*tempLoc);
+		if (_location == NULL)
+			throw HttpReqException("New error in HttpReq");
+	}
 	else
 		_location = NULL;
 }
@@ -296,6 +306,12 @@ status_req		HttpReq::getStatusReq(void) const
 {
 	return (_statusReq);
 }
+
+Client		*HttpReq::getClient() const {
+
+	return (_client);
+}
+
 
 void		HttpReq::addToBodyFileBuff(std::vector<char> str)
 {

@@ -6,7 +6,7 @@
 #    By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/12/06 10:48:53 by mbocquel          #+#    #+#              #
-#    Updated: 2023/09/06 11:47:22 by tgrasset         ###   ########.fr        #
+#    Updated: 2023/09/06 15:53:59 by tgrasset         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -81,7 +81,7 @@ fclean: clean
 re: fclean all
 
 memcheck: all
-	valgrind --track-fds=yes --trace-children=yes --leak-check=full --show-leak-kinds=definite,indirect,possible ./$(NAME)
+	valgrind --track-fds=yes --trace-children=yes --leak-check=full --show-leak-kinds=all ./$(NAME)
 
 run: all
 	./$(NAME)
