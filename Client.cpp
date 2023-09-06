@@ -3,17 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/06 16:49:00 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/06 17:01:14 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 
 unsigned int	Client::_count = 0;
-bool			Client::_printBody = false;
+bool			Client::_printBody = true;
 
 /* ************************************************************************** */
 /*                     Constructeurs et destructeurs                          */
@@ -194,6 +194,7 @@ int	Client::receiveRequestHeader(void)
 			if (_printBody)
 				std::cout << TXT_I << this->_req_header << TXT_END <<std::endl;
 			this->_req = new HttpReq(this, this->_req_header, this->_server_ptr);
+			std::cout << "NEW URI : " <<_req->getUri() << std::endl;
 			if (this->_req == NULL)
 				throw ClientException("New didn't work for _req !");
 			if (this->_req->getStatusReq() == COMPLETED)

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/06 16:52:56 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/06 17:43:24 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -457,6 +457,7 @@ int	HttpRes::checkUri(std::string uri) {
 	size_t separator = uri.find('?');
 	size_t end = uri.rfind('#');
 	std::string tempPath;
+	std::string tempPath2;
 
 	//stock dans _uriPathInfo le PATH_INFO, puis de supprime de uri
 	size_t pos_py = uri.find(".py");
@@ -497,6 +498,7 @@ int	HttpRes::checkUri(std::string uri) {
 			_uriQuery = uri.substr(separator + 1, end - (separator + 1));
 	}
 	_scriptName = tempPath;
+	std::cout << tempPath << std::endl << std:: endl << std::endl;
 	if (_location != NULL && _location->getRedirectionCode() > 0)
 	{
 		_resourceType = REDIRECTION;
@@ -506,9 +508,10 @@ int	HttpRes::checkUri(std::string uri) {
 		_uriPath = _server->getRoot() + "/" + tempPath;
 	else
 	{
-		std::string tempPath2 = tempPath.substr(_location->getPath().length(), tempPath.length() - _location->getPath().length());
-		_uriPath = _location->getRoot() + "" + tempPath2;
+		tempPath2 = tempPath.substr(_location->getPath().length(), tempPath.length() - _location->getPath().length());
+		_uriPath = _location->getRoot() + tempPath2;
 	}
+	std::cout << _uriPath << std::endl << std:: endl << std::endl;
 	//std::cerr << _uriPathInfo << std::endl;
 	_resourceType = checkResourceType();
 	if (_resourceType == NOT_FOUND)

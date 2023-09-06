@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/29 18:53:19 by jlanza            #+#    #+#             */
-/*   Updated: 2023/09/06 16:11:12 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/06 17:36:35 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,8 +64,8 @@ void	CGI::setUpEnv(void)
 	{
 		setenv("BOUNDARY", _request->getBoundary().c_str(), 1);
 		setenv("TMP_FILE", _request->getBodyTmpFilePath().c_str(), 1);
+		setenv("UPLOAD_DIR", _request->getLocation()->getUploadDir().c_str(), 1); // VERIFIER SI UPLOAD DIR EXISTE FORCEMENT
 	}
-		
 }
 
 void	CGI::execCGI(void)

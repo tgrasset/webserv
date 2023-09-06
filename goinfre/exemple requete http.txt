@@ -8,3 +8,16 @@ Content-Type: text/html; charset=utf-8
 Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
 
 <!DOCTYPE HTML PUBLIC “-//IETF//DTD HTML 2.0//EN”></code.
+
+
+/cgi-bin/add.py
+
+
+www/cgi-bin/add.py
+
+
+
+/cgi-bin/upload.py
+
+
+www/testbin/upload.py
