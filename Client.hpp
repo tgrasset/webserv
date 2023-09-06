@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/24 17:29:35 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/06 13:37:41 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,9 +101,9 @@ public:
 	void						removeFdFromPoll(int fd);
 	void						addFdToPollIn(int fd);
 	void						addFdToPollOut(int fd);
-	void						addBodyFileToBuff(void);
-	void						addCgiToBuff(void);
-	void						writeReqBodyFile(void);
+	int							addBodyFileToBuff(void);
+	int							addCgiToBuff(void);
+	int							writeReqBodyFile(void);
 	void						cgiPipeFinishedWriting(void);
 
 	class ClientException : public std::exception {

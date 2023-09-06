@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/05 17:01:36 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/06 13:57:13 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,10 +163,18 @@ void	Launcher::processReadingFd(int fd)
 			this->removeClient(client);
 		break;
 	case CGI_PIPE:
-		client->addCgiToBuff();
+		if (client->addCgiToBuff())
+		{
+			std::cout << TXT_RED << getTimestamp() << "Client " << client->getId() << ":	Error while adding CGI to Res buffer... Removing the client !" << TXT_END << std::endl;
+			this->removeClient(client);
+		}
 		break;
 	case RES_FILE_FD:
-		client->addBodyFileToBuff();
+		if (client->addBodyFileToBuff())
+		{
+			std::cout << TXT_RED << getTimestamp() << "Client " << client->getId() << ":	Error while adding Body File to Res buffer... Removing the client !" << TXT_END << std::endl;
+			this->removeClient(client);
+		}
 		break;
 	default:
 		std::cout << "I got the fd " << fd << "from client " << client->getId() << " (that is a " << client->getSocketType(fd) << ")" << std::endl;
@@ -188,19 +196,21 @@ void	Launcher::processWritingFd(int fd)
 			removeFdFromPoll(fd);
 			addFdToPollIn(fd);
 		}
-		else if (client->getStatus() == RES_SENT)
+		else if (client->getStatus() == RES_SENT || client->getStatus() == ERROR_WHILE_SENDING)
 		{
-			std::cout << TXT_GREEN << getTimestamp() << "Client " << client->getId() << ":	Process finished. Client removed" << TXT_END << std::endl;
-			this->removeClient(client);
-		}
-		else if (client->getStatus() == ERROR_WHILE_SENDING)
-		{
-			std::cout << TXT_RED << getTimestamp() << "Client " << client->getId() << ":	An error happend while sending the response. Client Removed" << TXT_END << std::endl;
+			if (client->getStatus() == RES_SENT)
+				std::cout << TXT_GREEN << getTimestamp() << "Client " << client->getId() << ":	Process finished. Client removed" << TXT_END << std::endl;
+			else if (client->getStatus() == ERROR_WHILE_SENDING)
+				std::cout << TXT_RED << getTimestamp() << "Client " << client->getId() << ":	An error happend while sending the response. Client removed" << TXT_END << std::endl;
 			this->removeClient(client);
 		}
 		break;
 	case REQ_FILE_FD:
-		client->writeReqBodyFile();
+		if (client->writeReqBodyFile())
+		{
+			std::cout << TXT_RED << getTimestamp() << "Client " << client->getId() << ":	An error happend while writing on the Req Tmp Body File. Client removed" << TXT_END << std::endl;
+			this->removeClient(client);
+		}
 		break;
 	default:
 		throw LauncherException("Problem writing fd is not a correct category");

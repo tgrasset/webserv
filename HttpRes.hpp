@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/24 16:18:13 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/06 13:28:30 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,7 +73,7 @@ class HttpRes
 		void								closeBodyFile(void);
 		void								clearFileToSendBuff(void);
 		void								clearCgiBuff(void);
-		void								addBodyFileToBuff(void);
+		int									addBodyFileToBuff(void);
 
 		
 		int									getCgiPipeFd(void) const;
@@ -97,7 +97,7 @@ class HttpRes
 		void								uploadFileToServer(std::string tempFile, std::string boundary);
 		void								removeFdFromPoll(int fd);
 		void								addFdToPollIn(int fd);
-		void								addCgiToBuff(void);
+		int									addCgiToBuff(void);
 		void								closeCgiPipe(void);
 		void								cgiPipeFinishedWriting(void);
 		

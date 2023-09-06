@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpReq.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/09/05 13:41:30 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/06 13:46:48 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,11 +78,11 @@ public:
 	int									getBodyTmpFileFd() const;
 	Server 								*getServer() const;
 	std::string							getBoundary() const;
-	void								addToBodyFileBuff(std::vector<char> str);
+	int									addToBodyFileBuff(std::vector<char> str);
 	void								setServer(std::vector<Server *> servers);
 	bool								bodyIsTooBig(void) const;
 	status_req							getStatusReq(void) const;
-	void								writeOnReqBodyFile(void);
+	int									writeOnReqBodyFile(void);
 	void								setUri(std::string new_uri);
 	
 
