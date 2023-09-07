@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 20:36:38 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/05 11:52:37 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/07 11:51:10 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,3 +60,25 @@ int main(int ac, char **av)
 	}
 	return (0);
 }
+
+/*
+int main(void)
+{
+	int fd_in = open("webserv.hpp", O_RDONLY);
+	int fd_out = open("toto", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	
+	std::ifstream in;
+	std::ofstream out;
+	in.open("webserv.hpp");
+	out.open("toto");
+
+	std::cout << "fd_in " << fd_in << " fd_out: " << fd_out << std::endl;
+
+	in.close();
+	close(fd_in);
+	close(fd_out);
+	out.close();
+	
+	
+	return (0);
+}*/

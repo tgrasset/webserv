@@ -6,7 +6,7 @@
 #    By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/12/06 10:48:53 by mbocquel          #+#    #+#              #
-#    Updated: 2023/09/06 15:53:59 by tgrasset         ###   ########.fr        #
+#    Updated: 2023/09/07 11:50:39 by tgrasset         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -48,7 +48,7 @@ $(BUILD_DIR)%.o: $(SOURCES_DIR)%.cpp
 	@echo "\e[32mCompiling \e[0m" $<
 
 $(NAME):	$(OBJECTS) 
-			@if [ ! -d "tmp_body" ]; then mkdir tmp_body; else echo "Tmp body repositorie already exists "; fi;
+			@if [ ! -d "tmp_body" ]; then mkdir tmp_body; else echo "Tmp body repository already exists "; fi;
 			@echo
 			@$(CC) $(CFLAGS) $(OBJECTS) $(CLIB) -o $(NAME)
 			@echo "\nCreating ./"$(NAME)

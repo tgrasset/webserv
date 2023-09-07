@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpReq.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/09/07 10:44:14 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/07 11:00:42 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,7 @@ public:
 	int									writeOnReqBodyFile(void);
 	void								setUri(std::string new_uri);
 	bool								unauthorizedMethod(void) const;
-	
+	bool								getUploadFile(void) const;
 
 	class HttpReqException : public std::exception {
 	public :

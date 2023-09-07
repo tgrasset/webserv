@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/06 16:54:04 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/07 15:15:59 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ class HttpRes
 {
 	public:
 
-		HttpRes(Client *client, HttpReq &request);
+		HttpRes(Client *client, HttpReq *request);
 		HttpRes(HttpRes const & copy);
 		~HttpRes(void);
 
@@ -74,6 +74,8 @@ class HttpRes
 		void								clearFileToSendBuff(void);
 		void								clearCgiBuff(void);
 		int									addBodyFileToBuff(void);
+		int									getUploadTmpInFd(void) const;
+		int									getUploadOutFd(void) const;
 
 		
 		int									getCgiPipeFd(void) const;
@@ -83,7 +85,7 @@ class HttpRes
 		void								setCgiPipeFd(int cgiPipeFd);
 		void								setCgiPid(int cgiPid);
 
-		void								handleRequest(HttpReq &request);
+		void								handleRequest(void);
 		int									checkHttpVersion(std::string version);
 		int									checkUri(std::string uri);
 		r_type								checkResourceType(void);
@@ -94,12 +96,16 @@ class HttpRes
 		void								fillMimeTypes(void);
 		void								checkIfAcceptable(std::vector<std::string> acceptable);
 		bool								methodIsAllowed(std::string method);
-		void								uploadFileToServer(std::string tempFile, std::string boundary);
+		void								uploadFileToServer(void);
 		void								removeFdFromPoll(int fd);
 		void								addFdToPollIn(int fd);
+		void								addFdToPollOut(int fd);
 		int									addCgiToBuff(void);
 		void								closeCgiPipe(void);
 		void								cgiPipeFinishedWriting(void);
+		void								transferUploadFileInSide(void);
+		void								transferUploadFileOutSide(void);
+		void								finishBuildingResAfterUpload(void);
 
 		class HttpResException : public std::exception {
 			public :
@@ -121,6 +127,7 @@ class HttpRes
 		HttpRes(void);
 
 		Client										*_client;
+		HttpReq 									*_request;
 		std::string									_httpVersion;
 		int											_statusCode;
 		std::string									_method;
@@ -147,6 +154,17 @@ class HttpRes
 		s_pipe										_statusCgiPipe;
 		int											_cgiPipeFd;
 		pid_t										_cgiPid;
+		int											_uploadTmpInFd;
+		int											_uploadOutFd;
+		std::ifstream								_uploadTmpInStream;
+		std::ofstream								_uploadOutStream;
+		std::string									_uploadBuff;
+		bool										_uploadBuffClean;
+		std::string									_nameTmpUploadFile;
+		bool										_uploadFileHeader;
+		bool										_uploadFileBody;
+		bool										_uploadFileBodyFirstLine;
+		std::string									_nameFinalUploadFile;
 };
 
 #endif

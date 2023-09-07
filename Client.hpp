@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/06 16:49:32 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/07 14:34:19 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,18 +29,22 @@ typedef enum e_status_c {
 	RECIVING_REQ_BODY,
 	REQ_RECIVED,
 	WAITING_FOR_RES,
+	RES_READY_TO_BE_SENT,
 	SENDING_RES_HEADER,
 	SENDING_RES_BODY,
+	UPLOADING_FILE,
 	RES_SENT, 
 	ERROR_WHILE_SENDING
 }				t_status_c;
 
 typedef enum e_type_fd {
-	COM_SOCKET,
-	CGI_PIPE,
-	RES_FILE_FD,
-	REQ_FILE_FD,
-	NOT_MINE
+	COM_SOCKET = 0,
+	CGI_PIPE = 1,
+	RES_FILE_FD = 2,
+	REQ_FILE_FD = 3,
+	UPLOAD_TMP_IN = 4,
+	UPLOAD_OUT = 5,
+	NOT_MINE = 6
 }				t_fd;
 
 class Client
@@ -106,6 +110,9 @@ public:
 	int							writeReqBodyFile(void);
 	void						cgiPipeFinishedWriting(void);
 	Launcher					*getLauncher(void) const;
+	void						transferUploadFileInSide(void);
+	HttpReq						*getHttpReq(void) const;
+	void						transferUploadFileOutSide(void);
 
 	class ClientException : public std::exception {
 	public :

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpReq.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/09/07 10:45:29 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/07 15:33:32 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 std::string		HttpReq::_bodyTmpFolder(BODY_TMP_FOLDER);
 unsigned int	HttpReq::_count = 0;
-bool			HttpReq::_printReqBodyRec = true;
+bool			HttpReq::_printReqBodyRec = false;
 bool			HttpReq::_printMsg = true;
 
 /* ************************************************************************** */
@@ -316,6 +316,10 @@ Client		*HttpReq::getClient() const {
 	return (_client);
 }
 
+bool	HttpReq::getUploadFile(void) const
+{
+	return (_uploadFile);
+}
 
 int		HttpReq::addToBodyFileBuff(std::vector<char> str)
 {
@@ -366,7 +370,8 @@ int	HttpReq::writeOnReqBodyFile(void)
 				std::cout << TXT_YEL << getTimestamp() << "Client " << this->_client->getId() << ":	Request body saved in a file. Removing FD of the tmp file from the poll and closing it" << TXT_END << std::endl;
 				this->_client->removeFdFromPoll(_bodyTmpFileFd);
 				if (close(_bodyTmpFileFd) == -1)
-					throw HttpReqException("Closing tmp body file");
+					return (1);
+				_bodyTmpFileFd = -1;
 				_statusBodyFile = CLOSE;
 				this->_client->setStatus(WAITING_FOR_RES);
 				this->_client->removeFdFromPoll(_client->getComSocket());
@@ -381,6 +386,7 @@ int	HttpReq::writeOnReqBodyFile(void)
 		this->_client->removeFdFromPoll(_bodyTmpFileFd);
 		if (close(_bodyTmpFileFd) == -1)
 			return (1);
+		_bodyTmpFileFd = -1;
 		_statusBodyFile = CLOSE;
 		this->_client->setStatus(WAITING_FOR_RES);
 		this->_client->removeFdFromPoll(_client->getComSocket());

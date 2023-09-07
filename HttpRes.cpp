@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/07 10:58:53 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/07 15:34:14 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,9 +17,10 @@ std::map<std::string, std::string> HttpRes::_mimeTypes;
 /*                     Constructeurs et destructeurs                          */
 /* ************************************************************************** */
 
-HttpRes::HttpRes(Client * client, HttpReq &request) {
+HttpRes::HttpRes(Client * client, HttpReq *request) {
 
 	_client = client;
+	_request = request;
 	_httpVersion = "";
 	_statusCode = -1;
 	_method = "";
@@ -27,12 +28,12 @@ HttpRes::HttpRes(Client * client, HttpReq &request) {
 	_header.clear();
 	_body = "";
 	_formattedHeader = "";
-	_server = request.getServer();
-	if (request.getLocation() == NULL)
+	_server = request->getServer();
+	if (request->getLocation() == NULL)
 		_location = NULL;
 	else
 	{
-		_location = new Location(*request.getLocation());
+		_location = new Location(*request->getLocation());
 		if (_location == NULL)
 			throw HttpResException("New error in HttpRes");
 	}
@@ -49,10 +50,19 @@ HttpRes::HttpRes(Client * client, HttpReq &request) {
 	_statusFileToSend = CLOSE;
 	_cgiBuff.clear();
 	_statusCgiPipe = PIPE_CLOSE;
+	_uploadTmpInFd = -1;
+	_uploadOutFd = -1;
+	_uploadBuff = "";
+	_nameTmpUploadFile = "";
+	_nameFinalUploadFile = "";
+	_uploadFileHeader = false;
+	_uploadFileBody = false;
+	_uploadBuffClean = true;
+	_uploadFileBodyFirstLine = false;
 	
 	if (_mimeTypes.empty() == true)
 		fillMimeTypes();
-	handleRequest(request);
+	handleRequest();
 }
 
 HttpRes::HttpRes(HttpRes const & copy) {
@@ -100,6 +110,15 @@ HttpRes	& HttpRes::operator=(HttpRes const & httpres)
 		_statusFileToSend = httpres._statusFileToSend;
 		_cgiBuff = httpres._cgiBuff;
 		_statusCgiPipe = httpres._statusCgiPipe;
+		_uploadTmpInFd = httpres._uploadTmpInFd;
+		_uploadOutFd = httpres._uploadOutFd;
+		_uploadBuff = httpres._uploadBuff;
+		_nameTmpUploadFile = httpres._nameTmpUploadFile;
+		_uploadFileHeader = httpres._uploadFileHeader;
+		_uploadFileBody = httpres._uploadFileBody;
+		_nameFinalUploadFile = httpres._nameFinalUploadFile;
+		_uploadBuffClean = httpres._uploadBuffClean;
+		_uploadFileBodyFirstLine = httpres._uploadFileBodyFirstLine;
 	}
 	return (*this);
 }
@@ -249,6 +268,17 @@ void	HttpRes::setCgiPid(int cgiPid)
 	this->_cgiPid = cgiPid;
 }
 
+int	HttpRes::getUploadTmpInFd(void) const
+{
+	return (_uploadTmpInFd);
+}
+
+int	HttpRes::getUploadOutFd(void) const
+{
+	return (_uploadOutFd);
+}
+
+		
 void	HttpRes::fillMimeTypes() {
 
 	_mimeTypes[".aac"] = "audio/aac";
@@ -498,7 +528,6 @@ int	HttpRes::checkUri(std::string uri) {
 			_uriQuery = uri.substr(separator + 1, end - (separator + 1));
 	}
 	_scriptName = tempPath;
-	std::cout << tempPath << std::endl << std:: endl << std::endl;
 	if (_location != NULL && _location->getRedirectionCode() > 0)
 	{
 		_resourceType = REDIRECTION;
@@ -511,8 +540,6 @@ int	HttpRes::checkUri(std::string uri) {
 		tempPath2 = tempPath.substr(_location->getPath().length(), tempPath.length() - _location->getPath().length());
 		_uriPath = _location->getRoot() + tempPath2;
 	}
-	std::cout << _uriPath << std::endl << std:: endl << std::endl;
-	//std::cerr << _uriPathInfo << std::endl;
 	_resourceType = checkResourceType();
 	if (_resourceType == NOT_FOUND)
 		return (404);
@@ -553,11 +580,8 @@ void	HttpRes::bodyBuild(std::string requestUri) {
 	}
 	if (_body != "")
 		_contentLength = _body.length();
-	// autrement, _body reste vide, puisque le fichier est de taille imprevisible et potentiellement tres gros, ou bien c'est un CGI
 }
 
-/* Dans le cas d'un fichier normal a envoyer, le content length est calcule dans le fonction checkURI. 
-A modifier pour les fichiers generes par les CGI.*/
 void	HttpRes::headerBuild(void) {
 
 	_header["Date:"] = timeStamp();
@@ -612,24 +636,179 @@ bool	HttpRes::methodIsAllowed(std::string method) {
 	}
 	return (false);
 }
-/*
-void	HttpRes::uploadFileToServer(std::string tempFile, std::string boundary) {
 
+void	HttpRes::handleRequest(void) 
+{
+	_statusCode = checkHttpVersion(_request->getHttpVersion());
+	if (_statusCode == 200 && _request->bodyIsTooBig() == true)
+		_statusCode = 413;
+	if (_statusCode == 200)
+		_statusCode = checkRequestHeader(_request->getHeader());
+	if (_statusCode == 200 && methodIsAllowed(_request->getMethod()) == false)
+		_statusCode = 405;
+	if (_statusCode == 200)
+		_statusCode = checkUri(_request->getUri());
+	if (_statusCode == 200 && _method == "GET" && _resourceType == NORMALFILE)
+		checkIfAcceptable(_request->getAccept());
+	else if (_statusCode == 200 && _method == "DELETE")
+	{
+		if (std::remove(_uriPath.c_str()) != 0)
+			_statusCode = 400;
+		else
+			_statusCode = 204;
+	}
+	else if (_statusCode == 200 && (_resourceType == PHP || _resourceType == PYTHON))
+	{
+		CGI cgi(*_request, *this);
+		cgi.execCGI();
+	}
+	else if (_statusCode == 200 && _request->getUploadFile())
+	{
+		uploadFileToServer();
+		return ;
+	}
+	_statusMessage = getStatus(_statusCode);
+	if (!(_resourceType == PHP || _resourceType == PYTHON))
+		bodyBuild(_request->getUri());
+	if (_request->getKeepAlive() == false)
+		_keepAlive = false;
+	headerBuild();
+	formatHeader();
+	if (_client->getStatus() != UPLOADING_FILE)
+		_client->setStatus(RES_READY_TO_BE_SENT);
+}
+
+void	HttpRes::uploadFileToServer(void)
+{
+	_client->setStatus(UPLOADING_FILE);
+	_uploadTmpInFd = open(_request->getBodyTmpFilePath().c_str(), O_RDONLY);
+	addFdToPollIn(_uploadTmpInFd);
+	_uploadTmpInStream.open(_request->getBodyTmpFilePath().c_str());
+}
+
+void	HttpRes::finishBuildingResAfterUpload(void)
+{
+	_statusMessage = getStatus(_statusCode);
+	if (!(_resourceType == PHP || _resourceType == PYTHON))
+		bodyBuild(_client->getHttpReq()->getUri());
+	if (_client->getHttpReq()->getKeepAlive() == false)
+		_keepAlive = false;
+	headerBuild();
+	formatHeader();
+	_client->setStatus(RES_READY_TO_BE_SENT);
+	close(_uploadTmpInFd);
+	_uploadTmpInStream.close();
+	removeFdFromPoll(_uploadTmpInFd);
+}
+
+void	HttpRes::transferUploadFileInSide(void)
+{
 	if (_location == NULL || _location->getUploadDir() == "")
 	{
-			_statusCode = 403;
-			return ;
+		_statusCode = 403;
+		finishBuildingResAfterUpload();
+		return ;
 	}
-	else
+	std::string uploadDir = _location->getUploadDir();
+	struct stat test;
+	if (stat(uploadDir.c_str(), &test) != 0 || !S_ISDIR(test.st_mode) || access(uploadDir.c_str(), R_OK | W_OK) != 0)
 	{
-		std::string uploadDir = _location->getUploadDir();
-		struct stat test;
-		if (stat(uploadDir.c_str(), &test) != 0 || !S_ISDIR(test.st_mode) || access(uploadDir.c_str(), R_OK | W_OK) != 0)
+		_statusCode = 403;
+		finishBuildingResAfterUpload();
+		return ;
+	}
+	if (_uploadOutFd == -1)
+	{
+		std::ostringstream	file_path;
+		file_path << uploadDir << "/" << "tmp_upload_client_" << this->_client->getId();
+		_nameTmpUploadFile = file_path.str();
+		_uploadOutFd = open(_nameTmpUploadFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		if (_uploadOutFd == -1)
 		{
-			_statusCode = 403;
+			_statusCode = 500;
+			finishBuildingResAfterUpload();
 			return ;
 		}
-		std::ifstream tmpFile;
+		_uploadOutStream.open(_nameTmpUploadFile.c_str());
+		addFdToPollOut(_uploadOutFd);
+	}
+	if (_uploadBuffClean)
+	{
+		getline(_uploadTmpInStream, _uploadBuff);
+		_uploadBuffClean = false;
+	}
+}
+//_uploadFileBody
+void	HttpRes::transferUploadFileOutSide(void)
+{
+	if (_uploadBuffClean)
+		return;	
+	if (_uploadBuff.find(_request->getBoundary()) != std::string::npos)
+	{
+		_uploadFileHeader = true;
+		if (_uploadFileBody == true) // On rerentre dans header apres avoir fichier ==> Fermer le fichier, le renommer, et ouvrir un nouveau tmp. 
+		{
+			close(_uploadOutFd);
+			_uploadOutStream.close();
+			removeFdFromPoll(_uploadOutFd);
+			rename(_nameTmpUploadFile.c_str(), _nameFinalUploadFile.c_str());
+			if (_uploadBuff.find(_request->getBoundary() + "--") == std::string::npos)
+			{
+				_uploadOutFd = open(_nameTmpUploadFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+				_uploadOutStream.open(_nameTmpUploadFile.c_str());
+				addFdToPollOut(_uploadOutFd);
+			}
+			else
+			{
+				_statusCode = 201;
+				finishBuildingResAfterUpload();
+			}
+			_nameFinalUploadFile = "";
+			_uploadFileBody = false;
+		}
+	}
+	else if (_uploadFileHeader && _uploadBuff == "") //Fin du header
+	{
+		_uploadFileHeader = false;
+		_uploadFileBody = true;
+		_uploadFileBodyFirstLine = true;
+	}
+	else if (_uploadFileHeader)
+	{
+		size_t posBeginFilename = _uploadBuff.find("filename=");
+		if (posBeginFilename != std::string::npos)
+		{
+			posBeginFilename += 10;
+			size_t posEndFilename = _uploadBuff.substr(posBeginFilename, _uploadBuff.size() - posBeginFilename).find('"');
+			std::string file_name = _uploadBuff.substr(posBeginFilename, posEndFilename);
+			std::ostringstream	file_path;
+			file_path << _location->getUploadDir() << "/" << file_name;
+			if (file_name != "")
+				_nameFinalUploadFile = file_path.str();
+			else
+				_nameFinalUploadFile = "";
+		}
+	}
+	else if (_uploadFileHeader == false && _uploadFileBody == true && _nameFinalUploadFile != "")
+	{
+		if (_uploadFileBodyFirstLine)
+		{
+			_uploadOutStream << _uploadBuff;
+			_uploadFileBodyFirstLine = false;
+		}
+		else
+			_uploadOutStream << std::endl << _uploadBuff;
+	}
+	_uploadBuff.clear();
+	_uploadBuffClean = true;
+}
+
+
+/*void	HttpRes::uploadFileToServer(std::string tempFile, std::string boundary) {
+
+	else
+	{
+		
 		std::ofstream output;
 		std::string line;
 		std::string fileName = "";
@@ -691,41 +870,9 @@ void	HttpRes::uploadFileToServer(std::string tempFile, std::string boundary) {
 		_statusCode = 201;
 		std::remove(tempFile.c_str());
 	}
-}*/
-
-void	HttpRes::handleRequest(HttpReq &request) {
-
-	_statusCode = checkHttpVersion(request.getHttpVersion());
-	if (_statusCode == 200 && request.bodyIsTooBig() == true)
-		_statusCode = 413;
-	if (_statusCode == 200)
-		_statusCode = checkRequestHeader(request.getHeader());
-	if (_statusCode == 200 && methodIsAllowed(request.getMethod()) == false)
-		_statusCode = 405;
-	if (_statusCode == 200)
-		_statusCode = checkUri(request.getUri());
-	if (_statusCode == 200 && _method == "GET" && _resourceType == NORMALFILE)
-		checkIfAcceptable(request.getAccept());
-	else if (_statusCode == 200 && _method == "DELETE")
-	{
-		if (std::remove(_uriPath.c_str()) != 0)
-			_statusCode = 400;
-		else
-			_statusCode = 204;
-	}
-	else if (_statusCode == 200 && (_resourceType == PHP || _resourceType == PYTHON))
-	{
-		CGI cgi(request, *this);
-		cgi.execCGI();
-	}
-	_statusMessage = getStatus(_statusCode);
-	if (!(_resourceType == PHP || _resourceType == PYTHON))
-		bodyBuild(request.getUri());
-	if (request.getKeepAlive() == false)
-		_keepAlive = false;
-	headerBuild();
-	formatHeader();
 }
+
+*/
 
 void	HttpRes::openBodyFile(void)
 {
@@ -833,4 +980,9 @@ void	HttpRes::cgiPipeFinishedWriting(void)
 {
 	this->_statusCgiPipe = PIPE_FINISH;
 	closeCgiPipe();
+}
+
+void	HttpRes::addFdToPollOut(int fd)
+{
+	this->_client->addFdToPollOut(fd);
 }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/07 10:52:30 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/07 13:32:48 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -150,6 +150,10 @@ t_fd	Client::getSocketType(int fd) const
 		return (RES_FILE_FD);
 	else if (this->_req != NULL && this->_req->getBodyTmpFileFd() == fd)
 		return (REQ_FILE_FD);
+	else if (this->_res != NULL && this->_res->getUploadTmpInFd() == fd)
+		return (UPLOAD_TMP_IN);
+	else if (this->_res != NULL && this->_res->getUploadOutFd() == fd)
+		return (UPLOAD_OUT);
 	else
 		return (NOT_MINE);
 }
@@ -251,11 +255,11 @@ void	Client::sendResponse(void)
 	{
 		if (this->_res != NULL)
 			delete this->_res;
-		this->_res = new HttpRes(this, *(this->_req));
+		this->_res = new HttpRes(this, this->_req);
 		if (this->_res == NULL)
 			throw ClientException("New didn't work for _res !");
 	}
-	if (this->_status == WAITING_FOR_RES || this->_status == SENDING_RES_HEADER)
+	if (this->_status == RES_READY_TO_BE_SENT || this->_status == SENDING_RES_HEADER)
 		this->sendResponseHeader();
 	else if (this->_status == SENDING_RES_BODY)
 		this->sendResponseBody();
@@ -274,7 +278,7 @@ void	Client::sendResponseHeader(void)
 	if (to_send_header.size() != 0)
 	{
 		byte_sent = send(this->_com_socket, to_send_header.c_str(), to_send_header.size(), 0);
-		if (byte_sent == -1 || byte_sent != to_send_header.size())
+		if (byte_sent == -1 || byte_sent != static_cast<int>(to_send_header.size()))
 		{
 			this->_status = ERROR_WHILE_SENDING;
 			return;
@@ -495,3 +499,19 @@ void	Client::cgiPipeFinishedWriting(void)
 {
 	this->_res->cgiPipeFinishedWriting();
 }
+
+void 	Client::transferUploadFileInSide(void)
+{
+	this->_res->transferUploadFileInSide();
+}
+
+void 	Client::transferUploadFileOutSide(void)
+{
+	this->_res->transferUploadFileOutSide();
+}
+
+HttpReq	*Client::getHttpReq(void) const
+{
+	return (this->_req);
+}
+

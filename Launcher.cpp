@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Launcher.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/06 16:54:32 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/07 15:25:45 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -176,6 +176,10 @@ void	Launcher::processReadingFd(int fd)
 			this->removeClient(client);
 		}
 		break;
+	case UPLOAD_TMP_IN:
+		client->resetLastActivity();
+		client->transferUploadFileInSide();
+		break;
 	default:
 		std::cout << "I got the fd " << fd << "from client " << client->getId() << " (that is a " << client->getSocketType(fd) << ")" << std::endl;
 		throw LauncherException("The Reading FD is not in possible category");
@@ -212,7 +216,12 @@ void	Launcher::processWritingFd(int fd)
 			this->removeClient(client);
 		}
 		break;
+	case UPLOAD_OUT:
+		client->resetLastActivity();
+		client->transferUploadFileOutSide();
+		break;
 	default:
+		std::cout << "I got the fd " << fd << " from client " << client->getId() << " (that is a " << client->getSocketType(fd) << ")" << std::endl;
 		throw LauncherException("Problem writing fd is not a correct category");
 	}
 }
