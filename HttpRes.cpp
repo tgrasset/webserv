@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/07 18:04:12 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/07 18:16:19 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ HttpRes::HttpRes(Client * client, HttpReq *request) {
 	_uploadFileBody = false;
 	_uploadBuffClean = true;
 	_uploadFileBodyFirstLine = false;
-	
+
 	if (_mimeTypes.empty() == true)
 		fillMimeTypes();
 	handleRequest();
@@ -76,6 +76,8 @@ HttpRes::~HttpRes(void) {
 		delete _location;
 	closeBodyFile();
 	closeCgiPipe();
+	if (_cgiPid != -42)
+		kill(this->_cgiPid, SIGKILL);
 }
 
 /* ************************************************************************** */
@@ -207,7 +209,7 @@ size_t	HttpRes::getContentLength(void) const {
 }
 
 std::string	HttpRes::getCgiFilePath(void) const {
-	
+
 	return (_cgiFilePath);
 }
 
@@ -278,7 +280,7 @@ int	HttpRes::getUploadOutFd(void) const
 	return (_uploadOutFd);
 }
 
-		
+
 void	HttpRes::fillMimeTypes() {
 
 	_mimeTypes[".aac"] = "audio/aac";
@@ -387,7 +389,7 @@ int	HttpRes::checkRequestHeader(std::map<std::string, std::string> header) {
 	return (200);
 }
 
-r_type HttpRes::checkResourceType(void) {	
+r_type HttpRes::checkResourceType(void) {
 	struct stat test;
 	if (access(_uriPath.c_str(), F_OK) != 0)
 		return (NOT_FOUND);
@@ -588,7 +590,7 @@ void	HttpRes::headerBuild(void) {
 	_header["Server:"] = "Webserv/1.0";
 	if (_resourceType == PHP || _resourceType == PYTHON)
 		_header["Transfer-Encoding:"] = "chunked";
-	else		
+	else
 		_header["Content-Length:"] = sizeToString(_contentLength);
 	if (_keepAlive == true)
 	{
@@ -637,7 +639,7 @@ bool	HttpRes::methodIsAllowed(std::string method) {
 	return (false);
 }
 
-void	HttpRes::handleRequest(void) 
+void	HttpRes::handleRequest(void)
 {
 	_statusCode = checkHttpVersion(_request->getHttpVersion());
 	if (_statusCode == 200 && _request->bodyIsTooBig() == true)
@@ -745,7 +747,7 @@ void	HttpRes::transferUploadFileInSide(void)
 void	HttpRes::transferUploadFileOutSide(void)
 {
 	bool print = false;
-	std::string msg; 
+	std::string msg;
 	if (_uploadBuffClean)
 		return;
 	if (_uploadFileBodyFirstLine)
@@ -756,7 +758,7 @@ void	HttpRes::transferUploadFileOutSide(void)
 	if (_uploadBuff.find(_request->getBoundary()) != std::string::npos)
 	{
 		_uploadFileHeader = true;
-		if (_uploadFileBody == true) // On rerentre dans header apres avoir fichier ==> Fermer le fichier, le renommer, et ouvrir un nouveau tmp. 
+		if (_uploadFileBody == true) // On rerentre dans header apres avoir fichier ==> Fermer le fichier, le renommer, et ouvrir un nouveau tmp.
 		{
 			close(_uploadOutFd);
 			_uploadOutStream.close();
@@ -823,7 +825,7 @@ void	HttpRes::transferUploadFileOutSide(void)
 
 	else
 	{
-		
+
 		std::ofstream output;
 		std::string line;
 		std::string fileName = "";
@@ -902,7 +904,7 @@ void	HttpRes::openBodyFile(void)
 	{
 		this->_statusFileToSend = ERROR;
 		this->setStatusCode(500);
-		return ; 
+		return ;
 	}
 	std::cout << TXT_BL <<  getTimestamp() << "Client " << this->_client->getId() << ":	FD " << this->_fileToSendFd << " has been affected to the file " << this->_uriPath << TXT_END << std::endl;
 	this->_statusFileToSend = OPEN;
