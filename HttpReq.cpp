@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/09/07 16:48:46 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/07 17:30:05 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,8 +59,8 @@ HttpReq::~HttpReq(void)
 		std::cout << "I could not delete the file of client " << this->_client->getId() << std::endl;
 	if (this->_statusBodyFile  == OPEN)
 	{
-		this->_client->removeFdFromPoll(_bodyTmpFileFd);
 		close(_bodyTmpFileFd);
+	//	this->_client->removeFdFromPoll(_bodyTmpFileFd);
 		_statusBodyFile = CLOSE;
 	}
 	if (_server != NULL)
@@ -351,7 +351,16 @@ int	HttpReq::writeOnReqBodyFile(void)
 	{
 		byte_wrote = write(_bodyTmpFileFd, _toAddBodyFile.data(), _toAddBodyFile.size());
 		if (byte_wrote == -1)
+		{
+			/*for (std::vector<char>::iterator it = _toAddBodyFile.begin(); it != _toAddBodyFile.end(); ++it)
+			{
+				std::cout << *it;
+			}
+			std::cout << std::endl;*/
+			std::cout << TXT_RED << TXT_B << "Fail cas 1 ==> " << _toAddBodyFile.size() << TXT_END << std::endl;
+			std::cout << strerror(errno) << std::endl;
 			return (1);
+		}
 		else if (byte_wrote > 0)
 		{
 			_byteWroteTmpBodyFile += byte_wrote;
@@ -370,7 +379,10 @@ int	HttpReq::writeOnReqBodyFile(void)
 				std::cout << TXT_YEL << getTimestamp() << "Client " << this->_client->getId() << ":	Request body saved in a file. Removing FD of the tmp file from the poll and closing it" << TXT_END << std::endl;
 				this->_client->removeFdFromPoll(_bodyTmpFileFd);
 				if (close(_bodyTmpFileFd) == -1)
+				{
+					std::cout << TXT_RED << TXT_B << "Fail cas 2" << TXT_END << std::endl;
 					return (1);
+				}
 				_bodyTmpFileFd = -1;
 				_statusBodyFile = CLOSE;
 				this->_client->setStatus(WAITING_FOR_RES);
@@ -385,7 +397,10 @@ int	HttpReq::writeOnReqBodyFile(void)
 		_statusReq = COMPLETED;
 		this->_client->removeFdFromPoll(_bodyTmpFileFd);
 		if (close(_bodyTmpFileFd) == -1)
+		{
+			std::cout << TXT_RED << TXT_B << "Fail cas 3" << TXT_END << std::endl;
 			return (1);
+		}
 		_bodyTmpFileFd = -1;
 		_statusBodyFile = CLOSE;
 		this->_client->setStatus(WAITING_FOR_RES);
