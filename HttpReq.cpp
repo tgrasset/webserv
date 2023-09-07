@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/09/07 15:33:32 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/07 16:48:46 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ HttpReq::HttpReq(HttpReq const & copy)
 HttpReq::~HttpReq(void)
 {
 	if (access(_bodyTmpPath.c_str(), F_OK) == 0 && std::remove(_bodyTmpPath.c_str()))
-		std::cout << "I could not delete the file of client " << this->_id << std::endl;
+		std::cout << "I could not delete the file of client " << this->_client->getId() << std::endl;
 	if (this->_statusBodyFile  == OPEN)
 	{
 		this->_client->removeFdFromPoll(_bodyTmpFileFd);

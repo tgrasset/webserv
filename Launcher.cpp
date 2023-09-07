@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/07 15:25:45 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/07 16:31:31 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -177,6 +177,7 @@ void	Launcher::processReadingFd(int fd)
 		}
 		break;
 	case UPLOAD_TMP_IN:
+		//std::cout << TXT_RED << getTimestamp() << "Client " << client->getId() << ":	UPLOAD_TMP_IN" << TXT_END << std::endl;
 		client->resetLastActivity();
 		client->transferUploadFileInSide();
 		break;
@@ -217,6 +218,7 @@ void	Launcher::processWritingFd(int fd)
 		}
 		break;
 	case UPLOAD_OUT:
+		//std::cout << TXT_RED << getTimestamp() << "Client " << client->getId() << ":	UPLOAD_OUT" << TXT_END << std::endl;
 		client->resetLastActivity();
 		client->transferUploadFileOutSide();
 		break;

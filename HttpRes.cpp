@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/07 15:34:14 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/07 16:52:32 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -699,6 +699,8 @@ void	HttpRes::finishBuildingResAfterUpload(void)
 	close(_uploadTmpInFd);
 	_uploadTmpInStream.close();
 	removeFdFromPoll(_uploadTmpInFd);
+	if (access(_nameTmpUploadFile.c_str(), F_OK) == 0 && std::remove(_nameTmpUploadFile.c_str()))
+		std::cout << "I could not delete the temp upload file of client " << this->_client->getId() << std::endl;
 }
 
 void	HttpRes::transferUploadFileInSide(void)
@@ -735,6 +737,7 @@ void	HttpRes::transferUploadFileInSide(void)
 	if (_uploadBuffClean)
 	{
 		getline(_uploadTmpInStream, _uploadBuff);
+		//std::cout << "IN SIDE " <<_uploadBuff << std::endl;
 		_uploadBuffClean = false;
 	}
 }
@@ -767,7 +770,7 @@ void	HttpRes::transferUploadFileOutSide(void)
 			_uploadFileBody = false;
 		}
 	}
-	else if (_uploadFileHeader && _uploadBuff == "") //Fin du header
+	else if (_uploadFileHeader && _uploadBuff == "\r") //Fin du header
 	{
 		_uploadFileHeader = false;
 		_uploadFileBody = true;
