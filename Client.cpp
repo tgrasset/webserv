@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/06 17:01:14 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/07 10:52:30 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,7 +194,6 @@ int	Client::receiveRequestHeader(void)
 			if (_printBody)
 				std::cout << TXT_I << this->_req_header << TXT_END <<std::endl;
 			this->_req = new HttpReq(this, this->_req_header, this->_server_ptr);
-			std::cout << "NEW URI : " <<_req->getUri() << std::endl;
 			if (this->_req == NULL)
 				throw ClientException("New didn't work for _req !");
 			if (this->_req->getStatusReq() == COMPLETED)
@@ -272,24 +271,26 @@ void	Client::sendResponseHeader(void)
 		to_send_header = res_header_remain;
 	else
 		to_send_header = res_header_remain.substr(0, BUFFER_SIZE);
-	byte_sent = send(this->_com_socket, to_send_header.c_str(), to_send_header.size(), 0);
-	if (byte_sent == -1)
+	if (to_send_header.size() != 0)
 	{
-		this->_status = ERROR_WHILE_SENDING;
-		return;
-	}
-	/* Besoin de tester le cas ou byte_sent vaut 0, mais je sais pas trop quoi faire dans ce cas. */
-	else
-	{
-		this->_status = SENDING_RES_HEADER;
-		this->_byte_sent_header += byte_sent;
-	}
-	if (this->_byte_sent_header == static_cast<unsigned int>(res_header_full.size()))
-	{
-		this->_status = SENDING_RES_BODY;
-		std::cout << TXT_CY << getTimestamp() << "Client " << _id << ":	Response header has been sent" << TXT_END << std::endl;
-		if (_printBody)
-			std::cout << TXT_I << res_header_full << TXT_END << std::endl;
+		byte_sent = send(this->_com_socket, to_send_header.c_str(), to_send_header.size(), 0);
+		if (byte_sent == -1 || byte_sent != to_send_header.size())
+		{
+			this->_status = ERROR_WHILE_SENDING;
+			return;
+		}
+		else
+		{
+			this->_status = SENDING_RES_HEADER;
+			this->_byte_sent_header += byte_sent;
+		}
+		if (this->_byte_sent_header == static_cast<unsigned int>(res_header_full.size()))
+		{
+			this->_status = SENDING_RES_BODY;
+			std::cout << TXT_CY << getTimestamp() << "Client " << _id << ":	Response header has been sent" << TXT_END << std::endl;
+			if (_printBody)
+				std::cout << TXT_I << res_header_full << TXT_END << std::endl;
+		}
 	}
 }
 

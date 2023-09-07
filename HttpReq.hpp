@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/09/06 16:52:17 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/07 10:44:14 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ private:
 	Server								*_server;
 	Location							*_location;
 	std::string							_boundary;
+	bool								_uploadFile;
 
 	static std::string					_bodyTmpFolder;
 	static unsigned int					_count;

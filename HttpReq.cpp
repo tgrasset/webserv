@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/09/06 16:51:51 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/07 10:45:29 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,7 @@ HttpReq::HttpReq(Client *client, std::string &content, std::vector<Server *> ser
 	_byteWroteTmpBodyFile = 0;
 	_bodyTmpFileFd = -1;
 	_statusBodyFile = CLOSE;
+	_uploadFile = false;
 	HttpReq::parse(content, servers);
 	if (_contentLength == 0 || _method != "POST" || _contentLength > this->_server->getClientMaxBodySize() || unauthorizedMethod())
 		_statusReq = COMPLETED;
@@ -96,6 +97,7 @@ HttpReq	& HttpReq::operator=(HttpReq const & httpreq)
 		_client = httpreq._client;
 		_bodyTmpFileFd = httpreq._bodyTmpFileFd;
 		_statusBodyFile = httpreq._statusBodyFile;
+		_uploadFile = httpreq._uploadFile;
 	}
 	return (*this);
 }
@@ -130,7 +132,7 @@ void	HttpReq::parse(std::string &content, std::vector<Server *> servers)
 	if (_method == "POST" 
 		&& !(_uri.size() > 3 && _uri.substr(_uri.size() - 3, 3) == ".py")
 		&& !(_uri.size() > 4 && _uri.substr(_uri.size() - 4, 4) == ".php"))
-		_uri = PATH_CGI_UPLOAD;
+		_uploadFile = true;
 		
 	/*create _header map*/
 	int	pos = 0;
