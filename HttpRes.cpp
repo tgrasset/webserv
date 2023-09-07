@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/07 16:52:32 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/07 18:04:12 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -731,7 +731,7 @@ void	HttpRes::transferUploadFileInSide(void)
 			finishBuildingResAfterUpload();
 			return ;
 		}
-		_uploadOutStream.open(_nameTmpUploadFile.c_str());
+		_uploadOutStream.open(_nameTmpUploadFile.c_str(), std::ios::binary);
 		addFdToPollOut(_uploadOutFd);
 	}
 	if (_uploadBuffClean)
@@ -744,8 +744,15 @@ void	HttpRes::transferUploadFileInSide(void)
 //_uploadFileBody
 void	HttpRes::transferUploadFileOutSide(void)
 {
+	bool print = false;
+	std::string msg; 
 	if (_uploadBuffClean)
-		return;	
+		return;
+	if (_uploadFileBodyFirstLine)
+		msg = "First Line - " + _uploadBuff;
+	else
+		msg = "Not First Line - " + _uploadBuff;
+
 	if (_uploadBuff.find(_request->getBoundary()) != std::string::npos)
 	{
 		_uploadFileHeader = true;
@@ -758,7 +765,7 @@ void	HttpRes::transferUploadFileOutSide(void)
 			if (_uploadBuff.find(_request->getBoundary() + "--") == std::string::npos)
 			{
 				_uploadOutFd = open(_nameTmpUploadFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-				_uploadOutStream.open(_nameTmpUploadFile.c_str());
+				_uploadOutStream.open(_nameTmpUploadFile.c_str(), std::ios::binary);
 				addFdToPollOut(_uploadOutFd);
 			}
 			else
@@ -794,14 +801,19 @@ void	HttpRes::transferUploadFileOutSide(void)
 	}
 	else if (_uploadFileHeader == false && _uploadFileBody == true && _nameFinalUploadFile != "")
 	{
+		print = true;
 		if (_uploadFileBodyFirstLine)
 		{
 			_uploadOutStream << _uploadBuff;
 			_uploadFileBodyFirstLine = false;
 		}
 		else
-			_uploadOutStream << std::endl << _uploadBuff;
+		{
+			_uploadOutStream << "\n" << _uploadBuff;
+		}
 	}
+	if (print)
+		std::cerr << msg << std::endl;
 	_uploadBuff.clear();
 	_uploadBuffClean = true;
 }
