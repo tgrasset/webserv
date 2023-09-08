@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/08 11:36:50 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/08 21:19:23 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -391,6 +391,30 @@ void	Client::sendResponseBodyNormalFile(void)
 
 void	Client::sendResponseBodyCgi(void)
 {
+	std::vector<char> cgi_buff_header;
+	int byte_sent_header = 0;
+	cgi_buff_header = _res->getCgiBuff_header();
+	int	size_chunk_header = cgi_buff_header.size();
+	if (size_chunk_header > 0)
+	{
+		std::ostringstream ss;
+		ss << "\r\n";
+		std::string str_size_chunk(ss.str());
+		std::vector<char>	to_send(str_size_chunk.begin(), str_size_chunk.end());
+		to_send.insert(to_send.end(), cgi_buff_header.begin(), cgi_buff_header.end());
+		to_send.push_back('\r');
+		to_send.push_back('\n');
+		//byte_sent_header = send(this->_com_socket, to_send.data(), to_send.size(), 0);
+		if (byte_sent_header == -1)
+		{
+			this->_status = ERROR_WHILE_SENDING;
+			return ;
+		}
+		else if (byte_sent_header > 0)
+		{	
+			_res->getCgiBuff_header().clear();
+		}
+	}
 	std::vector<char>	cgi_buff;
 	int byte_sent = 0;
 	cgi_buff = this->_res->getCgiBuff();
@@ -398,7 +422,7 @@ void	Client::sendResponseBodyCgi(void)
 	if (size_chunk > 0)
 	{
 		std::ostringstream ss;
-		ss << std::hex << size_chunk << "\r\n";
+		ss << "\r\n" << std::hex << size_chunk << "\r\n";
 		std::string str_size_chunk(ss.str());
 		std::vector<char>	to_send(str_size_chunk.begin(), str_size_chunk.end());
 		to_send.insert(to_send.end(), cgi_buff.begin(), cgi_buff.end());

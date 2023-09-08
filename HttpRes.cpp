@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/08 11:00:14 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/08 21:11:01 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,7 @@ HttpRes::HttpRes(Client * client, HttpReq *request) {
 	_fileToSendBuff.clear();
 	_statusFileToSend = CLOSE;
 	_cgiBuff.clear();
+	_cgiBuff_header.clear();
 	_statusCgiPipe = PIPE_CLOSE;
 	_uploadTmpInFd = -1;
 	_uploadOutFd = -1;
@@ -60,6 +61,7 @@ HttpRes::HttpRes(Client * client, HttpReq *request) {
 	_uploadBuffClean = true;
 	_backslashRFound = false;
 	_uploadFileBodyFirstLine = false;
+	_first_line_of_header = true;
 
 	if (_mimeTypes.empty() == true)
 		fillMimeTypes();
@@ -112,6 +114,7 @@ HttpRes	& HttpRes::operator=(HttpRes const & httpres)
 		_client = httpres._client;
 		_statusFileToSend = httpres._statusFileToSend;
 		_cgiBuff = httpres._cgiBuff;
+		_cgiBuff_header = httpres._cgiBuff_header;
 		_statusCgiPipe = httpres._statusCgiPipe;
 		_uploadTmpInFd = httpres._uploadTmpInFd;
 		_uploadOutFd = httpres._uploadOutFd;
@@ -123,6 +126,7 @@ HttpRes	& HttpRes::operator=(HttpRes const & httpres)
 		_uploadBuffClean = httpres._uploadBuffClean;
 		_uploadFileBodyFirstLine = httpres._uploadFileBodyFirstLine;
 		_backslashRFound = httpres._backslashRFound;
+		_first_line_of_header = httpres._first_line_of_header;
 	}
 	return (*this);
 }
@@ -248,6 +252,11 @@ pid_t	HttpRes::getCgiPid(void) const {
 std::vector<char>	HttpRes::getCgiBuff(void) const
 {
 	return (_cgiBuff);
+}
+
+std::vector<char>	HttpRes::getCgiBuff_header(void) const
+{
+	return (_cgiBuff_header);
 }
 
 s_pipe	HttpRes::getStatusCgiPipe(void) const
@@ -613,7 +622,7 @@ void	HttpRes::formatHeader(void) {
 	response << _httpVersion << " " << _statusCode << " " << _statusMessage << "\r\n";
 	for (std::map<std::string, std::string>::iterator it = _header.begin(); it != _header.end(); it++)
 		response << it->first << " " << it->second << "\r\n";
-	response << "\r\n";
+	//response << "\r\n"; // jojo suppr cette ligne
 	_formattedHeader = response.str();
 }
 
@@ -643,6 +652,8 @@ bool	HttpRes::methodIsAllowed(std::string method) {
 
 void	HttpRes::handleRequest(void)
 {
+	bool	is_cgi = false;
+	
 	_statusCode = checkHttpVersion(_request->getHttpVersion());
 	if (_statusCode == 200 && _request->bodyIsTooBig() == true)
 		_statusCode = 413;
@@ -663,6 +674,7 @@ void	HttpRes::handleRequest(void)
 	}
 	else if (_statusCode == 200 && (_resourceType == PHP || _resourceType == PYTHON))
 	{
+		is_cgi = true;
 		CGI cgi(*_request, *this);
 		cgi.execCGI();
 	}
@@ -678,6 +690,8 @@ void	HttpRes::handleRequest(void)
 		_keepAlive = false;
 	headerBuild();
 	formatHeader();
+	if (!is_cgi)
+		_formattedHeader += "\r\n";
 	if (_client->getStatus() != UPLOADING_FILE)
 		_client->setStatus(RES_READY_TO_BE_SENT);
 }
@@ -882,6 +896,8 @@ int		HttpRes::addBodyFileToBuff(void)
 	return (0);
 }
 
+// jojo modifier cette fonction 
+// _formattedHeader << "\r\n";
 int	HttpRes::addCgiToBuff(void)
 {
 	if (this->_statusCgiPipe != PIPE_OPEN)
@@ -895,6 +911,17 @@ int	HttpRes::addCgiToBuff(void)
 		this->_statusCgiPipe = PIPE_ERROR;
 		this->cgiPipeFinishedWriting();
 		return (1);
+	}
+	else if (byte_read > 0 && byte_read >= 12 && !strncmp(readline, "Set-Cookie: ", 12) && _first_line_of_header && strchr(readline, '\n') != NULL)
+	{
+		_first_line_of_header = false;
+		std::string	firstline(readline);
+		firstline = firstline.substr(0, firstline.find("\n", 0));
+		this->_cgiBuff_header.insert(this->_cgiBuff_header.end(), firstline.c_str(), firstline.c_str() + firstline.size());
+
+		std::string secondline(readline);
+		secondline = secondline.substr(secondline.find("\n", 0) + 1);
+		this->_cgiBuff.insert(this->_cgiBuff.end(), secondline.c_str(), secondline.c_str() + secondline.size());
 	}
 	else if (byte_read > 0)
 	{

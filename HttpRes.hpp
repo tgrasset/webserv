@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/08 10:55:05 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/08 18:36:28 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,6 +67,7 @@ class HttpRes
 		size_t								getFileToSendSize(void) const;
 		std::vector<char>					getFileToSendBuff(void) const;
 		std::vector<char>					getCgiBuff(void) const;
+		std::vector<char>					getCgiBuff_header(void) const;
 		s_file								getStatusFileToSend(void) const;
 		s_pipe								getStatusCgiPipe(void) const;
 		void								openBodyFile(void);
@@ -144,6 +145,7 @@ class HttpRes
 		size_t										_fileToSendSize;
 		std::vector<char>							_fileToSendBuff;
 		std::vector<char>							_cgiBuff;
+		std::vector<char>							_cgiBuff_header;
 		s_file										_statusFileToSend;
 		std::string									_scriptName;
 		r_type										_resourceType;
@@ -166,6 +168,7 @@ class HttpRes
 		bool										_uploadFileBodyFirstLine;
 		bool										_backslashRFound;
 		std::string									_nameFinalUploadFile;
+		bool										_first_line_of_header;
 };
 
 #endif
