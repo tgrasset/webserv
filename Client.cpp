@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/08 22:04:40 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/09/08 22:06:02 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -401,7 +401,7 @@ void	Client::sendResponseBodyCgi(void)
 		to_send.insert(to_send.end(), cgi_buff_header.begin(), cgi_buff_header.end());
 		to_send.push_back('\r');
 		to_send.push_back('\n');
-		int byte_sent_header = send(this->_com_socket, to_send.data(), to_send.size(), 0);
+		byte_sent_header = send(this->_com_socket, to_send.data(), to_send.size(), 0);
 		if (byte_sent_header == -1)
 		{
 			this->_status = ERROR_WHILE_SENDING;
