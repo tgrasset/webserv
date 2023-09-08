@@ -4,6 +4,7 @@ import sys
 
 # Set a cookie named 'username' with value 'JohnDoe'
 print("Set-Cookie: username=JohnDoe")
+print("")
 
 # HTML content
 print("<!DOCTYPE html>")

@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/08 18:36:28 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/09/08 21:37:19 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,6 +74,7 @@ class HttpRes
 		void								closeBodyFile(void);
 		void								clearFileToSendBuff(void);
 		void								clearCgiBuff(void);
+		void								clearCgiBuff_header(void);
 		int									addBodyFileToBuff(void);
 		int									getUploadTmpInFd(void) const;
 		int									getUploadOutFd(void) const;

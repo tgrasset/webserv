@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/08 21:11:01 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/09/08 21:37:08 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -865,6 +865,11 @@ void	HttpRes::clearCgiBuff(void)
 	this->_cgiBuff.clear();
 }
 
+void	HttpRes::clearCgiBuff_header(void)
+{
+	this->_cgiBuff_header.clear();
+}
+
 void	HttpRes::closeBodyFile(void)
 {
 	if (this->_fileToSendFd == -1 || this->_statusFileToSend == ERROR)
@@ -921,7 +926,7 @@ int	HttpRes::addCgiToBuff(void)
 
 		std::string secondline(readline);
 		secondline = secondline.substr(secondline.find("\n", 0) + 1);
-		this->_cgiBuff.insert(this->_cgiBuff.end(), secondline.c_str(), secondline.c_str() + secondline.size());
+		this->_cgiBuff.insert(this->_cgiBuff.end(), secondline.c_str(), secondline.c_str() + secondline.size() - 1);
 	}
 	else if (byte_read > 0)
 	{
