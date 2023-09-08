@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/08 11:33:10 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/08 16:41:06 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,8 +67,8 @@ private:
 	std::ifstream 			_file_to_send;
 	unsigned int			_file_to_send_size;
 	Launcher				*_launcher;
-	
-	static bool				_printBody;	
+	int						_percentSentFile;
+		
 	static unsigned int		_count;
 	
 public:

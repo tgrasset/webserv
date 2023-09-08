@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpReq.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/09/08 11:02:29 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/08 16:43:13 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,6 @@
 
 std::string		HttpReq::_bodyTmpFolder(BODY_TMP_FOLDER);
 unsigned int	HttpReq::_count = 0;
-bool			HttpReq::_printReqBodyRec = false;
-bool			HttpReq::_printMsg = true;
 
 /* ************************************************************************** */
 /*                     Constructeurs et destructeurs                          */
@@ -43,6 +41,7 @@ HttpReq::HttpReq(Client *client, std::string &content, std::vector<Server *> ser
 	_bodyTmpFileFd = -1;
 	_statusBodyFile = CLOSE;
 	_uploadFile = false;
+	_percentRecievedTmpBodyFile = 0;
 	HttpReq::parse(content, servers);
 	if (_contentLength == 0 || _method != "POST" || _contentLength > this->_server->getClientMaxBodySize() || unauthorizedMethod())
 		_statusReq = COMPLETED;
@@ -59,8 +58,10 @@ HttpReq::~HttpReq(void)
 		std::cout << "I could not delete the file of client " << this->_client->getId() << std::endl;
 	if (this->_statusBodyFile  == OPEN)
 	{
+		_client->removeFdFromPoll(_bodyTmpFileFd);
 		close(_bodyTmpFileFd);
 		_statusBodyFile = CLOSE;
+		
 	}
 	if (_server != NULL)
 		delete _server;
@@ -97,6 +98,7 @@ HttpReq	& HttpReq::operator=(HttpReq const & httpreq)
 		_bodyTmpFileFd = httpreq._bodyTmpFileFd;
 		_statusBodyFile = httpreq._statusBodyFile;
 		_uploadFile = httpreq._uploadFile;
+		_percentRecievedTmpBodyFile = httpreq._percentRecievedTmpBodyFile;
 	}
 	return (*this);
 }
@@ -350,23 +352,17 @@ int	HttpReq::writeOnReqBodyFile(void)
 	{
 		byte_wrote = write(_bodyTmpFileFd, _toAddBodyFile.data(), _toAddBodyFile.size());
 		if (byte_wrote == -1)
-		{
-			/*for (std::vector<char>::iterator it = _toAddBodyFile.begin(); it != _toAddBodyFile.end(); ++it)
-			{
-				std::cout << *it;
-			}
-			std::cout << std::endl;*/
-			std::cout << TXT_RED << TXT_B << "Fail cas 1 ==> " << _toAddBodyFile.size() << TXT_END << std::endl;
-			std::cout << strerror(errno) << std::endl;
 			return (1);
-		}
 		else if (byte_wrote > 0)
 		{
 			_byteWroteTmpBodyFile += byte_wrote;
 			double	percent_received = (static_cast<double>(_byteWroteTmpBodyFile) / static_cast<double>(_contentLength)) * 100;
-			if (std::fmod(percent_received, 10.0) < 0.1 && _printMsg)
-				std::cout << TXT_YEL << getTimestamp() << "Client " << _client->getId() << ":	" << static_cast<int>(percent_received) << "% of of the Req Body File recieved" << TXT_END << std::endl;
-			if (_printReqBodyRec)
+			if (std::fmod(percent_received, 5.0) < 0.1 && PRINT_REQ_FILE_STATUS && _percentRecievedTmpBodyFile < static_cast<int>(percent_received) )
+			{
+				std::cout << TXT_YEL << getTimestamp() << "Client " << _client->getId() << ":	" << static_cast<int>(percent_received) << "% of the Req Body File recieved" << TXT_END << std::endl;
+				_percentRecievedTmpBodyFile = static_cast<int>(percent_received);
+			}
+			if (PRINT_REQ_BODY)
 			{
 				std::cout << TXT_I;
 				printVectorChar(_toAddBodyFile);
@@ -378,10 +374,7 @@ int	HttpReq::writeOnReqBodyFile(void)
 				std::cout << TXT_YEL << getTimestamp() << "Client " << this->_client->getId() << ":	Request body saved in a file. Removing FD of the tmp file from the poll and closing it" << TXT_END << std::endl;
 				this->_client->removeFdFromPoll(_bodyTmpFileFd);
 				if (close(_bodyTmpFileFd) == -1)
-				{
-					std::cout << TXT_RED << TXT_B << "Fail cas 2" << TXT_END << std::endl;
 					return (1);
-				}
 				_bodyTmpFileFd = -1;
 				_statusBodyFile = CLOSE;
 				this->_client->setStatus(WAITING_FOR_RES);
@@ -396,10 +389,7 @@ int	HttpReq::writeOnReqBodyFile(void)
 		_statusReq = COMPLETED;
 		this->_client->removeFdFromPoll(_bodyTmpFileFd);
 		if (close(_bodyTmpFileFd) == -1)
-		{
-			std::cout << TXT_RED << TXT_B << "Fail cas 3" << TXT_END << std::endl;
 			return (1);
-		}
 		_bodyTmpFileFd = -1;
 		_statusBodyFile = CLOSE;
 		this->_client->setStatus(WAITING_FOR_RES);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/08 10:55:05 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/08 17:01:12 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -166,6 +166,9 @@ class HttpRes
 		bool										_uploadFileBodyFirstLine;
 		bool										_backslashRFound;
 		std::string									_nameFinalUploadFile;
+		int											_percentSentFile;
+		size_t										_byteWrittenUploadFile;
+		size_t										_percentWrittenUploadFile;
 };
 
 #endif

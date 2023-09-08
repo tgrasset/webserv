@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/08 11:00:14 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/08 17:13:16 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,8 @@ HttpRes::HttpRes(Client * client, HttpReq *request) {
 	_uploadBuffClean = true;
 	_backslashRFound = false;
 	_uploadFileBodyFirstLine = false;
+	_byteWrittenUploadFile = 0;
+	_percentWrittenUploadFile = 0;
 
 	if (_mimeTypes.empty() == true)
 		fillMimeTypes();
@@ -123,6 +125,8 @@ HttpRes	& HttpRes::operator=(HttpRes const & httpres)
 		_uploadBuffClean = httpres._uploadBuffClean;
 		_uploadFileBodyFirstLine = httpres._uploadFileBodyFirstLine;
 		_backslashRFound = httpres._backslashRFound;
+		_byteWrittenUploadFile = httpres._byteWrittenUploadFile;
+		_percentWrittenUploadFile = httpres._percentWrittenUploadFile;
 	}
 	return (*this);
 }
@@ -740,8 +744,17 @@ void	HttpRes::transferUploadFileInSide(void)
 	}
 	if (_uploadBuffClean)
 	{
+		if (_byteWrittenUploadFile == 0 && PRINT_UPLOAD_FILE_STATUS)
+			std::cout << TXT_BL << getTimestamp() << "Client " << this->_client->getId() << ":	The uploaded file transfert is starting"<<  TXT_END << std::endl;
 		getline(_uploadTmpInStream, _uploadBuff);
 		_uploadBuffClean = false;
+		_byteWrittenUploadFile += _uploadBuff.size();
+		double	percentWritten = (static_cast<double>(_byteWrittenUploadFile) / static_cast<double>(_request->getContentLength())) * 100;
+		if (std::fmod(percentWritten, 5.0) < 0.1 && PRINT_UPLOAD_FILE_STATUS && _percentWrittenUploadFile < static_cast<size_t>(percentWritten) )
+		{
+			std::cout << TXT_BL << getTimestamp() << "Client " << this->_client->getId() << ":	Transfering uploaded file. "<< static_cast<int>(percentWritten) << "% done."<<  TXT_END << std::endl;
+			_percentWrittenUploadFile = static_cast<size_t>(percentWritten);
+		}
 	}
 }
 
@@ -766,6 +779,8 @@ void	HttpRes::transferUploadFileOutSide(void)
 			}
 			else
 			{
+				if (PRINT_UPLOAD_FILE_STATUS)
+					std::cout << TXT_BL << getTimestamp() << "Client " << this->_client->getId() << ":	The uploaded file transfert is done !"<<  TXT_END << std::endl;
 				_statusCode = 201;
 				finishBuildingResAfterUpload();
 			}
@@ -828,7 +843,8 @@ void	HttpRes::openBodyFile(void)
 	struct stat buf;
 	stat(this->_uriPath.c_str(), &buf);
 	this->_fileToSendSize = buf.st_size;
-	std::cout << TXT_BL << getTimestamp() << "Client " << this->_client->getId() << ":	Opening file " << this->_uriPath << " (size of " << this->_fileToSendSize << ")"<< TXT_END << std::endl;
+	if (PRINT_RES_FILE_STATUS)
+		std::cout << TXT_BL << getTimestamp() << "Client " << this->_client->getId() << ":	Opening file " << this->_uriPath << " (size of " << this->_fileToSendSize << ")"<< TXT_END << std::endl;
 	this->_fileToSendFd = open(this->_uriPath.c_str(), O_RDONLY);
 	if (this->_fileToSendFd == -1)
 	{
@@ -836,7 +852,6 @@ void	HttpRes::openBodyFile(void)
 		this->setStatusCode(500);
 		return ;
 	}
-	std::cout << TXT_BL <<  getTimestamp() << "Client " << this->_client->getId() << ":	FD " << this->_fileToSendFd << " has been affected to the file " << this->_uriPath << TXT_END << std::endl;
 	this->_statusFileToSend = OPEN;
 	this->_client->addFdToPollIn(this->_fileToSendFd);
 }
@@ -855,7 +870,8 @@ void	HttpRes::closeBodyFile(void)
 {
 	if (this->_fileToSendFd == -1 || this->_statusFileToSend == ERROR)
 		return;
-	std::cout << TXT_BL << getTimestamp() << "Client " << this->_client->getId() << ":	Closing BodyFile " << this->_uriPath << TXT_END << std::endl;
+	if (PRINT_RES_FILE_STATUS)
+		std::cout << TXT_BL << getTimestamp() << "Client " << this->_client->getId() << ":	Closing file " << this->_uriPath << TXT_END << std::endl;
 	this->_client->removeFdFromPoll(this->_fileToSendFd);
 	if (close(this->_fileToSendFd) == -1)
 		this->_statusFileToSend = ERROR;
