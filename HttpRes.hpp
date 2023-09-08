@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/07 16:52:04 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/08 10:55:05 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -164,6 +164,7 @@ class HttpRes
 		bool										_uploadFileHeader;
 		bool										_uploadFileBody;
 		bool										_uploadFileBodyFirstLine;
+		bool										_backslashRFound;
 		std::string									_nameFinalUploadFile;
 };
 

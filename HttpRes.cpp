@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/07 18:16:19 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/09/08 11:00:14 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,7 @@ HttpRes::HttpRes(Client * client, HttpReq *request) {
 	_uploadFileHeader = false;
 	_uploadFileBody = false;
 	_uploadBuffClean = true;
+	_backslashRFound = false;
 	_uploadFileBodyFirstLine = false;
 
 	if (_mimeTypes.empty() == true)
@@ -121,6 +122,7 @@ HttpRes	& HttpRes::operator=(HttpRes const & httpres)
 		_nameFinalUploadFile = httpres._nameFinalUploadFile;
 		_uploadBuffClean = httpres._uploadBuffClean;
 		_uploadFileBodyFirstLine = httpres._uploadFileBodyFirstLine;
+		_backslashRFound = httpres._backslashRFound;
 	}
 	return (*this);
 }
@@ -739,22 +741,14 @@ void	HttpRes::transferUploadFileInSide(void)
 	if (_uploadBuffClean)
 	{
 		getline(_uploadTmpInStream, _uploadBuff);
-		//std::cout << "IN SIDE " <<_uploadBuff << std::endl;
 		_uploadBuffClean = false;
 	}
 }
-//_uploadFileBody
+
 void	HttpRes::transferUploadFileOutSide(void)
 {
-	bool print = false;
-	std::string msg;
 	if (_uploadBuffClean)
 		return;
-	if (_uploadFileBodyFirstLine)
-		msg = "First Line - " + _uploadBuff;
-	else
-		msg = "Not First Line - " + _uploadBuff;
-
 	if (_uploadBuff.find(_request->getBoundary()) != std::string::npos)
 	{
 		_uploadFileHeader = true;
@@ -803,7 +797,16 @@ void	HttpRes::transferUploadFileOutSide(void)
 	}
 	else if (_uploadFileHeader == false && _uploadFileBody == true && _nameFinalUploadFile != "")
 	{
-		print = true;
+		if (_backslashRFound == true)
+		{
+			_backslashRFound = false;
+			_uploadOutStream << "\r";
+		}
+		if (_uploadBuff.length() > 0 && _uploadBuff.find("\r") == _uploadBuff.length() -1)
+		{
+			_uploadBuff.erase(_uploadBuff.length() - 1);
+			_backslashRFound = true;
+		}
 		if (_uploadFileBodyFirstLine)
 		{
 			_uploadOutStream << _uploadBuff;
@@ -814,82 +817,9 @@ void	HttpRes::transferUploadFileOutSide(void)
 			_uploadOutStream << "\n" << _uploadBuff;
 		}
 	}
-	if (print)
-		std::cerr << msg << std::endl;
 	_uploadBuff.clear();
 	_uploadBuffClean = true;
 }
-
-
-/*void	HttpRes::uploadFileToServer(std::string tempFile, std::string boundary) {
-
-	else
-	{
-
-		std::ofstream output;
-		std::string line;
-		std::string fileName = "";
-		std::string tempName = "";
-		std::string finalDest = "";
-		bool	header = false;
-		size_t	pos;
-		size_t	pos2;
-		tmpFile.open(tempFile.c_str());
-		if (tmpFile.fail())
-		{
-			_statusCode = 403;
-			return ;
-		}
-		while (getline(tmpFile, line))
-		{
-			if (line.find(boundary) != std::string::npos)
-				header = true;
-			else if (header == true && line == "\r")
-				header = false;
-			else if (header == true)
-			{
-				pos = line.find("filename=");
-				if (pos != std::string::npos)
-				{
-					pos += 10;
-					for (pos2 = pos; line[pos2] != '"'; pos2++)
-						;
-					tempName = line.substr(pos, pos2 - pos);
-					if (fileName == "" || tempName != fileName)
-					{
-						if (fileName != "")
-							output.close();
-						fileName = tempName;
-						finalDest = uploadDir + "/" + fileName;
-						output.open(finalDest.c_str());
-						if (output.fail())
-						{
-							_statusCode = 403;
-							tmpFile.close();
-							return ;
-						}
-					}
-					else
-						continue;
-				}
-				else
-					continue;
-			}
-			else
-			{
-				if (fileName != "" && line != "\r")
-					output << line << std::endl;
-			}
-		}
-		if (fileName != "")
-			output.close();
-		tmpFile.close();
-		_statusCode = 201;
-		std::remove(tempFile.c_str());
-	}
-}
-
-*/
 
 void	HttpRes::openBodyFile(void)
 {
