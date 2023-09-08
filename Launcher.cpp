@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/07 16:31:31 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/08 11:37:20 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -177,13 +177,13 @@ void	Launcher::processReadingFd(int fd)
 		}
 		break;
 	case UPLOAD_TMP_IN:
-		//std::cout << TXT_RED << getTimestamp() << "Client " << client->getId() << ":	UPLOAD_TMP_IN" << TXT_END << std::endl;
 		client->resetLastActivity();
 		client->transferUploadFileInSide();
 		break;
 	default:
-		std::cout << "I got the fd " << fd << "from client " << client->getId() << " (that is a " << client->getSocketType(fd) << ")" << std::endl;
-		throw LauncherException("The Reading FD is not in possible category");
+		std::cout << TXT_RED << TXT_B << "Problem reading fd is not a correct category. Removing client number :" << client->getId()  << "    FD number: " << fd << " categorie = " << client->getSocketType(fd) << TXT_END << std::endl;
+		client->printClientFd();
+		this->removeClient(client);
 	}
 }
 
@@ -218,13 +218,13 @@ void	Launcher::processWritingFd(int fd)
 		}
 		break;
 	case UPLOAD_OUT:
-		//std::cout << TXT_RED << getTimestamp() << "Client " << client->getId() << ":	UPLOAD_OUT" << TXT_END << std::endl;
 		client->resetLastActivity();
 		client->transferUploadFileOutSide();
 		break;
 	default:
-		std::cout << "I got the fd " << fd << " from client " << client->getId() << " (that is a " << client->getSocketType(fd) << ")" << std::endl;
-		throw LauncherException("Problem writing fd is not a correct category");
+		std::cout << TXT_RED << TXT_B << "Problem writing fd is not a correct category. Removing client number :" << client->getId()  << "    FD number: " << fd << " categorie = " << client->getSocketType(fd) << TXT_END << std::endl;
+		client->printClientFd();
+		this->removeClient(client);
 	}
 }
 

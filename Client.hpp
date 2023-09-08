@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/07 14:34:19 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/08 11:33:10 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,6 +113,7 @@ public:
 	void						transferUploadFileInSide(void);
 	HttpReq						*getHttpReq(void) const;
 	void						transferUploadFileOutSide(void);
+	void						printClientFd(void) const;
 
 	class ClientException : public std::exception {
 	public :

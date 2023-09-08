@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/07 13:32:48 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/08 11:36:50 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -156,6 +156,16 @@ t_fd	Client::getSocketType(int fd) const
 		return (UPLOAD_OUT);
 	else
 		return (NOT_MINE);
+}
+
+void	Client::printClientFd(void) const
+{
+	std::cout << TXT_I << "COM_SOCKET : " << this->_com_socket << TXT_END << std::endl;
+	std::cout << TXT_I << "CGI_PIPE : " << this->_res->getCgiPipeFd() << TXT_END << std::endl;
+	std::cout << TXT_I << "RES_FILE_FD : " << this->_res->getFileToSendFd() << TXT_END << std::endl;
+	std::cout << TXT_I << "REQ_FILE_FD : " << this->_req->getBodyTmpFileFd()  << TXT_END << std::endl;
+	std::cout << TXT_I << "UPLOAD_TMP_IN : " << this->_res->getUploadTmpInFd() << TXT_END << std::endl;
+	std::cout << TXT_I << "UPLOAD_OUT : " << this->_res->getUploadOutFd() << TXT_END << std::endl;
 }
 
 int	Client::receiveRequest(void)
