@@ -1,0 +1,7 @@
+quand j'upload un gros fichier alors que le client_max_body_size est set sur une petite valeur, ca fait un truc chelou
+
+Quand on test le max body size avec "curl -X POST -H "Content-Type:plain/text" --data "BODY" http://127.0.0.1:5403/test", il essaie de faire un upload mais n'arrive pas au bout ca bloque, peut etre que si on trouve pas de header avec filename on peut degager le client
+
+Truc bizarre, quand on test la requete delete avec "curl -X DELETE http://localhost:5403/filetodelete", le body de la reponse n'apparait pas dans le terminal, alors qu'il semble bien envoye par le serveur
+
+Si un des deux CGI n'est pas gere sur un server et qu'on essaie quand meme d'executer un script de ce CGI, on a un free() invalid pointer, et une page blanche sur le navigateur : a securiser

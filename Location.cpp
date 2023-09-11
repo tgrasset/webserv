@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/12 15:27:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/01 14:26:48 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/11 11:19:16 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -257,4 +257,6 @@ void	Location::checkConfig(std::string serverRoot) {
 			throw LocationException("Invalid upload directory path at the end of 'upload_dir' line");
 		_uploadDir = dirPath;
 	}
+	if (_autoindex == true && _index != "")
+		throw LocationException("A location can't have an default index if autoindex is on");
 }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/08 17:13:16 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/11 11:37:47 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -430,7 +430,7 @@ r_type HttpRes::checkResourceType(void) {
 					return (AUTOINDEX);
 				else
 				{
-					_uriPath += _location->getIndex();
+					_uriPath = _location->getRoot() + "/" + _location->getIndex();     //LA
 					if (access(_uriPath.c_str(), F_OK) != 0)
 						return (NOT_FOUND);
 					else if (access(_uriPath.c_str(), R_OK) != 0)
