@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/11 16:18:57 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/11 17:22:15 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -694,11 +694,7 @@ void	HttpRes::handleRequest(void)
 	else if (_statusCode == 200 && _request->getUploadFile())
 	{
 		if (_request->getBoundary() == "" || _request->getContentType().find("multipart/form-data") == std::string::npos)
-		{
-			std::cout << "_request->getBoundary()	" << _request->getBoundary() << std::endl;
-			std::cout << "_request->getContentType() 	" << _request->getContentType() << std::endl;
 			_statusCode = 400;
-		}
 		else
 		{
 			uploadFileToServer();

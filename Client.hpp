@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/11 13:30:32 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/11 17:17:25 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,6 @@ private:
 	unsigned int			_byte_sent_body;
 	unsigned int			_byteRecivedReqBody;
 	struct timeval			_last_activity;
-	std::ifstream 			_file_to_send;
 	unsigned int			_file_to_send_size;
 	Launcher				*_launcher;
 	int						_percentSentFile;
