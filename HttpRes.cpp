@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/11 11:37:47 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/11 12:01:23 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -667,8 +667,16 @@ void	HttpRes::handleRequest(void)
 	}
 	else if (_statusCode == 200 && (_resourceType == PHP || _resourceType == PYTHON))
 	{
-		CGI cgi(*_request, *this);
-		cgi.execCGI();
+		if (isAllowedCGI() == false)
+		{
+			_resourceType = NORMALFILE;
+			_statusCode = 403;
+		}
+		else
+		{
+			CGI cgi(*_request, *this);
+			cgi.execCGI();
+		}
 	}
 	else if (_statusCode == 200 && _request->getUploadFile())
 	{
@@ -948,4 +956,16 @@ void	HttpRes::cgiPipeFinishedWriting(void)
 void	HttpRes::addFdToPollOut(int fd)
 {
 	this->_client->addFdToPollOut(fd);
+}
+
+bool	HttpRes::isAllowedCGI(void) {
+
+	if (_location == NULL || _location->getCgiBool() == false)
+		return (false);
+	std::map<std::string, std::string> cgiMap = _location->getCgiExtensionAndPath();
+	if (_resourceType == PHP && cgiMap.find(".php") == cgiMap.end())
+		return (false);
+	if (_resourceType == PYTHON && cgiMap.find(".py") == cgiMap.end())
+		return (false);
+	return (true);
 }
