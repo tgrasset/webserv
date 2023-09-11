@@ -6,14 +6,13 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/08 22:06:02 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/09/11 14:19:14 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 
 unsigned int	Client::_count = 0;
-bool			Client::_printBody = true;
 
 /* ************************************************************************** */
 /*                     Constructeurs et destructeurs                          */
@@ -26,6 +25,7 @@ Client::Client(void)
 	this->_byteRecivedReqBody = 0;
 	this->_req = NULL;
 	this->_res = NULL;
+	_percentSentFile = 0;
 	gettimeofday(&(this->_last_activity), NULL);
 }
 
@@ -42,6 +42,7 @@ Client::Client(Launcher	*launcher, struct sockaddr_in client_addr, int com_socke
 	this->_req = NULL;
 	this->_res = NULL;
 	this->_launcher = launcher;
+	_percentSentFile = 0;
 	gettimeofday(&(this->_last_activity), NULL);
 }
 
@@ -80,6 +81,7 @@ Client	& Client::operator=(Client const & client)
 		this->_last_activity = client._last_activity;
 		this->_byteRecivedReqBody = client._byteRecivedReqBody;
 		this->_launcher = client._launcher;
+		_percentSentFile = client._percentSentFile;
 	}
 	return (*this);
 }
@@ -205,7 +207,7 @@ int	Client::receiveRequestHeader(void)
 		{
 			this->_req_header = req_recived_string.substr(0, pos_end_header);
 			std::cout << TXT_CY << getTimestamp() << "Client " << _id << ":	Request header received" << TXT_END << std::endl;
-			if (_printBody)
+			if (PRINT_REQ_HEADER)
 				std::cout << TXT_I << this->_req_header << TXT_END <<std::endl;
 			this->_req = new HttpReq(this, this->_req_header, this->_server_ptr);
 			if (this->_req == NULL)
@@ -302,7 +304,7 @@ void	Client::sendResponseHeader(void)
 		{
 			this->_status = SENDING_RES_BODY;
 			std::cout << TXT_CY << getTimestamp() << "Client " << _id << ":	Response header has been sent" << TXT_END << std::endl;
-			if (_printBody)
+			if (PRINT_RES_HEADER)
 				std::cout << TXT_I << res_header_full << TXT_END << std::endl;
 		}
 	}
@@ -348,7 +350,7 @@ void	Client::sendResponseBodyError(void)
 	{
 		this->_status = RES_SENT;
 		std::cout << TXT_CY <<  getTimestamp() << "Client " << _id << ":	Response body has been sent" << TXT_END << std::endl;
-		if (_printBody)
+		if (PRINT_RES_BODY)
 			std::cout << TXT_I << res_body << TXT_END << std::endl;
 	}
 }
@@ -371,14 +373,19 @@ void	Client::sendResponseBodyNormalFile(void)
 				return;
 			}
 			this->_byte_sent_body += byte_sent;
-			int percent_sent = static_cast<int>(static_cast<double>(_byte_sent_body)/static_cast<double>(this->_res->getFileToSendSize()) * 100);
-			std::cout << TXT_CY << getTimestamp() << "Client " << _id << ":	" << percent_sent << "% of the file sent" << TXT_END << std::endl;
+			double	percent_sent = (static_cast<double>(_byte_sent_body) / static_cast<double>(this->_res->getFileToSendSize())) * 100;
+			if (std::fmod(percent_sent, 5.0) < 0.1 && _percentSentFile < static_cast<int>(percent_sent) && PRINT_RES_FILE_STATUS )
+			{
+				std::cout << TXT_CY << getTimestamp() << "Client " << _id << ":	" << static_cast<int>(percent_sent) << "% of file " << this->_res->getUriPath() << " sent" << TXT_END << std::endl;
+				_percentSentFile = static_cast<int>(percent_sent);
+			}		
 			this->_status = SENDING_RES_BODY;
 			this->_res->clearFileToSendBuff();
 			if (this->_byte_sent_body == this->_res->getFileToSendSize())
 			{
 				this->_res->closeBodyFile();
 				this->_status = RES_SENT;
+				_percentSentFile = 0;
 			}
 		}
 		else if (this->_res->getFileToSendSize() == 0)

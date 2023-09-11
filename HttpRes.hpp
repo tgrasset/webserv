@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/08 21:37:19 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/09/11 14:25:53 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,6 +108,7 @@ class HttpRes
 		void								transferUploadFileInSide(void);
 		void								transferUploadFileOutSide(void);
 		void								finishBuildingResAfterUpload(void);
+		bool								isAllowedCGI(void);
 
 		class HttpResException : public std::exception {
 			public :
@@ -169,6 +170,9 @@ class HttpRes
 		bool										_uploadFileBodyFirstLine;
 		bool										_backslashRFound;
 		std::string									_nameFinalUploadFile;
+		int											_percentSentFile;
+		size_t										_byteWrittenUploadFile;
+		size_t										_percentWrittenUploadFile;
 		bool										_first_line_of_header;
 };
 

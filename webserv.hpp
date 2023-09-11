@@ -30,6 +30,15 @@
 # include <dirent.h>
 # include <fcntl.h>
 
+/* Server print options */
+# define PRINT_REQ_HEADER true
+# define PRINT_REQ_BODY false
+# define PRINT_RES_HEADER true
+# define PRINT_RES_BODY false
+# define PRINT_REQ_FILE_STATUS true
+# define PRINT_RES_FILE_STATUS true
+# define PRINT_UPLOAD_FILE_STATUS true
+
 # define MAX_WAIT 15
 # define MAX_EVENTS 100
 # define BUFFER_SIZE 4092
@@ -46,7 +55,6 @@
 # define TXT_B "\033[1m"
 # define TXT_U "\033[4m"
 # define TXT_I "\033[3m"
-
 
 typedef enum eStatus {
 	CLOSE,

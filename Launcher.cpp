@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Launcher.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/08 11:37:20 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/08 15:33:18 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,7 +145,7 @@ void	Launcher::processNewClient(int fd)
 	addServerOfClient(fd, &new_client);
 	_clients.push_back(new_client);
 	inet_ntop (AF_INET, &(client_addr.sin_addr), str_ip_client, sizeof (str_ip_client));
-	std::cout << TXT_GREEN << getTimestamp() << "	New client connexion from " << str_ip_client << " ==> Client " << new_client.getId() << TXT_END << std::endl;
+	std::cout << TXT_MAG << TXT_B << getTimestamp() << "Client " << new_client.getId() << ":	New client connexion from " << str_ip_client << TXT_END << std::endl;
 }
 
 /*
@@ -337,8 +337,11 @@ void	Launcher::removeFdFromPoll(int fd)
 			break;
 		++it;
 	}
-	_pollEvent.erase(it);
-	_breakPollLoop = true;
+	if (it != _pollEvent.end())
+	{
+		_pollEvent.erase(it);
+		_breakPollLoop = true;
+	}
 }
 
 void	Launcher::printPollEvent(void) const

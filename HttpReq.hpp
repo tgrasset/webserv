@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpReq.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2023/09/07 11:00:42 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/08 16:43:19 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,11 +51,10 @@ private:
 	Location							*_location;
 	std::string							_boundary;
 	bool								_uploadFile;
+	int									_percentRecievedTmpBodyFile;
 
 	static std::string					_bodyTmpFolder;
 	static unsigned int					_count;
-	static bool							_printReqBodyRec;
-	static bool							_printMsg;
 	
 	HttpReq(void);
 	void								parse(std::string &content, std::vector<Server *> servers);
