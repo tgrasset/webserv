@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/11 17:22:15 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/11 19:57:52 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,10 @@ HttpRes::~HttpRes(void) {
 	closeBodyFile();
 	closeCgiPipe();
 	if (_cgiPid != -42)
-		kill(this->_cgiPid, SIGKILL);
+	{
+		if (kill(this->_cgiPid, SIGKILL) == 0)
+			std::cout << TXT_BL << getTimestamp() << "Client " << this->_client->getId() << ":	Killing the CGI process"<<  TXT_END << std::endl;
+	}
 }
 
 /* ************************************************************************** */
@@ -1002,4 +1005,24 @@ bool	HttpRes::isAllowedCGI(void) {
 	if (_resourceType == PYTHON && cgiMap.find(".py") == cgiMap.end())
 		return (false);
 	return (true);
+}
+
+std::string HttpRes::getErrorPageContent(std::string path, int code, std::string message) {
+
+	struct stat buf;
+	int ret = stat(path.c_str(), &buf);
+	std::ifstream fileStream;
+	std::stringstream s;
+
+	if (ret < 0 || !S_ISREG(buf.st_mode) || access(path.c_str(), R_OK) != 0)
+		s << errorHTML(code, message);
+	else
+	{
+		struct stat file;
+		if (stat(path.c_str(), &file) == 0)
+			_contentLength = file.st_size;
+		_uriPath = path;
+		s.clear();
+	}
+	return (s.str());
 }

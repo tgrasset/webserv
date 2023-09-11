@@ -383,29 +383,6 @@ std::string errorHTML(int code, std::string message) {
 	return (s.str());
 }
 
-std::string getErrorPageContent(std::string path, int code, std::string message) {
-
-	struct stat buf;
-    int ret = stat(path.c_str(), &buf);
-    std::ifstream fileStream;
-	std::stringstream s;
-
-    if (ret < 0 || !S_ISREG(buf.st_mode) || access(path.c_str(), R_OK) != 0)
-		s << errorHTML(code, message);
-	else
-	{
-    	fileStream.open(path.c_str());
-    	if (fileStream.fail())
-        	s << errorHTML(code, message);
-		else
-		{
-    		s << fileStream.rdbuf();
-    		fileStream.close();
-		}
-	}
-    return (s.str());
-}
-
 std::string	getMimeType(std::string path, std::map<std::string, std::string> &types) {
 
 	size_t point = path.rfind('.');

@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/11 16:10:31 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/11 18:38:15 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -262,7 +262,6 @@ int	Client::receiveRequestBody(void)
 
 void	Client::sendResponse(void)
 {
-	this->resetLastActivity();
 	if (this->_status == WAITING_FOR_RES)
 	{
 		if (this->_res != NULL)
@@ -297,6 +296,7 @@ void	Client::sendResponseHeader(void)
 		}
 		else
 		{
+			this->resetLastActivity();
 			this->_status = SENDING_RES_HEADER;
 			this->_byte_sent_header += byte_sent;
 		}
@@ -317,10 +317,10 @@ void	Client::sendResponseBody(void)
 	std::string	res_body = this->_res->getBody();
 	if (res_body.size() != 0)
 		this->sendResponseBodyError();
-	else if (this->_res->getResourceType() == NORMALFILE)
-		this->sendResponseBodyNormalFile();
 	else if (this->_res->getResourceType() == PYTHON || this->_res->getResourceType() == PHP)
 		this->sendResponseBodyCgi();
+	else
+		this->sendResponseBodyNormalFile();
 }
 
 void	Client::sendResponseBodyError(void)
@@ -339,8 +339,9 @@ void	Client::sendResponseBodyError(void)
 		this->_status = ERROR_WHILE_SENDING;
 		return ;
 	}
-	else
+	else if (byte_sent > 0)
 	{
+		this->resetLastActivity();
 		this->_status = SENDING_RES_BODY;
 		this->_byte_sent_body += byte_sent;
 		int percent_sent = static_cast<int>(static_cast<double>(_byte_sent_body)/static_cast<double>(res_body_remain.size()) * 100);
@@ -372,20 +373,24 @@ void	Client::sendResponseBodyNormalFile(void)
 				this->_status = ERROR_WHILE_SENDING;
 				return;
 			}
-			this->_byte_sent_body += byte_sent;
-			double	percent_sent = (static_cast<double>(_byte_sent_body) / static_cast<double>(this->_res->getFileToSendSize())) * 100;
-			if (std::fmod(percent_sent, 5.0) < 0.1 && _percentSentFile < static_cast<int>(percent_sent) && PRINT_RES_FILE_STATUS )
+			else if (byte_sent > 0)
 			{
-				std::cout << TXT_CY << getTimestamp() << "Client " << _id << ":	" << static_cast<int>(percent_sent) << "% of file " << this->_res->getUriPath() << " sent" << TXT_END << std::endl;
-				_percentSentFile = static_cast<int>(percent_sent);
-			}		
-			this->_status = SENDING_RES_BODY;
-			this->_res->clearFileToSendBuff();
-			if (this->_byte_sent_body == this->_res->getFileToSendSize())
-			{
-				this->_res->closeBodyFile();
-				this->_status = RES_SENT;
-				_percentSentFile = 0;
+				this->resetLastActivity();
+				this->_byte_sent_body += byte_sent;
+				double	percent_sent = (static_cast<double>(_byte_sent_body) / static_cast<double>(this->_res->getFileToSendSize())) * 100;
+				if (std::fmod(percent_sent, 5.0) < 0.1 && _percentSentFile < static_cast<int>(percent_sent) && PRINT_RES_FILE_STATUS )
+				{
+					std::cout << TXT_CY << getTimestamp() << "Client " << _id << ":	" << static_cast<int>(percent_sent) << "% of file " << this->_res->getUriPath() << " sent" << TXT_END << std::endl;
+					_percentSentFile = static_cast<int>(percent_sent);
+				}		
+				this->_status = SENDING_RES_BODY;
+				this->_res->clearFileToSendBuff();
+				if (this->_byte_sent_body == this->_res->getFileToSendSize())
+				{
+					this->_res->closeBodyFile();
+					this->_status = RES_SENT;
+					_percentSentFile = 0;
+				}
 			}
 		}
 		else if (this->_res->getFileToSendSize() == 0)
@@ -417,6 +422,7 @@ void	Client::sendResponseBodyCgi(void)
 		else if (byte_sent_header > 0)
 		{	
 			_res->clearCgiBuff_header();
+			this->resetLastActivity();
 		}
 	}
 	std::vector<char>	cgi_buff;

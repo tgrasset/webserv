@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/11 16:13:57 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/11 17:57:18 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,6 +109,7 @@ class HttpRes
 		void								transferUploadFileOutSide(void);
 		void								finishBuildingResAfterUpload(void);
 		bool								isAllowedCGI(void);
+		std::string							getErrorPageContent(std::string path, int code, std::string message);
 
 		class HttpResException : public std::exception {
 			public :

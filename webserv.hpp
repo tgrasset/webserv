@@ -39,7 +39,7 @@
 # define PRINT_RES_FILE_STATUS true
 # define PRINT_UPLOAD_FILE_STATUS true
 
-# define MAX_WAIT 15
+# define MAX_WAIT 50
 # define MAX_EVENTS 100
 # define BUFFER_SIZE 4092
 # define MAX_TIME_CLIENT_S 10
@@ -83,7 +83,6 @@ std::string					toUpperCase(const std::string& str);
 std::string					redirectionHTML(int code, std::string message, std::string path);
 std::string					autoindexHTML(std::string dirPath, std::string requestUri);
 std::string					errorHTML(int code, std::string message);
-std::string					getErrorPageContent(std::string path, int code, std::string message);
 std::string					getMimeType(std::string path, std::map<std::string, std::string> &types);
 void						printVectorChar(std::vector<char> vectChar);
 
