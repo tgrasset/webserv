@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/08 15:33:18 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/11 13:31:33 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,7 +194,7 @@ void	Launcher::processWritingFd(int fd)
 	{
 	case COM_SOCKET:
 		client->sendResponse();
-		if (client->getStatus() == RES_SENT && client->getKeepAlive())
+		if (client->getStatus() == RES_SENT && client->getKeepAlive() && client->getHttpRes() &&  client->getHttpRes()->getStatusCode() < 300)
 		{
 			std::cout << TXT_GREEN << getTimestamp() << "Client " << client->getId() << ":	Writing finised. Adding him to reading monitored sockets" << TXT_END << std::endl;
 			client->resetClient();

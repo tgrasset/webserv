@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/08 16:41:06 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/11 13:30:32 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,6 +112,7 @@ public:
 	Launcher					*getLauncher(void) const;
 	void						transferUploadFileInSide(void);
 	HttpReq						*getHttpReq(void) const;
+	HttpRes						*getHttpRes(void) const;
 	void						transferUploadFileOutSide(void);
 	void						printClientFd(void) const;
 

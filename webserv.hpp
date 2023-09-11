@@ -34,7 +34,7 @@
 # define PRINT_REQ_HEADER true
 # define PRINT_REQ_BODY false
 # define PRINT_RES_HEADER true
-# define PRINT_RES_BODY false
+# define PRINT_RES_BODY true
 # define PRINT_REQ_FILE_STATUS true
 # define PRINT_RES_FILE_STATUS true
 # define PRINT_UPLOAD_FILE_STATUS true
@@ -75,6 +75,7 @@ bool						isValidConfValue(std::string &str);
 std::string					getStatus(int code);
 bool						checkFile(std::string const &file, std::string const &root);
 std::string					getTimestamp(void);
+std::string					getTimestampFileName(void);
 std::string					timeStamp(void);
 std::string					sizeToString(size_t n);
 bool						caseInsensitiveCmp(std::string const &a, std::string const &b);
@@ -82,7 +83,6 @@ std::string					toUpperCase(const std::string& str);
 std::string					redirectionHTML(int code, std::string message, std::string path);
 std::string					autoindexHTML(std::string dirPath, std::string requestUri);
 std::string					errorHTML(int code, std::string message);
-std::string					successfulDeleteHTML(std::string path);
 std::string					getErrorPageContent(std::string path, int code, std::string message);
 std::string					getMimeType(std::string path, std::map<std::string, std::string> &types);
 void						printVectorChar(std::vector<char> vectChar);

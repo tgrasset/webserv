@@ -228,6 +228,33 @@ std::string	getTimestamp(void)
 	return (os.str());
 }
 
+std::string	getTimestampFileName(void)
+{
+	time_t				rawtime;
+	struct tm 			*timeinfo;
+	std::ostringstream	os;
+
+	time (&rawtime);
+	timeinfo = localtime (&rawtime);
+	os << timeinfo->tm_year + 1900;
+	if (timeinfo->tm_mon < 9)
+		os << "0";
+	os << timeinfo->tm_mon + 1;
+	if (timeinfo->tm_mday < 9)
+		os << "0";
+	os << timeinfo->tm_mday;
+	os << "_";
+	if (timeinfo->tm_hour <= 9)
+		os << "0";
+	os << timeinfo->tm_hour;
+	if (timeinfo->tm_min <= 9)
+		os << "0";
+	os << timeinfo->tm_min;
+	if (timeinfo->tm_sec <= 9)
+		os << "0";
+	os << timeinfo->tm_sec;
+	return (os.str());
+}
 
 std::string  timeStamp(void) {
 
@@ -353,13 +380,6 @@ std::string errorHTML(int code, std::string message) {
 	
 	std::stringstream s;
 	s << "<!doctype html>\n<html>\n<head>\n<title>" << code << "</title>\n</head>\n<body>\n<p>" << code << " : " << message << "</p>\n</body>\n</html>\n";
-	return (s.str());
-}
-
-std::string successfulDeleteHTML(std::string path) {
-
-	std::stringstream s;
-	s << "<!doctype html>\n<html>\n<head>\n<title>Delete successful" << "</title>\n</head>\n<body>\n<p>" << path << " was successfully deleted from the server" << "</p>\n</body>\n</html>\n";
 	return (s.str());
 }
 
