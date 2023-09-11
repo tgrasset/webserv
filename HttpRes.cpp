@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/11 14:38:00 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/11 16:18:57 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,7 @@ HttpRes::HttpRes(Client * client, HttpReq *request) {
 	_byteWrittenUploadFile = 0;
 	_percentWrittenUploadFile = 0;
 	_first_line_of_header = true;
+	_is_cgi = false;
 
 	if (_mimeTypes.empty() == true)
 		fillMimeTypes();
@@ -131,6 +132,7 @@ HttpRes	& HttpRes::operator=(HttpRes const & httpres)
 		_byteWrittenUploadFile = httpres._byteWrittenUploadFile;
 		_percentWrittenUploadFile = httpres._percentWrittenUploadFile;
 		_first_line_of_header = httpres._first_line_of_header;
+		_is_cgi = httpres._is_cgi;
 	}
 	return (*this);
 }
@@ -626,6 +628,8 @@ void	HttpRes::formatHeader(void) {
 	response << _httpVersion << " " << _statusCode << " " << _statusMessage << "\r\n";
 	for (std::map<std::string, std::string>::iterator it = _header.begin(); it != _header.end(); it++)
 		response << it->first << " " << it->second << "\r\n";
+	if (_is_cgi == false)
+		response << "\r\n";
 	_formattedHeader = response.str();
 }
 
@@ -655,8 +659,6 @@ bool	HttpRes::methodIsAllowed(std::string method) {
 
 void	HttpRes::handleRequest(void)
 {
-	bool	is_cgi = false;
-	
 	_statusCode = checkHttpVersion(_request->getHttpVersion());
 	if (_statusCode == 200 && _request->bodyIsTooBig() == true)
 		_statusCode = 413;
@@ -684,15 +686,19 @@ void	HttpRes::handleRequest(void)
 		}
 		else
 		{
-			is_cgi = true;
+			_is_cgi = true;
 			CGI cgi(*_request, *this);
 			cgi.execCGI();
 		}
 	}
 	else if (_statusCode == 200 && _request->getUploadFile())
 	{
-		if (_request->getBoundary() == "" || _request->getContentType() != "multipart/form-data")
-			_statusCode = 400;	
+		if (_request->getBoundary() == "" || _request->getContentType().find("multipart/form-data") == std::string::npos)
+		{
+			std::cout << "_request->getBoundary()	" << _request->getBoundary() << std::endl;
+			std::cout << "_request->getContentType() 	" << _request->getContentType() << std::endl;
+			_statusCode = 400;
+		}
 		else
 		{
 			uploadFileToServer();
@@ -706,8 +712,6 @@ void	HttpRes::handleRequest(void)
 		_keepAlive = false;
 	headerBuild();
 	formatHeader();
-	if (!is_cgi)
-		_formattedHeader += "\r\n";
 	if (_client->getStatus() != UPLOADING_FILE)
 		_client->setStatus(RES_READY_TO_BE_SENT);
 }

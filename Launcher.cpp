@@ -6,7 +6,7 @@
 /*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/11 13:31:33 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/11 15:22:25 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,6 +125,10 @@ void	Launcher::initiateServersListening(void)
 				throw LauncherException("Impossible to listen !");
 		}
 		addFdToPollIn(it->getListenSocket());
+		char	str_ip_server[INET_ADDRSTRLEN];
+		struct sockaddr_in  server_addr = it->getServerAddr();
+		inet_ntop (AF_INET, &(server_addr.sin_addr), str_ip_server, sizeof (str_ip_server));
+		std::cout << TXT_GREEN << getTimestamp() << "	Server running and listening on address " << str_ip_server << " port " << ntohs(it->getPort()) << TXT_END << std::endl;
 	}
 }
 

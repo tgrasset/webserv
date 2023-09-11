@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/11 14:25:53 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/09/11 16:13:57 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,6 +174,7 @@ class HttpRes
 		size_t										_byteWrittenUploadFile;
 		size_t										_percentWrittenUploadFile;
 		bool										_first_line_of_header;
+		bool										_is_cgi;
 };
 
 #endif
