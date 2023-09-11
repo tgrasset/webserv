@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/11 14:19:14 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/09/11 14:35:55 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -553,3 +553,7 @@ HttpReq	*Client::getHttpReq(void) const
 	return (this->_req);
 }
 
+HttpRes	*Client::getHttpRes(void) const
+{
+	return (this->_res);
+}

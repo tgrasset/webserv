@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Exemple de suppression avec affichage de la réponse</title>
+</head>
+<body>
+    <button id="deleteButton">Supprimer la ressource</button>
+    <div id="responseArea"></div>
+
+    <script>
+        document.getElementById("deleteButton").addEventListener("click", function() {
+            if (confirm("Voulez-vous vraiment supprimer cette ressource ?")) {
+                // Effectuer une requête DELETE avec AJAX
+                var xhr = new XMLHttpRequest();
+                xhr.open("DELETE", "/test/todelete", true);
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        var responseArea = document.getElementById("responseArea");
+                        responseArea.innerHTML =  xhr.responseText;
+                    }
+                };
+                xhr.send();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/11 14:24:59 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/09/11 14:38:00 by mbocquel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -586,7 +586,7 @@ void	HttpRes::bodyBuild(std::string requestUri) {
 	else if (_resourceType == AUTOINDEX)
 		_body = autoindexHTML(_uriPath, requestUri);
 	else if (_method == "DELETE" && _statusCode == 204)
-		_body = successfulDeleteHTML(_uriPath);
+		_body = "";
 	else if (_statusCode != 200)
 	{
 		std::map<int, std::string> error_pages = _server->getErrorPages();
@@ -685,14 +685,19 @@ void	HttpRes::handleRequest(void)
 		else
 		{
 			is_cgi = true;
-		CGI cgi(*_request, *this);
+			CGI cgi(*_request, *this);
 			cgi.execCGI();
 		}
 	}
 	else if (_statusCode == 200 && _request->getUploadFile())
 	{
-		uploadFileToServer();
-		return ;
+		if (_request->getBoundary() == "" || _request->getContentType() != "multipart/form-data")
+			_statusCode = 400;	
+		else
+		{
+			uploadFileToServer();
+			return ;
+		}
 	}
 	_statusMessage = getStatus(_statusCode);
 	if (!(_resourceType == PHP || _resourceType == PYTHON))
@@ -824,7 +829,7 @@ void	HttpRes::transferUploadFileOutSide(void)
 			size_t posEndFilename = _uploadBuff.substr(posBeginFilename, _uploadBuff.size() - posBeginFilename).find('"');
 			std::string file_name = _uploadBuff.substr(posBeginFilename, posEndFilename);
 			std::ostringstream	file_path;
-			file_path << _location->getUploadDir() << "/" << file_name;
+			file_path << _location->getUploadDir() << "/" << getTimestampFileName() << "_" << file_name;
 			if (file_name != "")
 				_nameFinalUploadFile = file_path.str();
 			else
