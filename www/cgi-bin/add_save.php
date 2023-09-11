@@ -17,8 +17,6 @@ if ($a !== null && $b !== null) {
 
     $sum = ft_add($a, $b);
 
-    echo "Content-type: text/html\r\n";
-    echo "\r\n";
     echo "<h1>Result :</h1>";
     echo "<p>$a + $b = $sum.</p>";
 

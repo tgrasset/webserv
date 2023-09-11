@@ -6,7 +6,7 @@
 /*   By: jlanza <jlanza@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/08 21:37:08 by jlanza           ###   ########.fr       */
+/*   Updated: 2023/09/11 13:34:20 by jlanza           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -622,7 +622,6 @@ void	HttpRes::formatHeader(void) {
 	response << _httpVersion << " " << _statusCode << " " << _statusMessage << "\r\n";
 	for (std::map<std::string, std::string>::iterator it = _header.begin(); it != _header.end(); it++)
 		response << it->first << " " << it->second << "\r\n";
-	//response << "\r\n"; // jojo suppr cette ligne
 	_formattedHeader = response.str();
 }
 
@@ -901,8 +900,6 @@ int		HttpRes::addBodyFileToBuff(void)
 	return (0);
 }
 
-// jojo modifier cette fonction 
-// _formattedHeader << "\r\n";
 int	HttpRes::addCgiToBuff(void)
 {
 	if (this->_statusCgiPipe != PIPE_OPEN)

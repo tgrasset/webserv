@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8">
+        <title>Webserv test du Form Post</title>
+    </head>
+    <body>
+      <h1>Choose a name</h1>
+      <form action="/cgi-bin/set_cookie.py" method="POST" enctype="multipart/form-data">
+        <text> Your name: </text>
+        <input type="string" name="username"><br>
+        <input type="submit" value="choose">
+      </form>
+    </body>
+</html>
