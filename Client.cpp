@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:25 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/11 18:38:15 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/12 10:19:51 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -449,6 +449,7 @@ void	Client::sendResponseBodyCgi(void)
 			this->_byte_sent_body += byte_sent;
 			this->_status = SENDING_RES_BODY;
 			this->_res->clearCgiBuff();
+			this->resetLastActivity();
 		}
 	}
 	if (this->_res->getStatusCgiPipe() == PIPE_FINISH)
@@ -461,7 +462,10 @@ void	Client::sendResponseBodyCgi(void)
 			return ; 
 		}
 		else if (byte_sent > 0)
+		{
 			this->_status = RES_SENT;
+			this->resetLastActivity();
+		}
 	}
 }
 
@@ -562,4 +566,9 @@ HttpReq	*Client::getHttpReq(void) const
 HttpRes	*Client::getHttpRes(void) const
 {
 	return (this->_res);
+}
+
+int		Client::getTimeOut(void) const
+{
+	return (_server_ptr[0]->getTimeout());
 }

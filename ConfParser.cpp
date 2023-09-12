@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/12 15:35:55 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/12 09:26:35 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/12 10:10:38 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -288,7 +288,7 @@ void    ConfParser::checkServerConfig(Server &server) const {
     if (checkFile(server.getIndex(), server.getRoot()) == false)
         throw ConfParserException("Index file doesn't exist or couldn't be read");
     if (server.getTimeout() < 0)
-        server.setTimeout("10;");
+        server.setTimeout(MAX_TIME_CLIENT_S);
 }
 
 void    ConfParser::parse() {

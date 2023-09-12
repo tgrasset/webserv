@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 18:38:41 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/12 09:29:57 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/12 10:22:19 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,7 +128,6 @@ void	Launcher::initiateServersListening(void)
 		char	str_ip_server[INET_ADDRSTRLEN];
 		struct sockaddr_in  server_addr = it->getServerAddr();
 		inet_ntop (AF_INET, &(server_addr.sin_addr), str_ip_server, sizeof (str_ip_server));
-		std::cout << TXT_GREEN << getTimestamp() << "	Server running and listening on address " << str_ip_server << " port " << ntohs(it->getPort()) << TXT_END << std::endl;
 	}
 }
 
@@ -304,7 +303,7 @@ void	Launcher::checkTimeoutClients(void)
 	for(std::list<Client>::iterator it = this->_clients.begin(); it != this->_clients.end();++it)
 	{
 		time = it->timeSinceLastActivityUs() / 1000000;
-		if (time > MAX_TIME_CLIENT_S)
+		if (time > static_cast<unsigned long>(it->getTimeOut()))
 		{
 			std::cout << TXT_MAG << getTimestamp() << "Client " << it->getId() << ":	Timeout, time = " << time << ". Client removed" << TXT_END << std::endl;
 			std::list<Client>::iterator it_tmp = it;

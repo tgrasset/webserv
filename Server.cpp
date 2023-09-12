@@ -6,7 +6,7 @@
 /*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/12 15:48:32 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/12 09:24:09 by tgrasset         ###   ########.fr       */
+/*   Updated: 2023/09/12 10:03:29 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -356,8 +356,8 @@ void	Server::setTimeout(std::string timeout) {
 	if (isValidConfValue(timeout) == false)
 		throw ServerException("';' symbol needed after 'timeout' line");
 	int n = stringToInt(timeout);
-	if (n < 0 || n > 100)
-		throw ServerException("Invalid value in 'timeout' line. Please set timeout between 0 and 100 seconds");
+	if (n < 1 || n > 120)
+		throw ServerException("Invalid value in 'timeout' line. Please set timeout between 1 and 120 seconds");
 	_timeout = n;
 }
 

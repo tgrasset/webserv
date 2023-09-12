@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRes.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:19:07 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/11 19:57:52 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/12 10:14:16 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -615,7 +615,7 @@ void	HttpRes::headerBuild(void) {
 	if (_keepAlive == true)
 	{
 		_header["Connection:"] = "keep-alive";
-		_header["Keep-Alive:"] = "timeout=" + sizeToString(MAX_TIME_CLIENT_S);
+		_header["Keep-Alive:"] = "timeout=" + sizeToString(_client->getTimeOut());
 	}
 	else
 		_header["Connection:"] = "close";

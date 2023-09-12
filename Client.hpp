@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 19:09:21 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/09/11 17:17:25 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/12 10:08:44 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,6 +114,7 @@ public:
 	HttpRes						*getHttpRes(void) const;
 	void						transferUploadFileOutSide(void);
 	void						printClientFd(void) const;
+	int							getTimeOut(void) const;
 
 	class ClientException : public std::exception {
 	public :
