@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/12 15:48:32 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/11 16:35:47 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/12 09:24:09 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ Server::Server(void)
 	_index = "";
 	_errorPages.clear();
 	_listenSocket = 0;
+	_timeout = -1;
 }
 
 Server::Server(Server const &src) 
@@ -61,6 +62,7 @@ Server &Server::operator=(Server const &rhs)
 		_errorPages = rhs.getErrorPages();
 		_locations = rhs.getLocations();
 		_listenSocket = rhs.getListenSocket();
+		_timeout = rhs.getTimeout();
 	}
     return (*this);
 }
@@ -116,6 +118,11 @@ int	Server::getListenSocket(void) const {
 struct sockaddr_in	Server::getServerAddr(void) const {
 
 	return (_servaddr);
+}
+
+int	Server::getTimeout(void) const {
+
+	return (_timeout);
 }
 
 void	Server::setPort(std::string port) {
@@ -342,6 +349,16 @@ void	Server::setServaddr(void)
 	_servaddr.sin_family = AF_INET;
 	_servaddr.sin_addr.s_addr = _host;
 	_servaddr.sin_port = _port;
+}
+
+void	Server::setTimeout(std::string timeout) {
+
+	if (isValidConfValue(timeout) == false)
+		throw ServerException("';' symbol needed after 'timeout' line");
+	int n = stringToInt(timeout);
+	if (n < 0 || n > 100)
+		throw ServerException("Invalid value in 'timeout' line. Please set timeout between 0 and 100 seconds");
+	_timeout = n;
 }
 
 void	Server::bind_server(void)

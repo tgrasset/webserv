@@ -26,6 +26,7 @@ class Server {
 		std::vector<Location>		getLocations(void) const;
 		int							getListenSocket(void) const;
 		struct sockaddr_in			getServerAddr(void) const;
+		int							getTimeout(void) const;
 
 		void						setPort(std::string port);
 		void						setHost(std::string host);
@@ -37,6 +38,7 @@ class Server {
 		void						setErrorPages(std::vector<std::string> errorPages);
 		void						setLocation(std::string path, std::vector<std::string> content);
 		void						setServaddr(void);
+		void						setTimeout(std::string timeout);
 		
 		void						bind_server(void);
 
@@ -68,6 +70,7 @@ class Server {
 		std::vector<Location> 			_locations;
 		int								_listenSocket;
 		static bool						_verbose;
+		int								_timeout;
 };
 
 #endif

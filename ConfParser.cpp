@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfParser.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbocquel <mbocquel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tgrasset <tgrasset@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/12 15:35:55 by mbocquel          #+#    #+#             */
-/*   Updated: 2023/08/24 18:31:43 by mbocquel         ###   ########.fr       */
+/*   Updated: 2023/09/12 09:26:35 by tgrasset         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -257,6 +257,12 @@ void    ConfParser::configurateServer(Server &server, std::string &config) const
             server.setLocation(path, content);
             inLocations = true;
         }
+        else if (params[i] == "timeout" && i + 1 < size && inLocations == false)
+        {
+            if (server.getTimeout() != -1)
+                throw ConfParserException("Each 'server' context can't have more than one 'timeout' directive");
+            server.setTimeout(params[++i]);
+        }
         else if (params[i] != "{" && params[i] != "}")
         {
             if (inLocations == true)
@@ -281,6 +287,8 @@ void    ConfParser::checkServerConfig(Server &server) const {
         server.setPort("80;");
     if (checkFile(server.getIndex(), server.getRoot()) == false)
         throw ConfParserException("Index file doesn't exist or couldn't be read");
+    if (server.getTimeout() < 0)
+        server.setTimeout("10;");
 }
 
 void    ConfParser::parse() {
