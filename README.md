@@ -1,153 +1,37 @@
-# Reste a faire par rapport a la correction\
-## General 
-- Search for all read recv write send on a socket and check that if an error returned the client is remove
-- Search for all read recv write send and check if the return value is well checked (checking only -1 or 0 is not good enouth, you should check both)
-- cas d'un upload de gros fichier, la fermeture du fichier foire ce qui fait fermer tout le serveur web. je pense qu'il vaut mieux gerer le truc autrement et juste remove le client. 
-- besoin de mieux choisir la maniere dont on affiche les messages car ca devient pas visible pour les gros fichiers. 
-- Implemeter l'upload de fichier via chunck.
+# Webserv: A HTTP Server in C++ 98
 
-# Note pour l'equipe
-## 21/08
-- Besoin de faire en sorte que lorsqu'on recoit un body dans la req et qu'on l'a sauvegarder, on puisse continuer le processus du client (le passer en Req Completed, et le passer du poll lecture au poll ecriture). 
+In this project, we implemented a HTTP server in C++ 98, designed to serve static websites, handle GET, POST and DELETE methods, manage uploads from clients and provide CGI support for php and python scripts. Of course, the server is non-blocking and compatible with at least Google Chrome and Mozilla Firefox. 
 
-## 11/08
-- Code modifie pour monitorer les fd des ouvertures des fichiers normaux comme demande par le sujet.
-- Du coup epoll et fonction associees remplacees par poll. 
-- Il reste encore a ajouter la partie CGI dans les fd a monitorer. 
-- curl -i http://localhost:5403 pour tester en voyant aussi le header. 
-- Nomemclature uniformise pour l'ensemble du code avec le fomat ceciEstUneVariableOuUneFonction. 
+![webserv](webserv.gif)
 
-## 05/08
-- Je modifie le code pour prendre en compte la regle de ne jamais rien lire ou ecrire sans passer par le epoll. 
-- Il va falloir modifier la requete aussi pour que l'ecriture dans le fichier du body de la requete se fasse via le epoll. 
-- De meme il va falloir modifier la fonction cgi pour que la lecture de ce body se fasse aussi via epoll.  
-## 04/08/2023
-- Je pense qu'il faut modifier la fonction HttpRes::handleRequest(HttpReq &request) pour que je CGI puisse aussi etre appelle par les methodes GET. (maxence)
+## Getting started:
 
+```
+git clone https://github.com/tgrasset/webserv.git
+cd webserv
+./webserv <path/to/config/file(optional)>
+```
 
+## Configuration:
+Examples of configuration files can be found in the `./configs` folder.  
+The program can be launched with several servers listening on different ports so you can have several `server{}` blocks in the configuration file.  
+Here are some elements that can be defined for each `server` :
+- `host` : the IP address of the server
+- `listen` : the listening port
+- `root` : the root directory of the server
+- `index` : the page served if the root directory is requested by the client
+- `client_max_body_size` : the maximum length in bytes of a request's body
+- `error_page`: path of optional custom error pages for any http status code
+- `server_name` : this field is only used to differentate 2 servers listening on the same IP/port pair
 
-## Code review retour de vacances 20/07
-- Gestion des fichiers temporaires : 
-	- Il faut ameliorer la suppression des fichiers temps avec le body des requetes clients. Verifier que le fichier est bien supprimeau destructeur de la requete, et que cette destruction se fait bien quand il faut. 
-- Creation fichier temporaire de body de response CGI. **=> JOSEPH PREND L'ACTION**
-	- Ce fichier permet de faire un header avec le content lenght comme pour les fichiers statique. il permet de gerer l'envoie de la meme maniere que les fichiers classique. 
-	- Une fois l'envoie a ete fait, il supprime le fichier.
+Each `server{}` block can include any number of `location{}` blocks associated to a specific route where some particular behaviours can be defined with the following keywords:
+- `allow_methods` : lists the methods authorized for this route (GET, POST and DELETE)
+- `index` : an index can be specified for any route and not just for the server
+- `autoindex` : if no index page is provided, the server will generate an overview of the route's filesystem similar to the `ls` command in a shell context
+- `upload_dir` : the directory where clients' uploaded file will be saved
+- `return` : followed by a status code and a route, this keyword is for redirections
 
-- ATTENTION le sujet dit **Interdit de write dans n'importe quel fd sans utiliser le pool** => comment on fait si on a un gros fichier qui prend 1000 ans a se faire ? 
-	- Ah mais on est sur un process qui a fork, dond on peut faire l'ecriture en //. il faut juste regader si la creation du fichier est termine. 
+## Acknowledgements
 
-
-
-# Fonctions deja connues 
-- execve 
-- dup
-- dup2
-- pipe
-- strerror
-- gai_strerror
-- errno
-- dup
-- dup2
-- fork
-
-
-
-# Nouvelles fonctions
-
-## htons, htonl, ntohs, ntohl
-The htonl() function converts the unsigned integer hostlong from host byte order to network byte order.
-The htons() function converts the unsigned short integer hostshort from host byte order to network byte order.
-The ntohl() function converts the unsigned integer netlong from network byte order to host byte order.
-The ntohs() function converts the unsigned short integer netshort from network byte order to host byte order.
-
-*En gros ca permet de gerer les problemes de endian, c'est a dire la facon dont les nombres (int, short etc.) sont stockes par le system. En gros le principe est de s'assurer que peut importe la facon dont les donnes sont organises dans la machine(bigendian ou shortendian), elles sont envoyes dans une norme ok pour le reseau.*
-
-Une video pour comprendre l'interet de ces fonctions :
-https://youtu.be/OoHich9BPxg
-
-*Je kiffe ce mec ! D'apres lui pour un serveur HTTP on devrait pas trop avoir besoin de se faire chier avec ces fonctions car on devrait envoyer du texte et pas des int ou des short etc.*
-
-## select
-Petite explication toujours via mon youtuber chauve prefere : 
-https://youtu.be/Y6pFtgRdUts
-C'est un moyen d'avoir un peu de parallélisation sans pour autant utiliser des threads. 
-Prend un groupe de File Descriptor et te dis quand il y a quelque chose a lire sur l'un de ces FD. 
-
-**Pas sur que ca soit vraiment interessant d'utiliser a la place des Threads, mais a voir...**
-
-## poll
-C'est un cousin de select. Mais en mieux.
-Pas besoin de mettre les sockets dans un set de FD, ni de calculer le plus grand des FD. Juste besoin d'envoyer un tableau de pollfd struct (aui contient un fd, un short qui decrit le requested event et un short qui decrit le returned event).
-
-- event c'est nous qui le definissont pour dire ce qu'on cherche comme event.
-- revents c'est ce qui s'est passe chez le client. 
-Interet aussi c'est que contrairement a Select, les fd ne changent pas. 
-
-Partie d'une video qui parle de ca. 
-https://youtu.be/tAGF0T2cXRA?t=2935
-
-Pb c'est que pour Select et pour Poll ca peut etre assez lent si on a genre 100 sockets. 
-
-## epoll (epoll_create, epoll_ctl, epoll_wait)
-
-epoll est une variante de poll que l'on peut déclencher par niveau ou par changement d'état, et monte bien en charge pour un grand nombre de descripteurs simultanés. Trois appels système sont fournis pour configurer et commander un ensemble epoll : epoll_create, epoll_ctl, epoll_wait.
-
-Un ensemble epoll est connecté à un descripteur de fichier créé par epoll_create. L'interêt pour certains descripteurs est ensuite enregistré avec epoll_ctl. Enfin, l'attente effective démarre avec l'appel epoll_wait. 
-
-http://manpagesfr.free.fr/man/man7/epoll.7.html
-
-## kqueue (kqueue, kevent)
-C'est une autre facon de gerer les IO asynchronus que select et Poll. C'est via la libevent. 
-J'ai trouver un tuto qui explique un peu le concept
-https://wiki.netbsd.org/tutorials/kqueue_tutorial/
-
-
-## socket
-
-## accept
-
-## listen
-
-## send
-
-## recv
-
-## bind
-
-## connect
-
-## getaddrinfo
-
-## freeaddrinfo
-
-## setsockopt
-
-## getsockname
-
-## getprotobyname
-
-## fcntl
-
-
-
-# Ressources interessantes
-## Understanding Nginx Server and Location Block Selection Algorithms
-https://www.digitalocean.com/community/tutorials/understanding-nginx-server-and-location-block-selection-algorithms
-
-# Write Your Own HTTP Server
-https://betterprogramming.pub/writing-your-own-http-server-introduction-b2f94581268b
-
-# Documentation officielle HTTP
-https://www.rfc-editor.org/rfc/rfc9112.html
-
-# Wikipedia Common Gateway Interface
-https://en.wikipedia.org/wiki/Common_Gateway_Interface
-
-# Wikipedia Werbserver
-https://en.wikipedia.org/wiki/Web_server
-
-# Lecture universite sur Poll et Select 
-https://youtu.be/tAGF0T2cXRA
-
-
-
+This project was made with my teammate [lanzaj](https://github.com/lanzaj)
+ at 42school.
