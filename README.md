@@ -33,5 +33,5 @@ Each `server{}` block can include any number of `location{}` blocks associated t
 
 ## Acknowledgements
 
-This project was made with my teammate [lanzaj](https://github.com/lanzaj)
+This project was made with my teammates [mbocquel](https://github.com/mbocquel) and [lanzaj](https://github.com/lanzaj)
  at 42school.
